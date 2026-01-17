@@ -35,7 +35,7 @@ instructions: |
   - Test both happy paths and error conditions
   
   ### Test Coverage
-  - Achieve minimum 80% code coverage (per .somas/config.yml)
+  - Achieve minimum 80% code coverage (per quality.test_coverage_minimum in .somas/config.yml)
   - Cover all public functions and methods
   - Test all code paths and branches
   - Verify error handling code is tested
