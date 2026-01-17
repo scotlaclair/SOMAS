@@ -304,8 +304,8 @@ Let's break down what SOMAS did for you:
    - Added usage examples
    - Wrote installation instructions
 
-**Total Time**: 15-25 minutes (autonomous)  
-**Your Time**: 5-10 minutes (review and approval)
+**Total Time**: 30-60 minutes (autonomous, varies by project complexity)  
+**Your Time**: 10-15 minutes (review and approval)
 
 ---
 

@@ -54,7 +54,7 @@ jobs:
           BRANCH_NAME="somas/${{ steps.parse.outputs.issue_number }}"
           
           git config user.name "SOMAS Bot"
-          git config user.email "somas@github.com"
+          git config user.email "action@github.com"
           
           # Create and push feature branch
           git checkout -b "$BRANCH_NAME"

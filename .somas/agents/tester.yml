@@ -193,7 +193,7 @@ testing_standards:
     - "Tests should fail for the right reasons"
 
 coverage_requirements:
-  minimum_overall: 80
+  test_coverage_minimum: 80
   critical_components: 90
   report_format: "html"
   exclude:

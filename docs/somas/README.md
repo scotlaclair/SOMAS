@@ -605,7 +605,7 @@ For issues, questions, or feature requests:
 - Open an issue in the repository
 - Review existing documentation
 - Check troubleshooting section
-- Contact @scotlaclair
+- Contact the repository owner
 
 ---
 
