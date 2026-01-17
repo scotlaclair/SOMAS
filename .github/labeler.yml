@@ -1,0 +1,34 @@
+# Automatically label PRs based on file patterns
+
+# SOMAS system files
+somas:system:
+  - changed-files:
+    - any-glob-to-any-file: '.somas/**/*'
+    - any-glob-to-any-file: '.github/workflows/somas-pipeline.yml'
+
+# Documentation
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: 'docs/**/*'
+    - any-glob-to-any-file: '**/*.md'
+
+# Configuration
+configuration:
+  - changed-files:
+    - any-glob-to-any-file: '**/*.yml'
+    - any-glob-to-any-file: '**/*.yaml'
+    - any-glob-to-any-file: '**/*.json'
+
+# Tests
+tests:
+  - changed-files:
+    - any-glob-to-any-file: '**/*test*/**/*'
+    - any-glob-to-any-file: '**/*spec*/**/*'
+    - any-glob-to-any-file: '**/*.test.*'
+    - any-glob-to-any-file: '**/*.spec.*'
+
+# CI/CD
+ci-cd:
+  - changed-files:
+    - any-glob-to-any-file: '.github/workflows/**/*'
+    - any-glob-to-any-file: '.github/actions/**/*'

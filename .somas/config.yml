@@ -1,0 +1,47 @@
+system:
+  name: "SOMAS Lite"
+  version: "1.0.0"
+  owner: "scotlaclair"
+
+pipeline:
+  trigger:
+    method: "github_issue"
+    label: "somas:start"
+  stages:
+    - id: "ideation"
+      agents: ["planner"]
+      auto_proceed: true
+    - id: "architecture"
+      agents: ["architect"]
+      auto_proceed: true
+    - id: "implementation"
+      agents: ["implementer", "tester"]
+      auto_proceed: true
+    - id: "validation"
+      agents: ["tester", "reviewer", "security"]
+      auto_proceed: true
+    - id: "staging"
+      agents: ["documenter", "reviewer"]
+      auto_proceed: false
+
+quality:
+  test_coverage_minimum: 80
+  linting_required: true
+
+limits:
+  iterations:
+    per_task: 5
+    per_step: 10
+    per_stage: 25
+    per_pipeline: 100
+
+providers:
+  github_copilot:
+    role: "executor"
+    tasks: ["code_generation", "tests", "documentation", "pr_creation"]
+  gemini_code_assist:
+    role: "reviewer"
+    tasks: ["architecture_review", "security_analysis", "code_quality"]
+  codex:
+    role: "planner"
+    tasks: ["planning", "reasoning", "problem_decomposition"]

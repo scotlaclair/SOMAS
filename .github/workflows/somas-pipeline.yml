@@ -1,0 +1,379 @@
+name: SOMAS Pipeline
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  orchestrate:
+    name: SOMAS Orchestrator
+    if: |
+      (github.event_name == 'issues' && github.event.label.name == 'somas:start') ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/somas'))
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Load SOMAS Config
+        id: config
+        run: |
+          echo "Loading SOMAS configuration..."
+          if [ -f .somas/config.yml ]; then
+            echo "config_loaded=true" >> $GITHUB_OUTPUT
+          else
+            echo "config_loaded=false" >> $GITHUB_OUTPUT
+            echo "::error::SOMAS configuration not found at .somas/config.yml"
+            exit 1
+          fi
+          
+      - name: Parse Issue Content
+        id: parse
+        run: |
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          ISSUE_BODY="${{ github.event.issue.body }}"
+          
+          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+          echo "branch_name=somas/${ISSUE_NUMBER}" >> $GITHUB_OUTPUT
+          
+          # Extract project details from issue body
+          echo "Parsing issue #$ISSUE_NUMBER: $ISSUE_TITLE"
+          
+      - name: Create Feature Branch
+        id: branch
+        run: |
+          BRANCH_NAME="somas/${{ steps.parse.outputs.issue_number }}"
+          
+          git config user.name "SOMAS Bot"
+          git config user.email "somas@github.com"
+          
+          # Create and push feature branch
+          git checkout -b "$BRANCH_NAME"
+          git push -u origin "$BRANCH_NAME"
+          
+          echo "branch_created=true" >> $GITHUB_OUTPUT
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+      - name: Create Draft PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ISSUE_NUMBER="${{ steps.parse.outputs.issue_number }}"
+          BRANCH_NAME="${{ steps.branch.outputs.branch_name }}"
+          
+          # Create draft PR
+          PR_URL=$(gh pr create \
+            --draft \
+            --title "🤖 SOMAS: Issue #$ISSUE_NUMBER" \
+            --body "## 🚀 SOMAS Autonomous Development Pipeline
+
+          **Source Issue:** #$ISSUE_NUMBER
+          **Status:** Ideation Stage
+          **Branch:** \`$BRANCH_NAME\`
+          
+          ---
+          
+          ### Pipeline Stages
+          
+          - [ ] **Ideation** - Requirements analysis and planning
+          - [ ] **Architecture** - System design and component definition
+          - [ ] **Implementation** - Code generation and testing
+          - [ ] **Validation** - Quality assurance and security review
+          - [ ] **Staging** - Documentation and final review (requires approval)
+          
+          ---
+          
+          🤖 This PR is managed by SOMAS. Progress updates will be posted automatically.
+          
+          **Human approval required before merge** - @scotlaclair will be notified." \
+            --head "$BRANCH_NAME" \
+            --base main)
+          
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          PR_NUMBER=$(echo "$PR_URL" | grep -oP '\d+$')
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          
+      - name: Add Labels to PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "somas:active"
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:ideation"
+          
+      - name: Stage 1 - Ideation (Planner Agent)
+        id: ideation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "🎯 Starting Ideation Stage - Planner Agent (Codex)"
+          
+          # Post status comment on issue
+          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## 🎯 Stage 1: Ideation
+          
+          **Agent:** Planner (Codex)
+          **Status:** In Progress
+          
+          Analyzing requirements and creating project plan..."
+          
+          # Load planner agent configuration
+          if [ ! -f .somas/agents/planner.yml ]; then
+            echo "::error::Planner agent configuration not found"
+            exit 1
+          fi
+          
+          echo "stage_complete=true" >> $GITHUB_OUTPUT
+          
+      - name: Invoke Copilot for Ideation
+        uses: github/copilot-workspace@v1
+        if: steps.ideation.outputs.stage_complete == 'true'
+        with:
+          task: |
+            Review issue #${{ steps.parse.outputs.issue_number }} and create a comprehensive project plan.
+            
+            Agent: Planner (Codex role)
+            Configuration: .somas/agents/planner.yml
+            
+            Tasks:
+            1. Extract and analyze requirements from the issue
+            2. Define project scope and boundaries
+            3. Create initial roadmap with milestones
+            4. Identify technical constraints and dependencies
+            5. Generate plan document in .somas/output/plan.md
+            
+            Use the template at .somas/templates/plan.md as a guide.
+          pr: ${{ steps.pr.outputs.pr_number }}
+          
+      - name: Stage 2 - Architecture (Architect Agent)
+        id: architecture
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "🏗️ Starting Architecture Stage - Architect Agent (Codex+Gemini)"
+          
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --remove-label "stage:ideation"
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:architecture"
+          
+          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## 🏗️ Stage 2: Architecture
+          
+          **Agent:** Architect (Codex + Gemini)
+          **Status:** In Progress
+          
+          Designing system architecture and components..."
+          
+          echo "stage_complete=true" >> $GITHUB_OUTPUT
+          
+      - name: Invoke Copilot for Architecture
+        uses: github/copilot-workspace@v1
+        if: steps.architecture.outputs.stage_complete == 'true'
+        with:
+          task: |
+            Based on the plan created in the ideation stage, design the system architecture.
+            
+            Agent: Architect (Codex + Gemini roles)
+            Configuration: .somas/agents/architect.yml
+            
+            Tasks:
+            1. Design high-level system architecture
+            2. Define components and their interactions
+            3. Create data models and schemas
+            4. Document technology stack decisions
+            5. Generate architecture document with ADRs
+            
+            Use the template at .somas/templates/architecture.md as a guide.
+          pr: ${{ steps.pr.outputs.pr_number }}
+          
+      - name: Stage 3 - Implementation (Implementer + Tester Agents)
+        id: implementation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "⚙️ Starting Implementation Stage"
+          
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --remove-label "stage:architecture"
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:implementation"
+          
+          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## ⚙️ Stage 3: Implementation
+          
+          **Agents:** Implementer + Tester (Copilot)
+          **Status:** In Progress
+          
+          Generating production code and comprehensive tests..."
+          
+          echo "stage_complete=true" >> $GITHUB_OUTPUT
+          
+      - name: Invoke Copilot for Implementation
+        uses: github/copilot-workspace@v1
+        if: steps.implementation.outputs.stage_complete == 'true'
+        with:
+          task: |
+            Implement the system according to the architecture design.
+            
+            Agents: Implementer + Tester (Copilot roles)
+            Configurations: .somas/agents/implementer.yml, .somas/agents/tester.yml
+            
+            Tasks:
+            1. Generate production-ready code with error handling
+            2. Implement all components defined in architecture
+            3. Write comprehensive unit and integration tests
+            4. Ensure 80%+ test coverage
+            5. Make incremental commits for each component
+            
+            Requirements:
+            - Follow best practices and coding standards
+            - Include input validation and error handling
+            - Write clean, maintainable code
+            - Comprehensive test coverage (minimum 80%)
+          pr: ${{ steps.pr.outputs.pr_number }}
+          
+      - name: Stage 4 - Validation (Tester + Reviewer + Security Agents)
+        id: validation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "✅ Starting Validation Stage"
+          
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --remove-label "stage:implementation"
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:validation"
+          
+          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## ✅ Stage 4: Validation
+          
+          **Agents:** Tester + Reviewer + Security (Copilot + Gemini)
+          **Status:** In Progress
+          
+          Running quality assurance and security analysis..."
+          
+          echo "stage_complete=true" >> $GITHUB_OUTPUT
+          
+      - name: Invoke Copilot for Validation
+        uses: github/copilot-workspace@v1
+        if: steps.validation.outputs.stage_complete == 'true'
+        with:
+          task: |
+            Validate the implementation for quality and security.
+            
+            Agents: Tester, Reviewer, Security (Copilot + Gemini roles)
+            Configurations: .somas/agents/tester.yml, .somas/agents/reviewer.yml, .somas/agents/security.yml
+            
+            Tasks:
+            1. Run all tests and verify coverage meets 80% minimum
+            2. Perform code quality review and check architecture compliance
+            3. Run security vulnerability scanning
+            4. Validate best practices and coding standards
+            5. Fix any issues found during validation
+            
+            Iterate until all quality gates pass.
+          pr: ${{ steps.pr.outputs.pr_number }}
+          
+      - name: Stage 5 - Staging (Documenter + Reviewer Agents)
+        id: staging
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "📝 Starting Staging Stage - Final Documentation"
+          
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --remove-label "stage:validation"
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:staging"
+          
+          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## 📝 Stage 5: Staging
+          
+          **Agents:** Documenter + Reviewer (Copilot + Gemini)
+          **Status:** In Progress
+          
+          Creating comprehensive documentation..."
+          
+          echo "stage_complete=true" >> $GITHUB_OUTPUT
+          
+      - name: Invoke Copilot for Documentation
+        uses: github/copilot-workspace@v1
+        if: steps.staging.outputs.stage_complete == 'true'
+        with:
+          task: |
+            Create comprehensive documentation for the project.
+            
+            Agents: Documenter + Reviewer (Copilot + Gemini roles)
+            Configurations: .somas/agents/documenter.yml, .somas/agents/reviewer.yml
+            
+            Tasks:
+            1. Write comprehensive README with usage examples
+            2. Generate API documentation
+            3. Create architecture documentation
+            4. Add inline code documentation
+            5. Include setup and deployment instructions
+            
+            Ensure documentation is clear, accurate, and complete.
+          pr: ${{ steps.pr.outputs.pr_number }}
+          
+      - name: Request Human Approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "🎉 Pipeline complete - requesting human approval"
+          
+          # Mark PR as ready for review
+          gh pr ready ${{ steps.pr.outputs.pr_number }}
+          
+          # Request review from owner
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-reviewer scotlaclair
+          
+          # Post completion comment
+          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## 🎉 SOMAS Pipeline Complete!
+          
+          All stages have been completed successfully:
+          
+          ✅ **Ideation** - Requirements analyzed and plan created
+          ✅ **Architecture** - System design completed
+          ✅ **Implementation** - Code and tests generated
+          ✅ **Validation** - Quality and security verified
+          ✅ **Staging** - Documentation completed
+          
+          ---
+          
+          **Next Steps:**
+          
+          The draft PR is now ready for human review and approval.
+          
+          📋 **Pull Request:** ${{ steps.pr.outputs.pr_url }}
+          
+          @scotlaclair - Please review the generated code and approve if ready to merge.
+          
+          ---
+          
+          To approve: Review the PR and approve when ready
+          To iterate: Add comments on the PR with requested changes"
+          
+          # Update PR description with completion status
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --body "## 🚀 SOMAS Autonomous Development Pipeline
+          
+          **Source Issue:** #${{ steps.parse.outputs.issue_number }}
+          **Status:** ✅ Complete - Awaiting Human Approval
+          **Branch:** \`${{ steps.branch.outputs.branch_name }}\`
+          
+          ---
+          
+          ### Pipeline Stages
+          
+          - [x] **Ideation** - Requirements analysis and planning
+          - [x] **Architecture** - System design and component definition
+          - [x] **Implementation** - Code generation and testing
+          - [x] **Validation** - Quality assurance and security review
+          - [x] **Staging** - Documentation and final review
+          
+          ---
+          
+          🎉 **All automated stages complete!**
+          
+          @scotlaclair - Please review and approve this PR when ready.
+          
+          ---
+          
+          🤖 This PR was generated by SOMAS Lite v1.0.0"
