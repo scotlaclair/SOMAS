@@ -304,14 +304,14 @@ limits:
 providers:
   github_copilot:
     role: "executor"
-    tasks: ["code_generation", "tests", "documentation"]
+    tasks: ["code_generation", "tests", "documentation", "pr_creation"]
   gemini_code_assist:
     role: "reviewer"
-    tasks: ["architecture_review", "security_analysis"]
+    tasks: ["architecture_review", "security_analysis", "code_quality"]
   codex:
     role: "planner"
-    tasks: ["planning", "reasoning"]
-```
+    tasks: ["planning", "reasoning", "problem_decomposition"]
+
 
 ### Customizing Configuration
 
