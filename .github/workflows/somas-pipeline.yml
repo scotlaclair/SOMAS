@@ -42,11 +42,24 @@ jobs:
           ISSUE_TITLE="${{ github.event.issue.title }}"
           ISSUE_BODY="${{ github.event.issue.body }}"
           
+          # Expose basic issue metadata as outputs
           echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
           echo "branch_name=somas/${ISSUE_NUMBER}" >> $GITHUB_OUTPUT
           
-          # Extract project details from issue body
-          echo "Parsing issue #$ISSUE_NUMBER: $ISSUE_TITLE"
+          # Export the raw issue body so it can be reused by later steps if needed
+          echo "issue_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$ISSUE_BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Extract project details from issue body (expects a line starting with 'Project:')
+          PROJECT_LINE=$(echo "$ISSUE_BODY" | grep -i '^Project:' || true)
+          if [ -n "$PROJECT_LINE" ]; then
+            PROJECT_NAME=$(echo "$PROJECT_LINE" | cut -d':' -f2- | xargs)
+            if [ -n "$PROJECT_NAME" ]; then
+              echo "project_name=$PROJECT_NAME" >> $GITHUB_OUTPUT
+              echo "Detected project from issue body: $PROJECT_NAME"
+            fi
+          fi
           
       - name: Create Feature Branch
         id: branch
@@ -56,9 +69,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
-          # Create and push feature branch
-          git checkout -b "$BRANCH_NAME"
-          git push -u origin "$BRANCH_NAME"
+          # Create or reuse feature branch
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+            echo "Branch $BRANCH_NAME already exists on remote. Checking out existing branch."
+            # Ensure we have the latest refs and check out the existing branch
+            git fetch origin "$BRANCH_NAME":"$BRANCH_NAME" || git fetch origin
+            git checkout "$BRANCH_NAME"
+          else
+            echo "Branch $BRANCH_NAME does not exist on remote. Creating new branch."
+            git checkout -b "$BRANCH_NAME"
+            git push -u origin "$BRANCH_NAME"
+          fi
           
           echo "branch_created=true" >> $GITHUB_OUTPUT
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
@@ -115,12 +136,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "🎯 Starting Ideation Stage - Planner Agent (Codex)"
+          echo "🎯 Starting Ideation Stage - Planner Agent (OpenAI GPT-4)"
           
           # Post status comment on issue
           gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## 🎯 Stage 1: Ideation
           
-          **Agent:** Planner (Codex)
+          **Agent:** Planner (OpenAI GPT-4)
           **Status:** In Progress
           
           Analyzing requirements and creating project plan..."
@@ -134,13 +155,20 @@ jobs:
           echo "stage_complete=true" >> $GITHUB_OUTPUT
           
       - name: Invoke Copilot for Ideation
+        # NOTE: github/copilot-workspace@v1 action does not currently exist
+        # This is a placeholder for future integration with GitHub Copilot Workspace API
+        # For now, this step should be implemented using alternative approaches:
+        # - Manual Copilot invocation via GitHub UI
+        # - Custom action wrapping Copilot API calls
+        # - Workflow dispatch to trigger separate Copilot workflows
+        # TODO: Replace with actual Copilot integration when action becomes available
+        if: false  # Disabled until copilot-workspace action is available
         uses: github/copilot-workspace@v1
-        if: steps.ideation.outputs.stage_complete == 'true'
         with:
           task: |
             Review issue #${{ steps.parse.outputs.issue_number }} and create a comprehensive project plan.
             
-            Agent: Planner (Codex role)
+            Agent: Planner (OpenAI GPT-4 role)
             Configuration: .somas/agents/planner.yml
             
             Tasks:
@@ -158,14 +186,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "🏗️ Starting Architecture Stage - Architect Agent (Codex+Gemini)"
+          echo "🏗️ Starting Architecture Stage - Architect Agent (GPT-4+Gemini)"
           
           gh pr edit ${{ steps.pr.outputs.pr_number }} --remove-label "stage:ideation"
           gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:architecture"
           
           gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## 🏗️ Stage 2: Architecture
           
-          **Agent:** Architect (Codex + Gemini)
+          **Agent:** Architect (GPT-4 + Gemini)
           **Status:** In Progress
           
           Designing system architecture and components..."
@@ -173,13 +201,14 @@ jobs:
           echo "stage_complete=true" >> $GITHUB_OUTPUT
           
       - name: Invoke Copilot for Architecture
+        # NOTE: This step is disabled until github/copilot-workspace action becomes available
+        if: false
         uses: github/copilot-workspace@v1
-        if: steps.architecture.outputs.stage_complete == 'true'
         with:
           task: |
             Based on the plan created in the ideation stage, design the system architecture.
             
-            Agent: Architect (Codex + Gemini roles)
+            Agent: Architect (OpenAI GPT-4 + Gemini roles)
             Configuration: .somas/agents/architect.yml
             
             Tasks:
@@ -212,8 +241,9 @@ jobs:
           echo "stage_complete=true" >> $GITHUB_OUTPUT
           
       - name: Invoke Copilot for Implementation
+        # NOTE: This step is disabled until github/copilot-workspace action becomes available
+        if: false
         uses: github/copilot-workspace@v1
-        if: steps.implementation.outputs.stage_complete == 'true'
         with:
           task: |
             Implement the system according to the architecture design.
@@ -255,8 +285,9 @@ jobs:
           echo "stage_complete=true" >> $GITHUB_OUTPUT
           
       - name: Invoke Copilot for Validation
+        # NOTE: This step is disabled until github/copilot-workspace action becomes available
+        if: false
         uses: github/copilot-workspace@v1
-        if: steps.validation.outputs.stage_complete == 'true'
         with:
           task: |
             Validate the implementation for quality and security.
@@ -294,8 +325,9 @@ jobs:
           echo "stage_complete=true" >> $GITHUB_OUTPUT
           
       - name: Invoke Copilot for Documentation
+        # NOTE: This step is disabled until github/copilot-workspace action becomes available
+        if: false
         uses: github/copilot-workspace@v1
-        if: steps.staging.outputs.stage_complete == 'true'
         with:
           task: |
             Create comprehensive documentation for the project.
@@ -320,7 +352,7 @@ jobs:
           echo "🎉 Pipeline complete - requesting human approval"
           
           # Mark PR as ready for review
-          gh pr ready ${{ steps.pr.outputs.pr_number }}
+          gh pr edit ${{ steps.pr.outputs.pr_number }} --ready
           
           # Request review from owner
           gh pr edit ${{ steps.pr.outputs.pr_number }} --add-reviewer scotlaclair

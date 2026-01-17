@@ -1,10 +1,10 @@
 # Planner Agent Configuration
-# Requirements analysis and project planning (Codex role)
+# Requirements analysis and project planning (OpenAI GPT-4 role)
 
 agent:
   name: "Planner"
   role: "Requirements Analyst & Strategic Planner"
-  provider: "codex"
+  provider: "openai_gpt4"
   inherits: "_base"
 
 responsibilities:

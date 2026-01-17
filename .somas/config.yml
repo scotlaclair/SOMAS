@@ -42,6 +42,6 @@ providers:
   gemini_code_assist:
     role: "reviewer"
     tasks: ["architecture_review", "security_analysis", "code_quality"]
-  codex:
+  openai_gpt4:
     role: "planner"
     tasks: ["planning", "reasoning", "problem_decomposition"]

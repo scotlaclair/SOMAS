@@ -2,7 +2,7 @@
 
 **Self-Sovereign Orchestrated Multi-Agent System**
 
-An autonomous development pipeline that transforms project ideas into production-ready code using AI agents powered by GitHub Copilot, Gemini Code Assist, and Codex.
+An autonomous development pipeline that transforms project ideas into production-ready code using AI agents powered by GitHub Copilot, Gemini Code Assist, and OpenAI GPT-4.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![SOMAS Version](https://img.shields.io/badge/SOMAS-v1.0.0-green.svg)](.somas/config.yml)
@@ -21,7 +21,7 @@ SOMAS Lite is an autonomous AI-powered development pipeline that takes your proj
 - ✅ **Quality Assurance**: Built-in testing, code review, and security analysis
 - 📝 **Comprehensive Documentation**: Auto-generated docs, API references, and guides
 - 🔒 **Security First**: Automated vulnerability scanning and secure coding practices
-- 🌐 **Multi-Provider**: Leverages Copilot, Gemini, and Codex for optimal results
+- 🌐 **Multi-Provider**: Leverages Copilot, Gemini, and GPT-4 for optimal results
 
 ---
 
@@ -43,8 +43,8 @@ SOMAS operates through a **5-stage pipeline**, each with specialized AI agents:
 | Agent | Provider | Role |
 |-------|----------|------|
 | **Orchestrator** | Copilot | Coordinates pipeline, manages state, handles failures |
-| **Planner** | Codex | Analyzes requirements, creates roadmap |
-| **Architect** | Codex + Gemini | Designs system architecture, defines components |
+| **Planner** | OpenAI GPT-4 | Analyzes requirements, creates roadmap |
+| **Architect** | GPT-4 + Gemini | Designs system architecture, defines components |
 | **Implementer** | Copilot | Generates production-ready code |
 | **Tester** | Copilot | Creates comprehensive test suites (80%+ coverage) |
 | **Reviewer** | Gemini | Performs code quality and architecture reviews |
@@ -90,14 +90,14 @@ When the staging stage completes:
 ## 📋 Pipeline Stages
 
 ### Stage 1: Ideation
-**Agent:** Planner (Codex)
+**Agent:** Planner (OpenAI GPT-4)
 - Extracts and analyzes requirements
 - Defines project scope
 - Creates implementation roadmap
 - Identifies dependencies and constraints
 
 ### Stage 2: Architecture
-**Agent:** Architect (Codex + Gemini)
+**Agent:** Architect (GPT-4 + Gemini)
 - Designs system architecture
 - Defines components and interactions
 - Creates data models
@@ -248,7 +248,7 @@ When limits are reached, human intervention is requested.
 SOMAS leverages multiple AI providers:
 - **GitHub Copilot**: Code generation, testing, documentation
 - **Gemini Code Assist**: Code review, security analysis
-- **Codex**: Strategic planning, architecture design
+- **OpenAI GPT-4**: Strategic planning, architecture design
 
 This multi-provider approach ensures optimal results by using each AI's strengths.
 
@@ -322,7 +322,7 @@ MIT License - See [LICENSE](LICENSE) for details
 SOMAS Lite is powered by:
 - GitHub Copilot
 - Gemini Code Assist  
-- OpenAI Codex
+- OpenAI GPT-4
 
 ---
 

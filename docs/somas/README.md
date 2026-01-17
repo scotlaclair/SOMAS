@@ -21,7 +21,7 @@ Welcome to the complete documentation for SOMAS (Self-Sovereign Orchestrated Mul
 
 ## Introduction
 
-SOMAS Lite is an autonomous development pipeline that transforms project ideas into production-ready code using AI agents. It coordinates multiple specialized AI agents (powered by GitHub Copilot, Gemini Code Assist, and Codex) to handle the complete software development lifecycle.
+SOMAS Lite is an autonomous development pipeline that transforms project ideas into production-ready code using AI agents. It coordinates multiple specialized AI agents (powered by GitHub Copilot, Gemini Code Assist, and OpenAI GPT-4) to handle the complete software development lifecycle.
 
 ### Key Concepts
 
@@ -80,7 +80,7 @@ Pipeline executes (5 stages) → Human reviews → Approve & merge
 
 **Purpose**: Transform raw idea into structured plan
 
-**Agent**: Planner (Codex)
+**Agent**: Planner (OpenAI GPT-4)
 
 **Activities**:
 - Extract requirements from issue
@@ -99,7 +99,7 @@ Pipeline executes (5 stages) → Human reviews → Approve & merge
 
 **Purpose**: Design system architecture
 
-**Agent**: Architect (Codex + Gemini)
+**Agent**: Architect (OpenAI GPT-4 + Gemini)
 
 **Activities**:
 - Design high-level architecture
@@ -179,7 +179,7 @@ Pipeline executes (5 stages) → Human reviews → Approve & merge
 
 Each agent is a specialized AI entity with:
 - **Role**: Clear identity and purpose
-- **Provider**: AI system (Copilot/Gemini/Codex)
+- **Provider**: AI system (Copilot/Gemini/OpenAI GPT-4)
 - **Instructions**: Detailed task procedures
 - **Quality Standards**: Output requirements
 - **Handoff Protocol**: Context for next agent
@@ -197,7 +197,7 @@ Each agent is a specialized AI entity with:
   - Request human intervention when needed
 
 #### Planner
-- **Provider**: Codex
+- **Provider**: OpenAI GPT-4
 - **Role**: Requirements analyst and strategic planner
 - **Responsibilities**:
   - Requirements analysis
@@ -207,7 +207,7 @@ Each agent is a specialized AI entity with:
   - Risk assessment
 
 #### Architect
-- **Provider**: Codex (design) + Gemini (review)
+- **Provider**: OpenAI GPT-4 (design) + Gemini (review)
 - **Role**: System designer
 - **Responsibilities**:
   - System architecture design
@@ -308,10 +308,10 @@ providers:
   gemini_code_assist:
     role: "reviewer"
     tasks: ["architecture_review", "security_analysis", "code_quality"]
-  codex:
+  openai_gpt4:
     role: "planner"
     tasks: ["planning", "reasoning", "problem_decomposition"]
-
+```
 
 ### Customizing Configuration
 

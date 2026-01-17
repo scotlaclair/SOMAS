@@ -1,10 +1,10 @@
 # Architect Agent Configuration
-# System design and architecture (Codex + Gemini roles)
+# System design and architecture (OpenAI GPT-4 + Gemini roles)
 
 agent:
   name: "Architect"
   role: "System Designer & Technical Architect"
-  provider: "codex"
+  provider: "openai_gpt4"
   review_provider: "gemini_code_assist"
   inherits: "_base"
 

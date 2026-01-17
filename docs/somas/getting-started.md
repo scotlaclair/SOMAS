@@ -83,7 +83,7 @@ The pipeline will progress through 5 stages. You can monitor progress in:
 Updates will be posted as comments:
 ```
 🎯 Stage 1: Ideation
-Agent: Planner (Codex)
+Agent: Planner (OpenAI GPT-4)
 Status: In Progress
 Analyzing requirements and creating project plan...
 ```
