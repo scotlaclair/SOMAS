@@ -1,0 +1,305 @@
+name: SOMAS Pipeline
+
+on:
+  issues:
+    types: [opened, labeled]
+  workflow_dispatch:
+    inputs:
+      project_id:
+        description: 'Project ID to process'
+        required: true
+        type: string
+      stage:
+        description: 'Pipeline stage to execute'
+        required: false
+        type: choice
+        options:
+          - all
+          - ideation
+          - specification
+          - simulation
+          - architecture
+          - implementation
+          - validation
+          - staging
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  projects: write
+
+jobs:
+  initialize-pipeline:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'somas-project')
+    outputs:
+      project_id: ${{ steps.setup.outputs.project_id }}
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Project
+        id: setup
+        run: |
+          # Generate project ID from issue number
+          PROJECT_ID="project-${{ github.event.issue.number }}"
+          echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
+          
+          # Create project directory structure
+          mkdir -p .somas/projects/${PROJECT_ID}/{artifacts,logs}
+          
+          # Create project metadata
+          cat > .somas/projects/${PROJECT_ID}/metadata.json << EOF
+          {
+            "project_id": "${PROJECT_ID}",
+            "issue_number": ${{ github.event.issue.number }},
+            "title": "${{ github.event.issue.title }}",
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "status": "initializing",
+            "current_stage": "ideation",
+            "stages_completed": []
+          }
+          EOF
+          
+          echo "Initialized project: ${PROJECT_ID}"
+      
+      - name: Create GitHub Project Board
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectId = '${{ steps.setup.outputs.project_id }}';
+            
+            // Trigger project creation workflow
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'somas-project-event',
+              client_payload: {
+                project_id: projectId,
+                action: 'create'
+              }
+            });
+      
+      - name: Commit project initialization
+        run: |
+          git config user.name "SOMAS Bot"
+          git config user.email "somas-bot@users.noreply.github.com"
+          git add .somas/projects/
+          git commit -m "Initialize SOMAS project ${{ steps.setup.outputs.project_id }}"
+          git push
+  
+  stage-1-ideation:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline]
+    if: |
+      always() &&
+      (needs.initialize-pipeline.result == 'success' || github.event.inputs.stage == 'ideation' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      
+      - name: Run Ideation Stage
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running ideation stage for ${PROJECT_ID}"
+          
+          # Placeholder for actual ideation agent execution
+          mkdir -p .somas/projects/${PROJECT_ID}/artifacts
+          echo "# Initial Plan" > .somas/projects/${PROJECT_ID}/artifacts/initial_plan.md
+          echo "Stage 1: Ideation completed" >> .somas/projects/${PROJECT_ID}/artifacts/initial_plan.md
+  
+  stage-2-specification:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-1-ideation]
+    if: |
+      always() &&
+      (needs.stage-1-ideation.result == 'success' || github.event.inputs.stage == 'specification' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      
+      - name: Run Specification Stage
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running specification stage for ${PROJECT_ID}"
+          
+          # Placeholder for actual specifier agent execution
+          mkdir -p .somas/projects/${PROJECT_ID}/artifacts
+          cp .somas/templates/SPEC.md .somas/projects/${PROJECT_ID}/artifacts/SPEC.md
+          echo "Stage 2: Specification completed"
+      
+      - name: Update Project Status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'somas-project-event',
+              client_payload: {
+                project_id: '${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}',
+                action: 'update',
+                stage: 'specification'
+              }
+            });
+  
+  stage-3-simulation:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-2-specification]
+    if: |
+      always() &&
+      (needs.stage-2-specification.result == 'success' || github.event.inputs.stage == 'simulation' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      
+      - name: Run Simulation Stage
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running simulation stage for ${PROJECT_ID}"
+          
+          # Placeholder for actual simulator agent execution
+          mkdir -p .somas/projects/${PROJECT_ID}/artifacts
+          cp .somas/templates/execution_plan.yml .somas/projects/${PROJECT_ID}/artifacts/execution_plan.yml
+          echo "Stage 3: Simulation completed"
+      
+      - name: Create Task Issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'somas-project-event',
+              client_payload: {
+                project_id: '${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}',
+                action: 'update',
+                stage: 'simulation'
+              }
+            });
+  
+  stage-4-architecture:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-3-simulation]
+    if: |
+      always() &&
+      (needs.stage-3-simulation.result == 'success' || github.event.inputs.stage == 'architecture' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Architecture Stage
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running architecture stage for ${PROJECT_ID}"
+          echo "Stage 4: Architecture completed"
+  
+  stage-5-implementation:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-4-architecture]
+    if: |
+      always() &&
+      (needs.stage-4-architecture.result == 'success' || github.event.inputs.stage == 'implementation' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Implementation Stage
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running implementation stage for ${PROJECT_ID}"
+          echo "Stage 5: Implementation completed"
+  
+  stage-6-validation:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-5-implementation]
+    if: |
+      always() &&
+      (needs.stage-5-implementation.result == 'success' || github.event.inputs.stage == 'validation' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Validation Stage
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running validation stage for ${PROJECT_ID}"
+          echo "Stage 6: Validation completed"
+  
+  stage-7-staging:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-6-validation]
+    if: |
+      always() &&
+      (needs.stage-6-validation.result == 'success' || github.event.inputs.stage == 'staging' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Staging Stage
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running staging stage for ${PROJECT_ID}"
+          echo "Stage 7: Staging completed"
+      
+      - name: Close Project
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'somas-project-event',
+              client_payload: {
+                project_id: '${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}',
+                action: 'close'
+              }
+            });
+  
+  record-metrics:
+    runs-on: ubuntu-latest
+    needs: [stage-7-staging]
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Record Pipeline Metrics
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          
+          # Record metrics to analytics
+          mkdir -p .somas/analytics/runs
+          cat > .somas/analytics/runs/${PROJECT_ID}_metrics.json << EOF
+          {
+            "project_id": "${PROJECT_ID}",
+            "completed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "stages": {
+              "ideation": "${{ needs.stage-1-ideation.result }}",
+              "specification": "${{ needs.stage-2-specification.result }}",
+              "simulation": "${{ needs.stage-3-simulation.result }}",
+              "architecture": "${{ needs.stage-4-architecture.result }}",
+              "implementation": "${{ needs.stage-5-implementation.result }}",
+              "validation": "${{ needs.stage-6-validation.result }}",
+              "staging": "${{ needs.stage-7-staging.result }}"
+            }
+          }
+          EOF
+          
+          echo "Recorded metrics for ${PROJECT_ID}"

@@ -1,0 +1,286 @@
+name: SOMAS Project Sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id:
+        description: 'Project ID'
+        required: true
+        type: string
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options:
+          - create
+          - update
+          - close
+  
+  repository_dispatch:
+    types: [somas-project-event]
+
+permissions:
+  contents: write
+  issues: write
+  projects: write
+  pull-requests: write
+
+jobs:
+  sync-project:
+    runs-on: ubuntu-latest
+    name: Sync GitHub Project
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Create GitHub Project
+        if: github.event.inputs.action == 'create' || github.event.action == 'create'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectId = '${{ github.event.inputs.project_id }}' || context.payload.client_payload.project_id;
+            
+            // Create new project
+            const { data: project } = await github.rest.projects.createForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: `SOMAS Pipeline - ${projectId}`,
+              body: `Automated project board for SOMAS pipeline execution\n\nProject ID: ${projectId}\nCreated: ${new Date().toISOString()}`
+            });
+            
+            console.log(`Created project: ${project.html_url}`);
+            
+            // Create columns
+            const columns = [
+              '📋 Backlog',
+              '📝 Specification',
+              '🔬 Simulation',
+              '🏗️ Architecture',
+              '💻 Implementation',
+              '✅ Validation',
+              '👤 Human Review',
+              '🚀 Done'
+            ];
+            
+            for (const columnName of columns) {
+              const { data: column } = await github.rest.projects.createColumn({
+                project_id: project.id,
+                name: columnName
+              });
+              console.log(`Created column: ${columnName}`);
+            }
+            
+            // Store project metadata
+            const fs = require('fs');
+            const projectMeta = {
+              project_id: projectId,
+              github_project_id: project.id,
+              github_project_url: project.html_url,
+              created_at: new Date().toISOString(),
+              status: 'active'
+            };
+            
+            const metaPath = `.somas/projects/${projectId}/project_metadata.json`;
+            fs.mkdirSync(`.somas/projects/${projectId}`, { recursive: true });
+            fs.writeFileSync(metaPath, JSON.stringify(projectMeta, null, 2));
+            
+            core.setOutput('project_id', project.id);
+            core.setOutput('project_url', project.html_url);
+      
+      - name: Parse Execution Plan
+        if: github.event.inputs.action == 'update' || github.event.action == 'update'
+        id: parse-plan
+        run: |
+          PROJECT_ID="${{ github.event.inputs.project_id }}"
+          PLAN_FILE=".somas/projects/${PROJECT_ID}/artifacts/execution_plan.yml"
+          
+          if [ -f "$PLAN_FILE" ]; then
+            echo "plan_exists=true" >> $GITHUB_OUTPUT
+            echo "Found execution plan at $PLAN_FILE"
+          else
+            echo "plan_exists=false" >> $GITHUB_OUTPUT
+            echo "No execution plan found"
+          fi
+      
+      - name: Create Task Issues
+        if: steps.parse-plan.outputs.plan_exists == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const yaml = require('js-yaml');
+            const projectId = '${{ github.event.inputs.project_id }}';
+            
+            // Load execution plan
+            const planPath = `.somas/projects/${projectId}/artifacts/execution_plan.yml`;
+            const planContent = fs.readFileSync(planPath, 'utf8');
+            const plan = yaml.load(planContent);
+            
+            // Load project metadata
+            const metaPath = `.somas/projects/${projectId}/project_metadata.json`;
+            const projectMeta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+            const githubProjectId = projectMeta.github_project_id;
+            
+            // Get project columns
+            const { data: columns } = await github.rest.projects.listColumns({
+              project_id: githubProjectId
+            });
+            
+            // Find backlog column
+            const backlogColumn = columns.find(col => col.name.includes('Backlog'));
+            
+            // Create issues for each task in the execution plan
+            if (plan.optimal_execution_plan) {
+              const phases = Object.keys(plan.optimal_execution_plan).filter(k => k.startsWith('phase_'));
+              
+              for (const phaseKey of phases) {
+                const phase = plan.optimal_execution_plan[phaseKey];
+                const tasks = phase.parallel_tasks || phase.sequential_tasks || [];
+                
+                for (const task of tasks) {
+                  // Create issue for task
+                  const { data: issue } = await github.rest.issues.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title: `[${task.task_id}] ${task.name}`,
+                    body: `## Task Details
+            
+            **Phase:** ${phase.name || phaseKey}
+            **Duration Estimate:** ${task.duration} hours
+            **Risk Level:** ${task.risk || 'NORMAL'}
+            **Project:** ${projectId}
+            
+            ${task.description || ''}
+            
+            ### Dependencies
+            ${task.depends_on ? task.depends_on.map(d => `- ${d}`).join('\n') : 'None'}
+            
+            ### Assignee
+            ${task.assignee || 'Unassigned'}
+            
+            ---
+            *Automatically created by SOMAS Pipeline*`,
+                    labels: ['somas-task', `project:${projectId}`, `phase:${phaseKey}`]
+                  });
+                  
+                  console.log(`Created issue #${issue.number}: ${task.name}`);
+                  
+                  // Add issue to project board
+                  await github.rest.projects.createCard({
+                    column_id: backlogColumn.id,
+                    content_id: issue.id,
+                    content_type: 'Issue'
+                  });
+                }
+              }
+            }
+      
+      - name: Update Project Status
+        if: github.event.inputs.action == 'update' || github.event.action == 'update'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectId = '${{ github.event.inputs.project_id }}';
+            const stage = context.payload.client_payload?.stage || 'unknown';
+            
+            console.log(`Updating project ${projectId} to stage: ${stage}`);
+            
+            // Get all issues for this project
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: `project:${projectId}`,
+              state: 'open'
+            });
+            
+            // Update labels based on stage
+            const stageLabel = `stage:${stage}`;
+            
+            for (const issue of issues) {
+              // Remove old stage labels
+              const currentLabels = issue.labels.map(l => l.name);
+              const nonStageLabels = currentLabels.filter(l => !l.startsWith('stage:'));
+              
+              // Add new stage label
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: [...nonStageLabels, stageLabel]
+              });
+            }
+            
+            console.log(`Updated ${issues.length} issues with stage label: ${stageLabel}`);
+      
+      - name: Close Project
+        if: github.event.inputs.action == 'close' || github.event.action == 'close'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const projectId = '${{ github.event.inputs.project_id }}';
+            
+            // Load project metadata
+            const metaPath = `.somas/projects/${projectId}/project_metadata.json`;
+            const projectMeta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+            const githubProjectId = projectMeta.github_project_id;
+            
+            // Close all open issues for this project
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: `project:${projectId}`,
+              state: 'open'
+            });
+            
+            for (const issue of issues) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+            }
+            
+            console.log(`Closed ${issues.length} issues`);
+            
+            // Update project metadata
+            projectMeta.status = 'completed';
+            projectMeta.completed_at = new Date().toISOString();
+            fs.writeFileSync(metaPath, JSON.stringify(projectMeta, null, 2));
+      
+      - name: Commit metadata changes
+        if: github.event.inputs.action == 'create' || github.event.action == 'create'
+        run: |
+          git config user.name "SOMAS Bot"
+          git config user.email "somas-bot@users.noreply.github.com"
+          git add .somas/projects/
+          git commit -m "Add project metadata for ${{ github.event.inputs.project_id }}" || echo "No changes to commit"
+          git push || echo "No changes to push"
+      
+      - name: Record Metrics
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const projectId = '${{ github.event.inputs.project_id }}';
+            const action = '${{ github.event.inputs.action }}';
+            
+            const metric = {
+              timestamp: new Date().toISOString(),
+              project_id: projectId,
+              action: action,
+              event: context.eventName,
+              repository: context.repo.repo,
+              triggered_by: context.actor
+            };
+            
+            // Append to metrics log
+            const metricsDir = '.somas/analytics/runs';
+            fs.mkdirSync(metricsDir, { recursive: true });
+            
+            const metricsFile = `${metricsDir}/project_events.jsonl`;
+            fs.appendFileSync(metricsFile, JSON.stringify(metric) + '\n');
+            
+            console.log('Recorded metric:', metric);

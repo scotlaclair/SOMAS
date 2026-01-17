@@ -1,0 +1,377 @@
+# SOMAS Analytics Data Schema
+
+version: "1.0.0"
+description: "Schema for SOMAS pipeline analytics and learning data"
+
+# Data Storage Structure
+storage:
+  base_path: ".somas/analytics/"
+  subdirectories:
+    - "runs/"           # Individual pipeline run data
+    - "aggregated/"     # Aggregated metrics over time
+    - "models/"         # Learned models for estimation
+    - "historical/"     # Historical archived data
+
+# Metric Definitions
+
+metrics:
+  task_duration_vs_estimate:
+    description: "Compare actual task duration against initial estimates"
+    schema:
+      project_id: string
+      task_id: string
+      task_name: string
+      task_type: string  # e.g., "api_implementation", "database_schema", "testing"
+      estimated_duration_hours: float
+      actual_duration_hours: float
+      estimation_error_percent: float  # (actual - estimated) / estimated * 100
+      complexity_factors:
+        lines_of_code: integer
+        files_modified: integer
+        dependencies_count: integer
+        novelty_score: float  # 0.0 (familiar) to 1.0 (completely new)
+        integration_count: integer
+      phase: string
+      risk_level: string  # "LOW", "MEDIUM", "HIGH", "CRITICAL"
+      was_on_critical_path: boolean
+      iteration_count: integer
+      timestamp: datetime
+      
+    file_format: "jsonl"  # JSON Lines format for easy streaming
+    retention_days: 365
+    
+    indexes:
+      - task_type
+      - risk_level
+      - was_on_critical_path
+      
+  iteration_count_by_task_type:
+    description: "Track how many iterations different task types require"
+    schema:
+      project_id: string
+      task_id: string
+      task_name: string
+      task_type: string
+      iteration_count: integer
+      reasons_for_iterations:
+        - reason: string
+          count: integer
+      total_time_hours: float
+      time_per_iteration_hours: float
+      phase: string
+      timestamp: datetime
+      
+    file_format: "jsonl"
+    retention_days: 365
+    
+    indexes:
+      - task_type
+      - iteration_count
+      
+  parallel_efficiency:
+    description: "Measure effectiveness of parallel task execution"
+    schema:
+      project_id: string
+      phase_name: string
+      planned_parallel_tasks: integer
+      actual_parallel_tasks: integer
+      planned_duration_hours: float
+      actual_duration_hours: float
+      efficiency_score: float  # actual_parallel / planned_parallel
+      bottleneck_tasks:
+        - task_id: string
+          delay_caused_hours: float
+      resource_utilization_percent: float
+      idle_time_hours: float
+      timestamp: datetime
+      
+    file_format: "jsonl"
+    retention_days: 365
+    
+    indexes:
+      - phase_name
+      - efficiency_score
+      
+  critical_path_accuracy:
+    description: "Evaluate how well simulation predicted the critical path"
+    schema:
+      project_id: string
+      predicted_critical_path:
+        - task_id: string
+          predicted_probability: float
+      actual_critical_path:
+        - task_id: string
+      accuracy_metrics:
+        precision: float  # What % of predicted were actually critical
+        recall: float     # What % of actual critical were predicted
+        f1_score: float
+      predicted_duration_hours: float
+      actual_duration_hours: float
+      prediction_error_percent: float
+      simulation_iterations: integer
+      timestamp: datetime
+      
+    file_format: "json"
+    retention_days: 365
+    
+    indexes:
+      - accuracy_metrics.f1_score
+      - prediction_error_percent
+      
+  human_intervention_frequency:
+    description: "Track when and why human intervention was needed"
+    schema:
+      project_id: string
+      stage: string
+      intervention_type: string  # "approval", "clarification", "unblock", "decision"
+      task_id: string
+      task_name: string
+      reason: string
+      wait_time_hours: float
+      resolution_time_hours: float
+      impact_on_timeline_hours: float
+      could_be_automated: boolean
+      timestamp: datetime
+      
+    file_format: "jsonl"
+    retention_days: 365
+    
+    indexes:
+      - stage
+      - intervention_type
+      - could_be_automated
+
+# Aggregated Analytics
+
+aggregations:
+  task_type_statistics:
+    description: "Summary statistics for each task type"
+    schema:
+      task_type: string
+      sample_size: integer
+      duration_statistics:
+        mean_hours: float
+        median_hours: float
+        std_dev_hours: float
+        p10_hours: float
+        p90_hours: float
+      estimation_accuracy:
+        mean_error_percent: float
+        median_error_percent: float
+        rmse: float
+      iteration_statistics:
+        mean_iterations: float
+        median_iterations: float
+      success_rate_percent: float
+      common_issues:
+        - issue: string
+          frequency: integer
+      last_updated: datetime
+      
+    file_format: "json"
+    update_frequency: "daily"
+    
+  pipeline_performance_trends:
+    description: "Overall pipeline performance over time"
+    schema:
+      period: string  # "daily", "weekly", "monthly"
+      start_date: date
+      end_date: date
+      projects_completed: integer
+      average_duration_hours: float
+      median_duration_hours: float
+      estimation_accuracy_trend:
+        - date: date
+          mean_error_percent: float
+      parallelization_efficiency_trend:
+        - date: date
+          average_efficiency: float
+      human_intervention_rate:
+        - date: date
+          interventions_per_project: float
+      
+    file_format: "json"
+    update_frequency: "daily"
+
+# Learning Models
+
+models:
+  duration_estimator:
+    description: "Machine learning model for task duration estimation"
+    algorithm: "gradient_boosting"
+    features:
+      - task_type
+      - lines_of_code_estimate
+      - dependency_count
+      - novelty_score
+      - integration_count
+      - historical_task_type_mean
+      - phase
+    target: "actual_duration_hours"
+    model_file: "models/duration_estimator.pkl"
+    training_data_min_samples: 50
+    retraining_frequency: "weekly"
+    performance_metrics:
+      mae: float  # Mean Absolute Error
+      rmse: float  # Root Mean Square Error
+      r2_score: float
+      
+  critical_path_predictor:
+    description: "Model to predict which tasks will be on critical path"
+    algorithm: "random_forest_classifier"
+    features:
+      - task_duration_estimate
+      - dependency_count
+      - dependents_count
+      - complexity_score
+      - phase
+    target: "was_on_critical_path"
+    model_file: "models/critical_path_predictor.pkl"
+    training_data_min_samples: 100
+    retraining_frequency: "weekly"
+    performance_metrics:
+      precision: float
+      recall: float
+      f1_score: float
+      auc_roc: float
+
+# Data Collection Hooks
+
+collection_hooks:
+  task_started:
+    trigger: "task_status_changed_to_in_progress"
+    collect:
+      - project_id
+      - task_id
+      - started_at
+      - estimated_duration
+      
+  task_completed:
+    trigger: "task_status_changed_to_completed"
+    collect:
+      - project_id
+      - task_id
+      - completed_at
+      - actual_duration
+      - iteration_count
+      - final_code_metrics
+      
+  human_gate_opened:
+    trigger: "human_approval_requested"
+    collect:
+      - project_id
+      - stage
+      - task_id
+      - requested_at
+      - reason
+      
+  human_gate_closed:
+    trigger: "human_approval_received"
+    collect:
+      - project_id
+      - stage
+      - task_id
+      - approved_at
+      - wait_time
+      - decision
+      
+  phase_started:
+    trigger: "phase_begins"
+    collect:
+      - project_id
+      - phase_name
+      - planned_tasks
+      - planned_duration
+      - started_at
+      
+  phase_completed:
+    trigger: "phase_ends"
+    collect:
+      - project_id
+      - phase_name
+      - actual_tasks
+      - actual_duration
+      - completed_at
+      - parallel_efficiency
+
+# Data Export
+
+export:
+  formats:
+    - csv
+    - json
+    - parquet
+    
+  destinations:
+    - local_filesystem
+    - s3_bucket  # Optional
+    - data_warehouse  # Optional
+    
+  schedules:
+    daily_summary:
+      frequency: "daily"
+      time: "00:00 UTC"
+      include:
+        - aggregations
+        - models.performance_metrics
+        
+    weekly_export:
+      frequency: "weekly"
+      day: "sunday"
+      time: "00:00 UTC"
+      include:
+        - all_metrics
+        - aggregations
+        
+    monthly_archive:
+      frequency: "monthly"
+      day: 1
+      time: "00:00 UTC"
+      include:
+        - all_metrics
+        - aggregations
+        - models
+
+# Data Privacy
+
+privacy:
+  anonymization:
+    enabled: false  # Set to true to anonymize developer names
+    fields_to_anonymize:
+      - developer_name
+      - commit_author
+      
+  retention:
+    raw_metrics: 365  # days
+    aggregations: 730  # days
+    models: 365  # days
+    
+  sensitive_data_handling:
+    strip_code_content: true  # Don't store actual code in metrics
+    strip_commit_messages: true  # Don't store full commit messages
+    strip_issue_content: true  # Don't store issue descriptions
+
+# Visualization
+
+dashboards:
+  real_time_pipeline:
+    widgets:
+      - current_stage
+      - tasks_completed
+      - tasks_remaining
+      - estimated_completion
+      - critical_path_status
+      
+  historical_performance:
+    widgets:
+      - estimation_accuracy_trend
+      - average_duration_trend
+      - iteration_count_trend
+      - parallelization_efficiency
+      
+  task_analytics:
+    widgets:
+      - duration_by_task_type
+      - iteration_by_task_type
+      - risk_distribution
+      - critical_path_frequency

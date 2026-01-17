@@ -1,0 +1,40 @@
+simulation:
+  id: "simulation"
+  order: 3
+  objective: "Determine optimal task sequencing through Monte Carlo simulation"
+  
+  inputs:
+    - "SPEC.md (from specification)"
+    - "historical_data (from analytics)"
+    
+  outputs:
+    - artifact: "execution_plan.yml"
+      contents:
+        - "simulation_results"
+        - "critical_path"
+        - "high_risk_tasks"
+        - "optimal_execution_plan"
+        - "recommendations"
+    - artifact: "task_graph.yml"
+      contents:
+        - "nodes (tasks)"
+        - "edges (dependencies)"
+        - "weights (durations)"
+        
+  agents:
+    primary: "simulator"
+    validator: "codex"
+    
+  quality_gates:
+    - "Task graph is acyclic (no circular dependencies)"
+    - "All tasks have duration estimates"
+    - "Critical path identified"
+    - "Parallelization opportunities documented"
+    
+  human_gate: false
+  
+  configuration:
+    monte_carlo_iterations: 1000
+    confidence_interval: 0.90
+    risk_threshold_hours: 8
+    parallel_task_limit: 5
