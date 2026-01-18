@@ -373,7 +373,7 @@ def get_project_path(project_id):
     """
     Safely constructs project path with validation.
     
-    @copilot-context: Project IDs must match pattern 'project-\\d+'
+    @copilot-context: Project IDs must match pattern 'project-\\\\d+'
     """
     # Validate format
     if not re.match(r'^project-\d+$', project_id):
@@ -427,7 +427,7 @@ def extract_requirements(spec_content):
     @copilot-review: Verify regex patterns match template format
     """
     # Pattern matches: ### REQ-F-001: Title
-    pattern = r'### (REQ-[FN]+-\d+):\s*(.+?)$'
+    pattern = r'### (REQ-[FN]+-\\d+):\\s*(.+?)$'
     
     requirements = []
     for match in re.finditer(pattern, spec_content, re.MULTILINE):

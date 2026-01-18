@@ -180,6 +180,9 @@ copilot:
         - "exec("
         - "hardcoded_password"
         - "hardcoded_api_key"
+        - "subprocess.call"
+        - "shell=True"
+        - "os.system("
         
     code_quality:
       enabled: true

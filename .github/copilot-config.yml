@@ -55,7 +55,7 @@ security:
     - "path_traversal_prevention"
   
   validation_patterns:
-    project_id: "^project-\\d+$"
+    project_id: "^project-\\\\d+$"
     
   prohibited_patterns:
     - "eval("
@@ -63,6 +63,9 @@ security:
     - "shell=True"
     - "hardcoded_password"
     - "hardcoded_api_key"
+    - "os.system("
+    - "subprocess.call"
+    - "importlib.import_module"
 
 testing:
   framework: "pytest"
