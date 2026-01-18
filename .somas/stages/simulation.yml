@@ -33,8 +33,5 @@ simulation:
     
   human_gate: false
   
-  configuration:
-    monte_carlo_iterations: 1000
-    confidence_interval: 0.90
-    risk_threshold_hours: 8
-    parallel_task_limit: 5
+  # Note: Simulation configuration is defined in .somas/config.yml under optimization.simulation
+  # to maintain a single source of truth

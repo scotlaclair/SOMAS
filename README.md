@@ -186,8 +186,17 @@ analytics:
 
 docs/somas/
 ├── README.md                     # System documentation
-└── optimization-guide.md         # Optimization techniques
+├── optimization-guide.md         # Optimization techniques
+├── MIGRATION_GUIDE.md            # Migration guide for configuration updates
+└── TROUBLESHOOTING.md            # Common issues and solutions
 ```
+
+## Documentation
+
+- **[System Documentation](docs/somas/README.md)** - Complete SOMAS overview and architecture
+- **[Migration Guide](docs/somas/MIGRATION_GUIDE.md)** - Guide for migrating configurations and understanding changes
+- **[Troubleshooting Guide](docs/somas/TROUBLESHOOTING.md)** - Solutions to common issues and debugging tips
+- **[Optimization Guide](docs/somas/optimization-guide.md)** - Advanced optimization techniques
 
 ## Key Benefits
 
@@ -196,7 +205,20 @@ docs/somas/
 ✅ **Better Visibility** - GitHub Projects integration shows real-time progress  
 ✅ **Risk Management** - Early identification of high-risk tasks with mitigations  
 ✅ **Continuous Improvement** - Analytics and learning improve every run  
-✅ **Human Control** - Approval gates at critical decision points
+✅ **Human Control** - Approval gates at critical decision points  
+✅ **Security Hardened** - Input validation, injection prevention, and secure defaults
+
+## Security
+
+SOMAS has been hardened with multiple security improvements:
+
+- **Input Validation** - Project IDs validated to prevent path traversal attacks
+- **Injection Prevention** - Safe JSON encoding prevents shell injection
+- **Secure Defaults** - Division-by-zero protection and error handling
+- **Dependency Management** - Proper installation and version management
+- **Regular Scans** - CodeQL security scanning integrated into development
+
+For security concerns, please open a security advisory rather than a public issue.
 
 ## Owner
 
@@ -204,7 +226,7 @@ docs/somas/
 
 ## License
 
-[Add license information]
+This project is under active development. License information will be added in a future release.
 
 ---
 
