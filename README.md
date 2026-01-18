@@ -148,6 +148,7 @@ quality:
 limits:
   iterations:
     per_task: 5
+    per_step: 10
     per_stage: 25
     per_pipeline: 100
 ```

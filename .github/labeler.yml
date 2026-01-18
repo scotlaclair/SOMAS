@@ -22,8 +22,8 @@ configuration:
 # Tests
 tests:
   - changed-files:
-    - any-glob-to-any-file: '**/*test*/**/*'
-    - any-glob-to-any-file: '**/*spec*/**/*'
+    - any-glob-to-any-file: '**/{test,tests}/**/*'
+    - any-glob-to-any-file: '**/{spec,specs}/**/*'
     - any-glob-to-any-file: '**/*.test.*'
     - any-glob-to-any-file: '**/*.spec.*'
 

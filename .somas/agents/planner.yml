@@ -138,7 +138,7 @@ tasks:
   - id: "generate_plan"
     description: "Generate comprehensive project plan"
     input: "All previous outputs"
-    output: "Complete plan document at .somas/output/plan.md"
+    output: "Complete plan document at .somas/output/{issue_number}/plan.md"
 
 quality_requirements:
   - "All requirements from issue are captured"

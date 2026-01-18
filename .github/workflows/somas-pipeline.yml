@@ -15,8 +15,9 @@ jobs:
   orchestrate:
     name: SOMAS Orchestrator
     if: |
-      (github.event_name == 'issues' && github.event.label.name == 'somas:start') ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/somas'))
+      (github.event_name == 'issues' && github.event.label.name == 'somas:start' && !github.event.issue.pull_request) ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/somas') && !github.event.issue.pull_request &&
+       (github.event.comment.user.login == github.event.repository.owner.login || github.event.comment.author_association == 'OWNER' || github.event.comment.author_association == 'MEMBER'))
     runs-on: ubuntu-latest
     
     steps:
@@ -39,8 +40,10 @@ jobs:
         id: parse
         run: |
           ISSUE_NUMBER="${{ github.event.issue.number }}"
-          ISSUE_TITLE="${{ github.event.issue.title }}"
-          ISSUE_BODY="${{ github.event.issue.body }}"
+          
+          # Use jq to safely read from GitHub event context to prevent shell injection
+          ISSUE_TITLE=$(jq -r '.issue.title // ""' "$GITHUB_EVENT_PATH")
+          ISSUE_BODY=$(jq -r '.issue.body // ""' "$GITHUB_EVENT_PATH")
           
           # Expose basic issue metadata as outputs
           echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
@@ -118,7 +121,7 @@ jobs:
           
           **Human approval required before merge** - @scotlaclair will be notified." \
             --head "$BRANCH_NAME" \
-            --base main)
+            --base ${{ github.event.repository.default_branch }})
           
           echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
           PR_NUMBER=$(echo "$PR_URL" | grep -oP '\d+$')
