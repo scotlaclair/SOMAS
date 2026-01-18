@@ -43,7 +43,7 @@ jobs:
             
             // Validate project_id to prevent path traversal
             if (!projectId || !/^[a-zA-Z0-9_-]+$/.test(projectId)) {
-              core.setFailed(`Invalid project_id: ${projectId}. Must contain only alphanumeric characters, hyphens, and underscores.`);
+              core.setFailed('Invalid project_id format. Must contain only alphanumeric characters, hyphens, and underscores.');
               return;
             }
             

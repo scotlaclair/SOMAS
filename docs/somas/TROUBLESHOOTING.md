@@ -165,7 +165,7 @@ optimization:
     external_dependencies: 2.0  # Increase if external deps are risky
     new_technology: 2.5         # Increase for cutting-edge tech
     high_complexity: 2.0        # Increase for complex domains
-    integration_heavy: 1.5      # Adjust based on integration pain
+    integration_heavy: 1.5      # Adjust based on integration complexity
 ```
 
 ---

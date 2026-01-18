@@ -222,8 +222,15 @@ jobs:
           else
             echo "Execution plan template not found at ${PLAN_TEMPLATE}; generating a basic execution plan file instead."
             cat > "${PLAN_OUTPUT}" << 'PLANEOF'
-            # Execution Plan for project
-            optimal_execution_plan: {}
+            optimal_execution_plan:
+              phase_1:
+                name: "Initial Phase"
+                parallel_tasks: []
+                sequential_tasks: []
+            simulation_results:
+              mean_duration_hours: 0
+              p90_duration_hours: 0
+            critical_path: []
             PLANEOF
           fi
           
