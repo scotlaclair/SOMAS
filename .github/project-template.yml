@@ -187,7 +187,8 @@ metrics:
     
   - name: "Estimation Accuracy"
     description: "How accurate duration estimates are"
-    calculation: "(actual_duration - duration_estimate) / duration_estimate * 100"
+    calculation: "duration_estimate > 0 ? (actual_duration - duration_estimate) / duration_estimate * 100 : null"
+    notes: "Returns null if duration_estimate is 0 to avoid division by zero"
     
   - name: "Iteration Rate"
     description: "Average iterations per task"

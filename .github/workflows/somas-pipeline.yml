@@ -42,26 +42,41 @@ jobs:
         
       - name: Setup Project
         id: setup
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
         run: |
           # Generate project ID from issue number
-          PROJECT_ID="project-${{ github.event.issue.number }}"
+          PROJECT_ID="project-${ISSUE_NUMBER}"
           echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
           
           # Create project directory structure
           mkdir -p .somas/projects/${PROJECT_ID}/{artifacts,logs}
           
-          # Create project metadata
-          cat > .somas/projects/${PROJECT_ID}/metadata.json << EOF
-          {
-            "project_id": "${PROJECT_ID}",
-            "issue_number": ${{ github.event.issue.number }},
-            "title": "${{ github.event.issue.title }}",
-            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "status": "initializing",
-            "current_stage": "ideation",
-            "stages_completed": []
-          }
-          EOF
+          # Create project metadata using Python for safe JSON encoding
+          python3 -c "
+import json
+import os
+from datetime import datetime
+
+project_id = os.environ['PROJECT_ID']
+issue_number = int(os.environ['ISSUE_NUMBER'])
+title = os.environ['ISSUE_TITLE']
+created_at = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+metadata = {
+    'project_id': project_id,
+    'issue_number': issue_number,
+    'title': title,
+    'created_at': created_at,
+    'status': 'initializing',
+    'current_stage': 'ideation',
+    'stages_completed': []
+}
+
+with open(f'.somas/projects/{project_id}/metadata.json', 'w') as f:
+    json.dump(metadata, f, indent=2)
+" PROJECT_ID="${PROJECT_ID}"
           
           echo "Initialized project: ${PROJECT_ID}"
       
@@ -86,9 +101,15 @@ jobs:
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          git add .somas/projects/
-          git commit -m "Initialize SOMAS project ${{ steps.setup.outputs.project_id }}"
-          git push
+          
+          # Check if there are any changes to commit
+          if git status --porcelain .somas/projects/ | grep . >/dev/null; then
+            git add .somas/projects/
+            git commit -m "Initialize SOMAS project ${{ steps.setup.outputs.project_id }}"
+            git push
+          else
+            echo "No changes to commit"
+          fi
   
   stage-1-ideation:
     runs-on: ubuntu-latest
@@ -131,9 +152,27 @@ jobs:
           PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
           echo "Running specification stage for ${PROJECT_ID}"
           
-          # Placeholder for actual specifier agent execution
-          mkdir -p .somas/projects/${PROJECT_ID}/artifacts
-          cp .somas/templates/SPEC.md .somas/projects/${PROJECT_ID}/artifacts/SPEC.md
+          # Specification artifact generation
+          ARTIFACT_DIR=".somas/projects/${PROJECT_ID}/artifacts"
+          SPEC_TEMPLATE=".somas/templates/SPEC.md"
+          SPEC_OUTPUT="${ARTIFACT_DIR}/SPEC.md"
+          
+          mkdir -p "${ARTIFACT_DIR}"
+          
+          if [ -f "${SPEC_TEMPLATE}" ]; then
+            echo "Using existing specification template at ${SPEC_TEMPLATE}"
+            cp "${SPEC_TEMPLATE}" "${SPEC_OUTPUT}"
+          else
+            echo "Specification template not found at ${SPEC_TEMPLATE}; generating a basic specification file instead."
+            cat > "${SPEC_OUTPUT}" <<EOF
+# Specification for project ${PROJECT_ID}
+
+This is an auto-generated specification artifact for project \`${PROJECT_ID}\`.
+
+Please update this document with detailed functional, non-functional, and interface requirements for the project.
+EOF
+          fi
+          
           echo "Stage 2: Specification completed"
       
       - name: Update Project Status
@@ -169,9 +208,24 @@ jobs:
           PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
           echo "Running simulation stage for ${PROJECT_ID}"
           
-          # Placeholder for actual simulator agent execution
-          mkdir -p .somas/projects/${PROJECT_ID}/artifacts
-          cp .somas/templates/execution_plan.yml .somas/projects/${PROJECT_ID}/artifacts/execution_plan.yml
+          # Simulation artifact generation
+          ARTIFACT_DIR=".somas/projects/${PROJECT_ID}/artifacts"
+          PLAN_TEMPLATE=".somas/templates/execution_plan.yml"
+          PLAN_OUTPUT="${ARTIFACT_DIR}/execution_plan.yml"
+          
+          mkdir -p "${ARTIFACT_DIR}"
+          
+          if [ -f "${PLAN_TEMPLATE}" ]; then
+            echo "Using existing execution plan template at ${PLAN_TEMPLATE}"
+            cp "${PLAN_TEMPLATE}" "${PLAN_OUTPUT}"
+          else
+            echo "Execution plan template not found at ${PLAN_TEMPLATE}; generating a basic execution plan file instead."
+            cat > "${PLAN_OUTPUT}" <<EOF
+# Execution Plan for project ${PROJECT_ID}
+optimal_execution_plan: {}
+EOF
+          fi
+          
           echo "Stage 3: Simulation completed"
       
       - name: Create Task Issues

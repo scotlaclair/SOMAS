@@ -24,7 +24,7 @@ metrics:
       task_type: string  # e.g., "api_implementation", "database_schema", "testing"
       estimated_duration_hours: float
       actual_duration_hours: float
-      estimation_error_percent: float  # (actual - estimated) / estimated * 100
+      estimation_error_percent: float  # (actual - estimated) / estimated * 100. Set to null if estimated is 0
       complexity_factors:
         lines_of_code: integer
         files_modified: integer
