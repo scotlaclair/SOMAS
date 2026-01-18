@@ -204,7 +204,7 @@ docs/somas/
 
 ## License
 
-[Add license information]
+This project is under active development. License information will be added in a future release.
 
 ---
 

@@ -338,6 +338,9 @@ privacy:
   anonymization:
     enabled: false  # Set to true to anonymize developer names
     fields_to_anonymize:
+      # Note: The following fields are listed for future implementation.
+      # They are not currently collected in the metric schemas above,
+      # but are reserved for when developer tracking is added.
       - developer_name
       - commit_author
       

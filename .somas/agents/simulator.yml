@@ -42,11 +42,11 @@ simulator:
          - Number of integrations
          - Novelty (new vs. familiar tech)
          - Testing complexity
-      3. Apply multipliers for risk factors:
-         - External dependencies: 1.5x
-         - New technology: 2x
-         - High complexity: 1.8x
-         - Integration heavy: 1.7x
+      3. Apply multipliers for risk factors (configured in .somas/config.yml under optimization.risk_multipliers):
+         - External dependencies
+         - New technology
+         - High complexity
+         - Integration heavy
       
       **Duration Distribution:**
       Use PERT (Beta) distribution: Mean = (Optimistic + 4*MostLikely + Pessimistic) / 6
@@ -136,11 +136,9 @@ simulator:
       
       Use templates from .somas/templates/
       
-  simulation_parameters:
-    iterations: 1000
-    confidence_level: 0.90
-    random_seed: 42  # For reproducibility
-    
+  # Note: Simulation parameters are defined in .somas/config.yml under optimization.simulation
+  # to maintain a single source of truth
+      
   task_sizing_rules:
     max_duration_hours: 8
     min_duration_hours: 1

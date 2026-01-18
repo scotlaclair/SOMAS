@@ -1,4 +1,13 @@
 # GitHub Project Template for SOMAS Pipeline
+# 
+# NOTE: This is a declarative specification for the project structure.
+# The current implementation uses GitHub Projects Classic API.
+# 
+# FUTURE MIGRATION: Consider migrating to GitHub Projects V2 (GraphQL API) for:
+# - Better long-term support (Classic API is in maintenance mode)
+# - Access to custom fields and advanced automation
+# - Improved performance and features
+# See: https://docs.github.com/en/issues/planning-and-tracking-with-projects
 
 name: "SOMAS Pipeline"
 description: "Automated project board for tracking SOMAS AI development pipeline execution"
@@ -153,7 +162,7 @@ automation_rules:
     condition: "has_label:high-risk"
     action: "add_label:needs-human"
     
-  - name: "Block dependent tasks"
+  - name: "Unblock dependent tasks"
     trigger: "issue_closed"
     action: "check_dependencies_and_unblock"
 
