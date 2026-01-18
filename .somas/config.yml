@@ -1,4 +1,7 @@
 # SOMAS Configuration
+# @copilot-context: Main configuration for Self-Sovereign Orchestrated Multi-Agent System
+# This file defines the 7-stage pipeline, AI agent providers, and optimization settings
+# @copilot-review: Verify security settings when modifying agent configurations
 
 version: "1.0.0"
 name: "Self-Sovereign Orchestrated Multi-Agent System"
@@ -57,6 +60,10 @@ pipeline:
       timeout_hours: 24
 
 # Agent Configuration
+# @copilot-delegate: Agent configurations define AI provider mappings
+# - Codex (GPT-4): Specification, simulation, architecture, deployment
+# - Copilot: Implementation and code generation (see .somas/agents/copilot.yml)
+# - Gemini Pro: Independent validation and testing
 
 agents:
   providers:

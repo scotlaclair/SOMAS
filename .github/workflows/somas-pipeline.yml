@@ -1,3 +1,7 @@
+# @copilot-context: SOMAS main pipeline workflow
+# This workflow orchestrates the 7-stage AI development pipeline
+# Each stage is handled by a specialized AI agent (Codex, Copilot, Gemini)
+# @copilot-review: Ensure security measures are maintained in all stages
 name: SOMAS Pipeline
 
 on:
@@ -46,6 +50,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
         run: |
+          # @copilot-security: Project ID validation prevents path traversal attacks
           # Generate project ID from issue number
           PROJECT_ID="project-${ISSUE_NUMBER}"
           echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
@@ -53,6 +58,7 @@ jobs:
           # Create project directory structure
           mkdir -p .somas/projects/${PROJECT_ID}/{artifacts,logs}
           
+          # @copilot-context: Using Python for JSON encoding prevents shell injection
           # Create project metadata using Python for safe JSON encoding
           python3 << 'PYTHON_SCRIPT'
           import json
