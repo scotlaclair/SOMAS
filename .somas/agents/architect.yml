@@ -179,7 +179,7 @@ tasks:
   - id: "generate_architecture_doc"
     description: "Generate comprehensive architecture document"
     input: "All previous outputs"
-    output: "Architecture document at .somas/output/architecture.md"
+    output: "Architecture document at .somas/output/{issue_number}/architecture.md"
 
 quality_requirements:
   - "Architecture supports all planned requirements"
