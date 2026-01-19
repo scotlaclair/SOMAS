@@ -6,11 +6,13 @@ version: "1.0.0"
 schema: "somas-apo-chain-strategic-diamond-v1"
 
 description: |
-  The Strategic Diamond chain follows a diverge-converge pattern:
-  1. DIVERGE: Generate many options (wide exploration)
-  2. CONVERGE: Systematically narrow to best option (disciplined selection)
+  The Strategic Diamond chain follows a four-phase diverge-converge pattern:
+  1. DIVERGE: Generate many options
+  2. EXPLORE: Develop promising options
+  3. CONVERGE: Select best option
+  4. COMMIT: Create implementation plan
   
-  This pattern prevents premature convergence while ensuring timely decisions.
+  This four-phase pattern prevents premature convergence while ensuring timely decisions.
   Particularly effective for strategic decisions, architecture choices, and planning.
 
 name: "Strategic Diamond"
