@@ -330,159 +330,89 @@ SOMAS Lite is powered by:
 **Ready to build something amazing?**  
 [Create your first SOMAS project →](../../issues/new/choose)
 # SOMAS
-Self-Sovereign Orchestrated Multi-Agent System - Autonomous AI Development Pipeline
+**Self-Sovereign Orchestrated Multi-Agent System - Autonomous AI Development Pipeline**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![SOMAS Version](https://img.shields.io/badge/SOMAS-v1.0.0-green.svg)](.somas/config.yml)
+
+---
 
 ## Overview
 
-SOMAS is an AI-first Software Development Life Cycle (SDLC) that transforms project ideas into production-ready software through orchestrated AI agents. The system features:
+SOMAS is an AI-first Software Development Life Cycle (SDLC) that transforms project ideas into production-ready software through orchestrated AI agents. The system currently supports **two operational modes**:
 
-- **7-Stage Pipeline** with complete specification and simulation optimization
-- **Autonomous AI Agents** specialized for each development phase
-- **Simulation-Based Optimization** using Monte Carlo analysis for optimal task sequencing
-- **GitHub Project Integration** for visual progress tracking and metrics collection
-- **Human Gates** at critical decision points
-- **Continuous Learning** from historical data to improve estimates
+### SOMAS Extended (Current - 7-Stage Pipeline)
+An enhanced pipeline featuring complete specification and simulation-based optimization:
+- **7-Stage Pipeline** with specification and simulation optimization  
+- **Monte Carlo Analysis** for optimal task sequencing
+- **GitHub Project Integration** for visual progress tracking
+- **Specification Gates** for requirement clarification
+- **Continuous Learning** from historical data
 
-## Pipeline Architecture
+### SOMAS Lite (5-Stage Pipeline)  
+The original autonomous pipeline with comprehensive agent documentation:
+- **5-Stage Pipeline** (Ideation → Architecture → Implementation → Validation → Staging)
+- **8 Specialized AI Agents** with detailed configurations
+- **Multi-Provider AI** (GitHub Copilot, Gemini, OpenAI GPT-4)
+- **Comprehensive Documentation** for each agent and stage
+- **Quality Gates** (80% test coverage, security scanning, code review)
 
-```
-┌─────────────┐
-│  Ideation   │  High-level plan from project idea
-└──────┬──────┘
-       │
-       ▼
-┌─────────────────┐
-│ Specification   │  Complete, unambiguous spec (HUMAN GATE ✋)
-└──────┬──────────┘
-       │
-       ▼
-┌─────────────┐
-│ Simulation  │  Optimal task sequencing via Monte Carlo
-└──────┬──────┘
-       │
-       ▼
-┌──────────────┐
-│ Architecture │  System design and component planning
-└──────┬───────┘
-       │
-       ▼
-┌────────────────┐
-│ Implementation │  Code generation following optimized plan
-└──────┬─────────┘
-       │
-       ▼
-┌────────────┐
-│ Validation │  Comprehensive testing and verification
-└──────┬─────┘
-       │
-       ▼
-┌──────────┐
-│ Staging  │  Deploy to staging (HUMAN GATE ✋)
-└──────────┘
-```
-
-## Key Features
-
-### 🎯 Complete Specification Stage
-Before architecture begins, SOMAS creates a comprehensive specification document with:
-- Enumerated, testable functional requirements
-- Measurable non-functional requirements
-- User stories with acceptance criteria
-- Data dictionary and API contracts
-- Security and integration requirements
-- **Human approval gate** to ensure quality before proceeding
-
-**Why?** Reduces iteration risk by catching requirement issues early, preventing costly rework in later stages.
-
-### 🔬 Simulation & Optimization
-Monte Carlo simulation (1000 iterations) determines the optimal task execution strategy:
-- **Critical path identification** - Know which tasks determine project completion
-- **Parallelization opportunities** - Execute independent tasks simultaneously
-- **Risk assessment** - Identify high-risk tasks with mitigation strategies
-- **Duration prediction** - 90% confidence intervals for completion time
-- **Task optimization** - Recommendations for decomposition and sizing
-
-**Impact:** Reduces total pipeline duration by 40-60% through intelligent parallelization and risk management.
-
-### 📊 GitHub Project Integration
-Automatic integration with GitHub Projects provides:
-- Visual progress tracking across all pipeline stages
-- Task issues created from execution plan
-- Automated card movement between columns
-- Metrics tracking (cycle time, throughput, estimation accuracy)
-- Clear visibility of human intervention points
-
-### 📈 Analytics & Learning
-Continuous learning from every pipeline run:
-- Task duration vs. estimate accuracy
-- Iteration patterns by task type
-- Parallelization efficiency
-- Critical path prediction accuracy
-- Human intervention frequency
-
-Machine learning models improve over time, providing better estimates and recommendations.
+---
 
 ## Quick Start
 
-### 1. Create a Project
+### Using SOMAS Extended (7-Stage)
 
-Create a GitHub issue with:
-- **Label:** `somas-project`
-- **Title:** Your project name  
-- **Description:** Project idea and requirements
+1. Create an issue with your project idea
+2. Add the `somas-project` label
+3. The pipeline will automatically:
+   - Generate a specification (with human approval gate)
+   - Run simulations to optimize task ordering
+   - Execute through all 7 stages
+   - Track progress in GitHub Projects
 
-### 2. Automatic Execution
+### Using SOMAS Lite (5-Stage)
 
-The pipeline automatically executes through 7 stages:
-1. **Ideation** - High-level planning
-2. **Specification** - Detailed requirements (requires your approval ✋)
-3. **Simulation** - Execution optimization
-4. **Architecture** - System design
-5. **Implementation** - Code generation
-6. **Validation** - Testing and verification
-7. **Staging** - Deployment preparation (requires your approval ✋)
+1. Create an issue using the SOMAS Project Request template
+2. Add the `somas:start` label  
+3. The pipeline will autonomously:
+   - Plan, design, implement, validate, and document
+   - Create a PR with all generated code
+   - Request human approval at the staging gate
 
-### 3. Track Progress
-
-Monitor progress through:
-- **GitHub Project Board** - Visual task tracking
-- **Workflow Runs** - Stage completion status
-- **Analytics Dashboard** - Performance metrics
-
-### 4. Human Gates
-
-You'll be notified at two critical gates:
-- **After Specification** - Approve complete requirements document
-- **After Staging** - Approve deployment to production
-
-## Configuration
-
-Main configuration: `.somas/config.yml`
-
-Key settings:
-```yaml
-optimization:
-  simulation:
-    enabled: true
-    iterations: 1000
-  parallelization:
-    enabled: true
-    max_concurrent_tasks: 5
-    
-project_management:
-  enabled: true
-  github_project:
-    create_per_pipeline: true
-    
-analytics:
-  enabled: true
-  track:
-    - task_duration_vs_estimate
-    - parallel_efficiency
-```
+---
 
 ## Documentation
 
+### SOMAS Extended
+- [Main Documentation](docs/somas/README.md)
+- [Optimization Guide](docs/somas/optimization-guide.md)
+
+### SOMAS Lite
+- [Getting Started](docs/somas/getting-started.md)  
+- [Agent Configurations](.somas/agents/)
+
+For complete documentation on both modes, architecture details, and configuration options, see the full documentation in the `docs/` directory.
+
+---
+
+## Choosing Between Extended and Lite
+
+### Use SOMAS Extended When:
+- You need detailed specifications before implementation
+- You want optimal task ordering through simulation
+- You need GitHub Project integration for tracking
+
+### Use SOMAS Lite When:
+- You want faster, more autonomous execution
+- You have well-defined requirements already
+- You prefer comprehensive agent documentation
+
+---
+
+## License
+
+MIT License - See [LICENSE](LICENSE) for details
 - **[SOMAS Documentation](docs/somas/README.md)** - Complete system documentation
 - **[Optimization Guide](docs/somas/optimization-guide.md)** - Advanced optimization techniques
 - **[Configuration Reference](.somas/config.yml)** - Full configuration options
@@ -561,4 +491,5 @@ This project is under active development. License information will be added in a
 
 ---
 
-*SOMAS - Autonomous AI development from idea to production*
+**Ready to build something amazing?**  
+[Create your first SOMAS project →](../../issues/new/choose)
