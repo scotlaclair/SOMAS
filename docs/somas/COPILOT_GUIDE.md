@@ -22,20 +22,26 @@ SOMAS uses a multi-agent approach where different AI systems handle different st
 
 | Agent | Provider | Stage | Responsibility |
 |-------|----------|-------|----------------|
-| Planner | Codex (GPT-4) | Ideation | High-level planning |
-| Specifier | Codex (GPT-4) | Specification | Requirements documentation |
-| Simulator | Codex (GPT-4) | Simulation | Task optimization |
-| Architect | Codex (GPT-4) | Architecture | System design |
-| **Coder** | **Copilot** | **Implementation** | **Code generation** |
-| Validator | Gemini Pro | Validation | Testing and verification |
-| Deployer | Codex (GPT-4) | Staging | Deployment preparation |
+| Planner | GPT-5.2 | Ideation | High-level planning |
+| Specifier | GPT-5.2 | Specification | Requirements documentation |
+| Simulator | GPT-5.2 | Simulation | Task optimization |
+| Architect | Claude Opus 4.5 | Architecture | System design |
+| **Implementer** | **GPT-5.2-Codex** | **Implementation** | **Code generation** |
+| Tester | Claude Sonnet 4.5 | Testing | Test suite creation |
+| Reviewer | Claude Sonnet 4.5 | Review | Code quality assessment |
+| Security | GPT-5.2 | Security | Vulnerability scanning |
+| Documenter | Gemini 3 Pro | Documentation | Technical writing |
+| Orchestrator | Grok Code Fast 1 | Coordination | Pipeline management |
 
 ### Why Multiple Agents?
 
 Each agent is specialized for its domain:
-- **Codex** excels at reasoning, planning, and structured documentation
-- **Copilot** is optimized for code generation and autocompletion
-- **Gemini** provides independent validation and diverse perspectives
+- **GPT-5.2-Codex** is the SOTA coding agent, optimized for agentic loops and complex refactors
+- **Claude Opus 4.5** provides the deepest reasoning for architecture and system design
+- **Claude Sonnet 4.5** offers balanced power for code review and testing
+- **GPT-5.2** excels at general intelligence tasks like requirements and security analysis
+- **Gemini 3 Pro** has massive context windows for comprehensive documentation
+- **Grok Code Fast 1** provides lowest latency for orchestration and routing
 
 ---
 

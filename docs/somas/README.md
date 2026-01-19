@@ -21,7 +21,7 @@ Welcome to the complete documentation for SOMAS (Self-Sovereign Orchestrated Mul
 
 ## Introduction
 
-SOMAS Lite is an autonomous development pipeline that transforms project ideas into production-ready code using AI agents. It coordinates multiple specialized AI agents (powered by GitHub Copilot, Gemini Code Assist, and OpenAI GPT-4) to handle the complete software development lifecycle.
+SOMAS Lite is an autonomous development pipeline that transforms project ideas into production-ready code using AI agents. It coordinates multiple specialized AI agents (powered by GPT-5.2-Codex, Claude Opus 4.5, Claude Sonnet 4.5, GPT-5.2, Gemini 3 Pro, and Grok Code Fast 1) to handle the complete software development lifecycle.
 
 ### Key Concepts
 
@@ -196,7 +196,7 @@ SOMAS is an AI-first Software Development Life Cycle (SDLC) that uses specialize
 
 Each agent is a specialized AI entity with:
 - **Role**: Clear identity and purpose
-- **Provider**: AI system (Copilot/Gemini/OpenAI GPT-4)
+- **Provider**: AI system (GPT-5.2-Codex, Claude Opus/Sonnet 4.5, GPT-5.2, Gemini 3 Pro, Grok Code Fast 1)
 - **Instructions**: Detailed task procedures
 - **Quality Standards**: Output requirements
 - **Handoff Protocol**: Context for next agent
@@ -204,7 +204,7 @@ Each agent is a specialized AI entity with:
 ### Agent Details
 
 #### Orchestrator
-- **Provider**: GitHub Copilot
+- **Provider**: Grok Code Fast 1
 - **Role**: Pipeline coordinator
 - **Responsibilities**:
   - Manage pipeline state
@@ -214,7 +214,7 @@ Each agent is a specialized AI entity with:
   - Request human intervention when needed
 
 #### Planner
-- **Provider**: OpenAI GPT-4
+- **Provider**: GPT-5.2
 - **Role**: Requirements analyst and strategic planner
 - **Responsibilities**:
   - Requirements analysis
@@ -224,7 +224,7 @@ Each agent is a specialized AI entity with:
   - Risk assessment
 
 #### Architect
-- **Provider**: OpenAI GPT-4 (design) + Gemini (review)
+- **Provider**: Claude Opus 4.5
 - **Role**: System designer
 - **Responsibilities**:
   - System architecture design
@@ -235,7 +235,7 @@ Each agent is a specialized AI entity with:
   - ADR documentation
 
 #### Implementer
-- **Provider**: GitHub Copilot
+- **Provider**: GPT-5.2-Codex
 - **Role**: Software engineer
 - **Responsibilities**:
   - Code generation
@@ -245,7 +245,7 @@ Each agent is a specialized AI entity with:
   - Best practices adherence
 
 #### Tester
-- **Provider**: GitHub Copilot
+- **Provider**: Claude Sonnet 4.5
 - **Role**: QA engineer
 - **Responsibilities**:
   - Test suite creation
@@ -255,7 +255,7 @@ Each agent is a specialized AI entity with:
   - Bug identification
 
 #### Reviewer
-- **Provider**: Gemini Code Assist
+- **Provider**: Claude Sonnet 4.5
 - **Role**: Senior code reviewer
 - **Responsibilities**:
   - Code quality assessment
@@ -265,7 +265,7 @@ Each agent is a specialized AI entity with:
   - Test coverage review
 
 #### Security
-- **Provider**: Gemini Code Assist
+- **Provider**: GPT-5.2
 - **Role**: Security analyst
 - **Responsibilities**:
   - Vulnerability scanning
@@ -275,7 +275,7 @@ Each agent is a specialized AI entity with:
   - Dependency security check
 
 #### Documenter
-- **Provider**: GitHub Copilot
+- **Provider**: Gemini 3 Pro
 - **Role**: Technical writer
 - **Responsibilities**:
   - README creation

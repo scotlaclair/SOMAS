@@ -2,7 +2,7 @@
 
 **Self-Sovereign Orchestrated Multi-Agent System**
 
-An autonomous development pipeline that transforms project ideas into production-ready code using AI agents powered by GitHub Copilot, Gemini Code Assist, and OpenAI GPT-4.
+An autonomous development pipeline that transforms project ideas into production-ready code using AI agents powered by the 2026 Frontier Tier models: GPT-5.2-Codex, Claude Opus 4.5, Claude Sonnet 4.5, GPT-5.2, Gemini 3 Pro, and Grok Code Fast 1.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![SOMAS Version](https://img.shields.io/badge/SOMAS-v1.0.0-green.svg)](.somas/config.yml)
@@ -21,7 +21,7 @@ SOMAS Lite is an autonomous AI-powered development pipeline that takes your proj
 - ✅ **Quality Assurance**: Built-in testing, code review, and security analysis
 - 📝 **Comprehensive Documentation**: Auto-generated docs, API references, and guides
 - 🔒 **Security First**: Automated vulnerability scanning and secure coding practices
-- 🌐 **Multi-Provider**: Leverages Copilot, Gemini, and GPT-4 for optimal results
+- 🌐 **Multi-Provider**: Leverages GPT-5.2-Codex, Claude Opus/Sonnet 4.5, GPT-5.2, Gemini 3 Pro, and Grok for optimal results
 
 ---
 
@@ -42,14 +42,14 @@ SOMAS operates through a **5-stage pipeline**, each with specialized AI agents:
 
 | Agent | Provider | Role |
 |-------|----------|------|
-| **Orchestrator** | Copilot | Coordinates pipeline, manages state, handles failures |
-| **Planner** | OpenAI GPT-4 | Analyzes requirements, creates roadmap |
-| **Architect** | GPT-4 + Gemini | Designs system architecture, defines components |
-| **Implementer** | Copilot | Generates production-ready code |
-| **Tester** | Copilot | Creates comprehensive test suites (80%+ coverage) |
-| **Reviewer** | Gemini | Performs code quality and architecture reviews |
-| **Security** | Gemini | Scans for vulnerabilities, validates secure coding |
-| **Documenter** | Copilot | Creates documentation, guides, and examples |
+| **Orchestrator** | Grok Code Fast 1 | Coordinates pipeline, manages state, handles failures |
+| **Planner** | GPT-5.2 | Analyzes requirements, creates roadmap |
+| **Architect** | Claude Opus 4.5 | Designs system architecture, defines components |
+| **Implementer** | GPT-5.2-Codex | Generates production-ready code |
+| **Tester** | Claude Sonnet 4.5 | Creates comprehensive test suites (80%+ coverage) |
+| **Reviewer** | Claude Sonnet 4.5 | Performs code quality and architecture reviews |
+| **Security** | GPT-5.2 | Scans for vulnerabilities, validates secure coding |
+| **Documenter** | Gemini 3 Pro | Creates documentation, guides, and examples |
 
 ---
 
@@ -90,35 +90,35 @@ When the staging stage completes:
 ## 📋 Pipeline Stages
 
 ### Stage 1: Ideation
-**Agent:** Planner (OpenAI GPT-4)
+**Agent:** Planner (GPT-5.2)
 - Extracts and analyzes requirements
 - Defines project scope
 - Creates implementation roadmap
 - Identifies dependencies and constraints
 
 ### Stage 2: Architecture
-**Agent:** Architect (GPT-4 + Gemini)
+**Agent:** Architect (Claude Opus 4.5)
 - Designs system architecture
 - Defines components and interactions
 - Creates data models
 - Documents architectural decisions (ADRs)
 
 ### Stage 3: Implementation
-**Agents:** Implementer + Tester (Copilot)
+**Agents:** Implementer + Tester (GPT-5.2-Codex + Claude Sonnet 4.5)
 - Generates production-ready code
 - Implements comprehensive error handling
 - Creates unit and integration tests
 - Achieves 80%+ test coverage
 
 ### Stage 4: Validation
-**Agents:** Tester + Reviewer + Security (Copilot + Gemini)
+**Agents:** Tester + Reviewer + Security (Claude Sonnet 4.5 + GPT-5.2)
 - Runs complete test suite
 - Performs code quality review
 - Conducts security vulnerability scan
 - Validates best practices compliance
 
 ### Stage 5: Staging
-**Agents:** Documenter + Reviewer (Copilot + Gemini)
+**Agents:** Documenter + Reviewer (Gemini 3 Pro + Claude Sonnet 4.5)
 **Requires Human Approval**
 - Creates comprehensive documentation
 - Generates API references
@@ -246,12 +246,15 @@ When limits are reached, human intervention is requested.
 
 ## 🛠️ Technology
 
-SOMAS leverages multiple AI providers:
-- **GitHub Copilot**: Code generation, testing, documentation
-- **Gemini Code Assist**: Code review, security analysis
-- **OpenAI GPT-4**: Strategic planning, architecture design
+SOMAS leverages the 2026 Frontier Tier AI models:
+- **GPT-5.2-Codex**: SOTA coding agent for implementation and refactors
+- **Claude Opus 4.5**: Deepest reasoning for architecture and system design
+- **Claude Sonnet 4.5**: Balanced power for code review and testing
+- **GPT-5.2**: General high intelligence for requirements and security
+- **Gemini 3 Pro**: Massive context windows for comprehensive documentation
+- **Grok Code Fast 1**: Lowest latency for orchestration and routing
 
-This multi-provider approach ensures optimal results by using each AI's strengths.
+This multi-provider approach ensures optimal results by using each AI's specialized strengths.
 
 ---
 
@@ -320,10 +323,12 @@ MIT License - See [LICENSE](LICENSE) for details
 
 ## 🙏 Acknowledgments
 
-SOMAS Lite is powered by:
-- GitHub Copilot
-- Gemini Code Assist  
-- OpenAI GPT-4
+SOMAS Lite is powered by the 2026 Frontier Tier AI models:
+- GPT-5.2-Codex (OpenAI)
+- Claude Opus 4.5 & Claude Sonnet 4.5 (Anthropic)
+- Gemini 3 Pro (Google)
+- Grok Code Fast 1 (xAI)
+- GPT-5.2 (OpenAI)
 
 ---
 
