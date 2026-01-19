@@ -447,7 +447,7 @@ agent_mappings:
     rationale: |
       Architecture needs fundamental understanding (first principles) balanced
       with simplicity (Occam's razor).
-    chain_strategy: "draft_critique_refine"
+    chain_strategy: "strategic_diamond"
     
   implementation:
     primary_models:
