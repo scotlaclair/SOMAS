@@ -354,6 +354,16 @@ chaining_strategy:
         4. Synthesize unified solution
       max_parallel_models: 3
 
+    strategic_diamond:
+      when:
+        - "End-to-end problem framing and solution design"
+        - "Architecture or strategy work with unclear boundaries"
+        - "Need to both explore options and then converge on a plan"
+      process: |
+        1. DISCOVER: Explore the problem space, stakeholders, and constraints.
+        2. DEFINE: Synthesize insights into a clear problem definition and goals.
+        3. DEVELOP: Generate multiple solution approaches or architectural options.
+        4. DELIVER: Evaluate options, converge on a coherent strategy, and outline next steps.
 # Task Classification Examples
 # @copilot-context: Reference examples for task classification
 
