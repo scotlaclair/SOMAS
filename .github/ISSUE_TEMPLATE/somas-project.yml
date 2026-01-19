@@ -10,12 +10,26 @@ body:
         
         Submit your project idea and let SOMAS (Self-Sovereign Orchestrated Multi-Agent System) handle the development from concept to production-ready code.
         
-        The pipeline will automatically:
-        - Analyze requirements and create a plan
-        - Design system architecture
-        - Generate production code and tests
-        - Validate quality and security
-        - Create comprehensive documentation
+        ### Multi-Agent AI Team
+        
+        Your project will be developed by a team of specialized AI agents:
+        - **Requirements Analysis** (@copilot somas-requirements) - Extracts structured requirements
+        - **Architecture Design** (@copilot somas-architect, Codex Architect) - Designs system architecture
+        - **Implementation** (@copilot somas-implementer, Codex Coder) - Generates production code
+        - **Testing** (@copilot somas-tester) - Creates comprehensive test suites
+        - **Security Review** (@copilot somas-security) - Scans for vulnerabilities
+        - **Validation** (Gemini Validator) - Independent quality verification
+        - **Documentation** (@copilot somas-documenter) - Creates complete documentation
+        
+        ### The Pipeline Stages
+        
+        1. **🎯 Ideation** - Requirements extraction and initial planning
+        2. **📋 Specification** - Detailed specification creation (Codex Specifier)
+        3. **🔬 Simulation** - Monte Carlo task optimization (Codex Simulator)
+        4. **🏗️ Architecture** - System design and component architecture
+        5. **⚙️ Implementation** - Code generation with 80%+ test coverage
+        6. **✅ Validation** - Quality, security, and performance validation
+        7. **📝 Staging** - Final review and deployment preparation
         
         Once you submit this issue and add the `somas:start` label, SOMAS will begin the autonomous development process.
 
@@ -87,12 +101,30 @@ body:
         2. **Add the `somas:start` label** to trigger the pipeline
         3. SOMAS will create a feature branch and draft PR
         4. Watch as the autonomous pipeline progresses through stages:
-           - 🎯 Ideation
-           - 🏗️ Architecture
-           - ⚙️ Implementation
-           - ✅ Validation
-           - 📝 Staging
+           - 🎯 **Ideation** - @copilot somas-requirements extracts requirements
+           - 📋 **Specification** - Codex Specifier creates detailed spec
+           - 🔬 **Simulation** - Codex Simulator optimizes task execution
+           - 🏗️ **Architecture** - @copilot somas-architect designs system
+           - ⚙️ **Implementation** - @copilot somas-implementer generates code
+           - ✅ **Validation** - Multiple agents review quality and security
+           - 📝 **Staging** - @copilot somas-merger prepares for deployment
         5. You'll be notified (@scotlaclair) when human approval is needed
         6. Review and approve the generated code
+        
+        ### Interacting with Agents
+        
+        You can interact with specific agents by mentioning them in issue comments:
+        
+        ```markdown
+        @copilot somas-requirements
+        
+        Please add a requirement for API rate limiting with 1000 requests/hour.
+        ```
+        
+        Available agents: somas-requirements, somas-architect, somas-implementer, somas-tester, 
+        somas-reviewer, somas-security, somas-optimizer, somas-documenter, somas-debugger, 
+        somas-merger, somas-orchestrator, somas-advisor
+        
+        See `.github/agents/README.md` for complete documentation.
         
         **Note:** You can monitor progress in the automatically created PR.
