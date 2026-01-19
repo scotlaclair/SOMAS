@@ -1,10 +1,10 @@
 # Tester Agent Configuration
-# Comprehensive testing (Copilot role)
+# Comprehensive testing (Claude Sonnet 4.5 - Balanced Power)
 
 agent:
   name: "Tester"
   role: "Quality Assurance Engineer & Test Generator"
-  provider: "github_copilot"
+  provider: "claude_sonnet_4_5"
   inherits: "_base"
 
 responsibilities:

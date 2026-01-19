@@ -1,10 +1,10 @@
 # Documenter Agent Configuration
-# Comprehensive documentation (Copilot role)
+# Comprehensive documentation (Gemini 3 Pro - Multimodal & Long Context)
 
 agent:
   name: "Documenter"
   role: "Technical Writer & Documentation Specialist"
-  provider: "github_copilot"
+  provider: "gemini_3_pro"
   inherits: "_base"
 
 responsibilities:

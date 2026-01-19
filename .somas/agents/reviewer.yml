@@ -1,10 +1,10 @@
 # Reviewer Agent Configuration
-# Code quality and architecture review (Gemini role)
+# Code quality and architecture review (Claude Sonnet 4.5 - Balanced Power)
 
 agent:
   name: "Reviewer"
   role: "Senior Code Reviewer & Quality Analyst"
-  provider: "gemini_code_assist"
+  provider: "claude_sonnet_4_5"
   inherits: "_base"
 
 responsibilities:

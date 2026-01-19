@@ -1,10 +1,10 @@
 # Orchestrator Agent Configuration
-# Coordinates the entire SOMAS pipeline
+# Coordinates the entire SOMAS pipeline (Grok Code Fast 1 - Lowest Latency)
 
 agent:
   name: "Orchestrator"
   role: "Pipeline Coordinator & State Manager"
-  provider: "github_copilot"
+  provider: "grok_code_fast_1"
   inherits: "_base"
 
 responsibilities:

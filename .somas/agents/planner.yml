@@ -1,10 +1,10 @@
 # Planner Agent Configuration
-# Requirements analysis and project planning (OpenAI GPT-4 role)
+# Requirements analysis and project planning (GPT-5.2 - General Intelligence)
 
 agent:
   name: "Planner"
   role: "Requirements Analyst & Strategic Planner"
-  provider: "openai_gpt4"
+  provider: "gpt_5_2"
   inherits: "_base"
 
 responsibilities:

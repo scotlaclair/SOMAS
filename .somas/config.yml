@@ -61,55 +61,190 @@ pipeline:
 
 # Agent Configuration
 # @copilot-delegate: Agent configurations define AI provider mappings
-# - Codex (GPT-4): Specification, simulation, architecture, deployment
-# - Copilot: Implementation and code generation (see .somas/agents/copilot.yml)
-# - Gemini Pro: Independent validation and testing
+# Updated 2026 Frontier Tier models for optimal performance:
+# - GPT-5.2-Codex: SOTA coding agent for implementation
+# - Claude Opus 4.5: Deepest reasoning for architecture
+# - Claude Sonnet 4.5: Balanced power for code review and testing
+# - GPT-5.2: General intelligence for requirements and security
+# - Gemini 3 Pro: Multimodal & long context for documentation
+# - Grok Code Fast 1: Low latency for orchestration
 
 agents:
   providers:
+    # Specialized Codex models for implementation
+    gpt_5_2_codex:
+      model: "gpt-5.2-codex"
+      temperature: 0.3
+      max_tokens: 8000
+      description: "SOTA coding agent optimized for agentic loops"
+      
+    gpt_5_1_codex:
+      model: "gpt-5.1-codex"
+      temperature: 0.3
+      max_tokens: 8000
+      description: "Stable implementation agent"
+      
+    gpt_5_1_codex_max:
+      model: "gpt-5.1-codex-max"
+      temperature: 0.3
+      max_tokens: 16000
+      description: "Massive context for large-scale refactors"
+      
+    # Claude Opus models for deep reasoning
+    claude_opus_4_5:
+      model: "claude-opus-4.5"
+      temperature: 0.7
+      max_tokens: 8000
+      description: "Deepest reasoning for architecture and design"
+      
+    claude_opus_4_1:
+      model: "claude-opus-4.1"
+      temperature: 0.7
+      max_tokens: 8000
+      description: "High reasoning for reviews"
+      
+    # Claude Sonnet models for balanced tasks
+    claude_sonnet_4_5:
+      model: "claude-sonnet-4.5"
+      temperature: 0.5
+      max_tokens: 8000
+      description: "Balanced power for testing and review"
+      
+    claude_haiku_4_5:
+      model: "claude-haiku-4.5"
+      temperature: 0.4
+      max_tokens: 4000
+      description: "Smart and fast for debugging"
+      
+    # GPT-5 series for general intelligence
+    gpt_5_2:
+      model: "gpt-5.2"
+      temperature: 0.7
+      max_tokens: 8000
+      description: "Best all-rounder for requirements and security"
+      
+    gpt_5_1:
+      model: "gpt-5.1"
+      temperature: 0.7
+      max_tokens: 8000
+      description: "Standard intelligence for general tasks"
+      
+    gpt_5_mini:
+      model: "gpt-5-mini"
+      temperature: 0.4
+      max_tokens: 4000
+      description: "Efficient reasoning for simple logic"
+      
+    # Gemini models for multimodal and long context
+    gemini_3_pro:
+      model: "gemini-3-pro"
+      temperature: 0.5
+      max_tokens: 32000
+      description: "Multimodal & long context for comprehensive documentation"
+      
+    gemini_2_5_pro:
+      model: "gemini-2.5-pro"
+      temperature: 0.5
+      max_tokens: 16000
+      description: "Legacy long-context librarian"
+      
+    gemini_3_flash:
+      model: "gemini-3-flash"
+      temperature: 0.4
+      max_tokens: 8000
+      description: "High volume data processing"
+      
+    # Grok for speed
+    grok_code_fast_1:
+      model: "grok-code-fast-1"
+      temperature: 0.3
+      max_tokens: 4000
+      description: "Lowest latency for orchestration and routing"
+      
+    # Legacy models (kept for fallback)
     codex:
       model: "gpt-4"
       temperature: 0.7
       max_tokens: 4000
+      description: "Legacy fallback"
       
     gemini:
       model: "gemini-pro"
       temperature: 0.5
       max_tokens: 8000
+      description: "Legacy fallback"
       
     copilot:
       model: "gpt-4"
       temperature: 0.3
       max_tokens: 4000
+      description: "Legacy fallback"
       
   agent_configs:
     planner:
-      provider: "codex"
+      provider: "gpt_5_2"
       config_file: ".somas/agents/planner.yml"
+      description: "Requirements analysis with general intelligence"
       
     specifier:
-      provider: "codex"
+      provider: "gpt_5_2"
       config_file: ".somas/agents/specifier.yml"
+      description: "Specification with general intelligence"
       
     simulator:
-      provider: "codex"
+      provider: "gpt_5_2"
       config_file: ".somas/agents/simulator.yml"
+      description: "Simulation planning with general intelligence"
       
     architect:
-      provider: "codex"
+      provider: "claude_opus_4_5"
       config_file: ".somas/agents/architect.yml"
+      description: "System design with deepest reasoning"
+      
+    implementer:
+      provider: "gpt_5_2_codex"
+      config_file: ".somas/agents/implementer.yml"
+      description: "Code generation with SOTA coding agent"
       
     coder:
-      provider: "copilot"
+      provider: "gpt_5_2_codex"
       config_file: ".somas/agents/coder.yml"
+      description: "Code generation with SOTA coding agent"
+      
+    reviewer:
+      provider: "claude_sonnet_4_5"
+      config_file: ".somas/agents/reviewer.yml"
+      description: "Code review with balanced power"
+      
+    security:
+      provider: "gpt_5_2"
+      config_file: ".somas/agents/security.yml"
+      description: "Security analysis with adversarial creativity"
+      
+    tester:
+      provider: "claude_sonnet_4_5"
+      config_file: ".somas/agents/tester.yml"
+      description: "Testing with balanced power"
+      
+    documenter:
+      provider: "gemini_3_pro"
+      config_file: ".somas/agents/documenter.yml"
+      description: "Documentation with massive context window"
+      
+    orchestrator:
+      provider: "grok_code_fast_1"
+      config_file: ".somas/agents/orchestrator.yml"
+      description: "Pipeline coordination with low latency"
       
     validator:
-      provider: "gemini"
+      provider: "claude_sonnet_4_5"
       config_file: ".somas/agents/validator.yml"
+      description: "Validation with balanced power"
       
     deployer:
-      provider: "codex"
+      provider: "claude_opus_4_5"
       config_file: ".somas/agents/deployer.yml"
+      description: "Deployment planning with deep reasoning"
 
 # Optimization Configuration
 
@@ -351,6 +486,15 @@ error_handling:
     base_delay_seconds: 60
     
   fallback_agents:
+    gpt_5_2_codex: "gpt_5_1_codex"
+    gpt_5_1_codex: "claude_opus_4_5"
+    claude_opus_4_5: "claude_opus_4_1"
+    claude_opus_4_1: "gpt_5_2"
+    claude_sonnet_4_5: "claude_haiku_4_5"
+    gpt_5_2: "gpt_5_1"
+    gemini_3_pro: "gemini_2_5_pro"
+    grok_code_fast_1: "gpt_5_mini"
+    # Legacy fallbacks
     codex: "gemini"
     gemini: "copilot"
     

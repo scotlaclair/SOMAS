@@ -1,10 +1,10 @@
 # Implementer Agent Configuration
-# Production code generation (Copilot role)
+# Production code generation (GPT-5.2-Codex - SOTA Coding Agent)
 
 agent:
   name: "Implementer"
   role: "Software Engineer & Code Generator"
-  provider: "github_copilot"
+  provider: "gpt_5_2_codex"
   inherits: "_base"
 
 responsibilities:
