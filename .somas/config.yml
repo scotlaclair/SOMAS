@@ -593,7 +593,7 @@ apo:
     stage_specific_config:
       ideation:
         primary_models: ["tree_of_thoughts", "first_principles"]
-        chain: "diverge_converge"
+        chain: "strategic_diamond"
       
       specification:
         primary_models: ["inversion", "second_order_thinking"]
