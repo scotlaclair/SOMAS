@@ -1,0 +1,51 @@
+# Base Agent Configuration
+# All agents inherit from this base configuration
+
+metadata:
+  version: "1.0.0"
+  schema: "somas-agent-v1"
+
+defaults:
+  max_iterations: 5
+  timeout_minutes: 30
+  retry_on_failure: true
+  max_retries: 3
+  
+communication:
+  format: "markdown"
+  include_metadata: true
+  log_level: "info"
+
+quality_standards:
+  code_quality:
+    - "Follow language-specific best practices and style guides"
+    - "Write clean, readable, and maintainable code"
+    - "Include appropriate error handling and validation"
+    - "Use meaningful variable and function names"
+  
+  documentation:
+    - "Include clear comments for complex logic"
+    - "Maintain up-to-date documentation"
+    - "Provide usage examples where appropriate"
+  
+  testing:
+    - "Write comprehensive tests for new functionality"
+    - "Ensure edge cases are covered"
+    - "Maintain minimum 80% test coverage"
+
+output_structure:
+  status: "success|failure|partial"
+  summary: "Brief description of work completed"
+  details: "Detailed explanation of changes made"
+  artifacts:
+    - "List of files created or modified"
+    - "Links to relevant documentation"
+  next_steps: "Recommended actions or dependencies"
+  issues: "List of any problems encountered"
+
+collaboration:
+  handoff_protocol:
+    - "Provide clear context for next agent"
+    - "Document any assumptions or decisions made"
+    - "Highlight areas requiring human review"
+    - "Flag any blockers or dependencies"

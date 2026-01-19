@@ -1,0 +1,98 @@
+name: 🤖 SOMAS Project Request
+description: Start a new autonomous development project with SOMAS
+title: "[SOMAS] "
+labels: ["somas:new"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🚀 SOMAS Autonomous Development Pipeline
+        
+        Submit your project idea and let SOMAS (Self-Sovereign Orchestrated Multi-Agent System) handle the development from concept to production-ready code.
+        
+        The pipeline will automatically:
+        - Analyze requirements and create a plan
+        - Design system architecture
+        - Generate production code and tests
+        - Validate quality and security
+        - Create comprehensive documentation
+        
+        Once you submit this issue and add the `somas:start` label, SOMAS will begin the autonomous development process.
+
+  - type: textarea
+    id: project_idea
+    attributes:
+      label: Project Idea
+      description: Describe your project idea in detail. What problem does it solve? What are the key features?
+      placeholder: |
+        Example: Create a CLI tool that analyzes GitHub repositories for code quality metrics.
+        
+        Features:
+        - Clone and analyze any public GitHub repository
+        - Generate reports on code complexity, test coverage, and documentation
+        - Export results to JSON, CSV, or Markdown
+        - Support for multiple programming languages
+    validations:
+      required: true
+
+  - type: dropdown
+    id: project_type
+    attributes:
+      label: Project Type
+      description: What type of project are you requesting?
+      options:
+        - API (REST/GraphQL service)
+        - CLI (Command-line tool)
+        - Library (Reusable package)
+        - Web App (Frontend application)
+        - Script (Automation/utility script)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: programming_language
+    attributes:
+      label: Preferred Programming Language (Optional)
+      description: If you have a language preference, specify it here
+      placeholder: "e.g., Python, JavaScript, Go, Rust"
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Technical Constraints or Requirements (Optional)
+      description: Any specific technologies, frameworks, or constraints to consider?
+      placeholder: |
+        Example:
+        - Must use Python 3.10+
+        - Should include Docker containerization
+        - Must have comprehensive error handling
+        - Should follow PEP 8 style guide
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context (Optional)
+      description: Any other information that might be helpful
+      placeholder: "Links to similar projects, documentation, or other relevant resources"
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## What happens next?
+        
+        1. **Submit** this issue
+        2. **Add the `somas:start` label** to trigger the pipeline
+        3. SOMAS will create a feature branch and draft PR
+        4. Watch as the autonomous pipeline progresses through stages:
+           - 🎯 Ideation
+           - 🏗️ Architecture
+           - ⚙️ Implementation
+           - ✅ Validation
+           - 📝 Staging
+        5. You'll be notified (@scotlaclair) when human approval is needed
+        6. Review and approve the generated code
+        
+        **Note:** You can monitor progress in the automatically created PR.
