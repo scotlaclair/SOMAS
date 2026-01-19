@@ -1,0 +1,527 @@
+# APO Collision Chain
+# @copilot-context: Collision protocol for forcing insights from contradictory perspectives
+# Forces resolution of tension between opposing mental models to generate breakthrough insights
+
+version: "1.0.0"
+schema: "somas-apo-chain-collision-v1"
+
+description: |
+  The Collision Chain applies two contradictory mental models to the same problem,
+  creating tension that forces synthesis and breakthrough insights. This chain is
+  particularly effective for innovation, breaking assumptions, and finding novel solutions.
+
+name: "Collision Protocol"
+type: "chain_strategy"
+category: "synthesis"
+
+# When to Use
+# @copilot-context: Scenarios where collision is most effective
+
+when_to_use:
+  scenarios:
+    - "High ambiguity requiring clarification"
+    - "Innovation needed (breaking from conventional thinking)"
+    - "Assumptions need to be challenged"
+    - "Multiple valid perspectives exist"
+    - "Synthesis required from opposing viewpoints"
+    - "Breakthrough thinking needed"
+  
+  indicators:
+    - "Task description includes 'rethink', 'innovate', 'challenge'"
+    - "Conventional approaches seem inadequate"
+    - "Stakeholders have conflicting views"
+    - "Previous solutions failed"
+    - "Novel problem without precedent"
+  
+  agent_stages:
+    primary:
+      - "specification"
+      - "validation"
+    secondary:
+      - "architecture"
+      - "simulation"
+
+# Model Pairs that Collide Well
+# @copilot-context: Complementary opposites that generate productive tension
+
+collision_pairs:
+  inversion_x_second_order:
+    models:
+      - "inversion"
+      - "second_order_thinking"
+    
+    tension_point: "Failure focus vs. Success projection"
+    
+    description: |
+      Inversion thinks about failures and what could go wrong.
+      Second-Order thinks about success and long-term positive consequences.
+      The collision forces a balanced view considering both risks and opportunities.
+    
+    synthesis_question: |
+      How do we design for long-term success while preventing short-term failures?
+    
+    example:
+      task: "Design API versioning strategy"
+      
+      inversion_perspective: |
+        How would our API versioning fail?
+        - Breaking changes without notice
+        - Clients stuck on deprecated versions
+        - Version proliferation (v1, v2, v3...v47)
+        - No migration path
+        - Documentation drift
+      
+      second_order_perspective: |
+        T+6mo: Multiple versions in production, need to support all
+        T+1yr: Technical debt from supporting old versions
+        T+2yr: Engineering velocity slows from version maintenance
+        Strategic question: How does versioning affect long-term platform evolution?
+      
+      collision_insight: |
+        The tension reveals: We need versioning for stability BUT it creates
+        long-term burden. Synthesis: Design versioning with built-in sunsetting.
+        
+        Solution: Semantic versioning with:
+        - Max 2 major versions supported simultaneously
+        - 18-month deprecation window
+        - Automated migration tools
+        - Forward compatibility by default
+  
+  inversion_x_six_hats:
+    models:
+      - "inversion"
+      - "six_thinking_hats"
+    
+    tension_point: "Pessimism vs. Comprehensive balance"
+    
+    description: |
+      Inversion is deliberately pessimistic (what could go wrong?).
+      Six Hats includes Yellow Hat optimism (what could go right?).
+      The collision ensures balanced assessment without excessive caution or optimism.
+    
+    synthesis_question: |
+      What's the realistic assessment considering both risks and benefits?
+    
+    example:
+      task: "Evaluate new technology adoption (e.g., GraphQL)"
+      
+      inversion_perspective: |
+        How would GraphQL adoption fail?
+        - Team lacks expertise, makes mistakes
+        - Complex queries cause performance issues
+        - Debugging becomes harder
+        - Security vulnerabilities (query depth attacks)
+        - Migration takes longer than expected
+      
+      six_hats_perspective: |
+        WHITE (Facts): Team has no GraphQL experience, but good docs exist
+        RED (Intuition): Excited about simplifying frontend code
+        BLACK (Caution): Performance concerns, learning curve
+        YELLOW (Benefits): Better developer experience, reduced API calls
+        GREEN (Creativity): Could use GraphQL only for complex queries
+        BLUE (Process): 2-week research, 1-month pilot, then decide
+      
+      collision_insight: |
+        Inversion reveals legitimate risks. Six Hats shows benefits justify
+        trying. Synthesis: Pilot approach reduces risk while capturing benefits.
+        
+        Solution: Phased adoption:
+        - Phase 1: GraphQL for new features only
+        - Phase 2: Training and best practices documentation
+        - Phase 3: Migrate high-value endpoints
+        - Keep REST as fallback for 1 year
+  
+  first_principles_x_occams_razor:
+    models:
+      - "first_principles"
+      - "occams_razor"
+    
+    tension_point: "Fundamental depth vs. Practical simplicity"
+    
+    description: |
+      First Principles wants to understand deeply and rebuild from fundamentals.
+      Occam's Razor wants the simplest solution that works.
+      The collision forces finding simple solutions with deep understanding.
+    
+    synthesis_question: |
+      What's the simplest solution that addresses fundamental requirements?
+    
+    example:
+      task: "Design state management for React app"
+      
+      first_principles_perspective: |
+        Fundamental requirements:
+        - State must be accessible across components (axiom)
+        - State changes must trigger re-renders (React requirement)
+        - State updates must be predictable (debugging requirement)
+        
+        From axioms: Need centralized state, subscription mechanism, and
+        deterministic updates. This naturally leads toward Redux-like patterns.
+      
+      occams_razor_perspective: |
+        Simple solutions:
+        - React Context (built-in, no dependencies)
+        - Props drilling (simplest, works for small apps)
+        - Local state + URL params (stateless, simple)
+        
+        Occam's: Context is simplest valid solution for medium apps.
+      
+      collision_insight: |
+        First Principles reveals needs: centralized, subscribable, predictable.
+        Occam's says: React Context provides all of this with no dependencies.
+        
+        Synthesis: Use React Context with reducer pattern for predictability.
+        This satisfies fundamental needs with minimal complexity.
+        
+        Solution: Context + useReducer (built-in, simple, meets principles)
+        Only add Redux if app exceeds Context capabilities (>20 contexts).
+
+# Collision Process
+# @copilot-context: Step-by-step protocol for executing collision chain
+
+process:
+  phase_1_diverge:
+    name: "Diverge: Apply Both Models"
+    
+    steps:
+      - step: "Apply Model A in isolation"
+        detail: |
+          Fully apply first mental model to the problem.
+          Follow its process completely.
+          Document its perspective and conclusions.
+          Do not consider Model B yet.
+        
+        output: "Model A perspective document"
+      
+      - step: "Apply Model B in isolation"
+        detail: |
+          Fully apply second mental model to the same problem.
+          Follow its process completely.
+          Document its perspective and conclusions.
+          Do not try to reconcile with Model A yet.
+        
+        output: "Model B perspective document"
+      
+      - step: "Document both perspectives"
+        detail: |
+          Create clear documentation of both viewpoints.
+          Keep them separate and unblended.
+          Make contradictions visible.
+        
+        format: |
+          # PERSPECTIVE A: [Model A Name]
+          [Full analysis from Model A]
+          
+          # PERSPECTIVE B: [Model B Name]
+          [Full analysis from Model B]
+  
+  phase_2_collision:
+    name: "Collision: Identify Tensions"
+    
+    steps:
+      - step: "Identify contradictions"
+        detail: |
+          Where do the perspectives disagree?
+          What does Model A say that Model B contradicts?
+          What assumptions conflict?
+        
+        questions:
+          - "What does A recommend that B would reject?"
+          - "What does B emphasize that A downplays?"
+          - "Where do priorities conflict?"
+          - "What trade-offs do they resolve differently?"
+      
+      - step: "Analyze tension points"
+        detail: |
+          For each contradiction, understand why it exists.
+          What fundamental difference in perspective causes this?
+          What does each model value that the other doesn't?
+        
+        output: "Tension analysis document"
+      
+      - step: "Assess validity of each side"
+        detail: |
+          Is Model A's concern legitimate? Why or why not?
+          Is Model B's concern legitimate? Why or why not?
+          Are both valid but addressing different aspects?
+        
+        avoid: "Don't dismiss either perspective. Find the truth in both."
+      
+      - step: "Document the collision"
+        detail: |
+          Create clear statement of the tension.
+          Make the conflict explicit and concrete.
+        
+        format: |
+          # COLLISION POINT: [Name]
+          
+          Model A says: [Position]
+          Because: [Rationale]
+          
+          Model B says: [Opposing position]
+          Because: [Rationale]
+          
+          The tension: [Description of conflict]
+          
+          Both are valid because: [Legitimacy of each side]
+  
+  phase_3_synthesis:
+    name: "Synthesis: Resolve Tension"
+    
+    steps:
+      - step: "Seek higher-level insight"
+        detail: |
+          The collision reveals something neither model sees alone.
+          What insight emerges from the tension?
+          What does the contradiction tell us about the problem?
+        
+        questions:
+          - "What assumption can we question that resolves both concerns?"
+          - "Is there a reframing that makes both perspectives compatible?"
+          - "What third option exists that neither model generated?"
+          - "What does the tension reveal about the problem structure?"
+      
+      - step: "Generate synthesis solutions"
+        detail: |
+          Create solutions that address concerns from both perspectives.
+          Don't compromise (weak middle ground).
+          Find synthesis (transcends both positions).
+        
+        approaches:
+          reframe: "Change the problem definition to eliminate conflict"
+          integrate: "Find solution that achieves both goals"
+          sequence: "Do both, but at different times or stages"
+          contextualize: "Apply each model to different aspects"
+      
+      - step: "Validate synthesis"
+        detail: |
+          Does the synthesis address Model A's concerns?
+          Does it address Model B's concerns?
+          Does it create new problems?
+          Is it superior to either perspective alone?
+        
+        criteria:
+          - "Respects insights from both models"
+          - "Addresses core concerns from both"
+          - "Introduces no new critical issues"
+          - "Feels like a breakthrough, not a compromise"
+      
+      - step: "Document synthesis"
+        detail: |
+          Explain how synthesis emerged from collision.
+          Show how it addresses both perspectives.
+          Make synthesis logic explicit.
+        
+        format: |
+          # SYNTHESIS: [Solution Name]
+          
+          ## How it emerged
+          The collision between [A] and [B] revealed [insight].
+          This led to [synthesis].
+          
+          ## How it addresses Model A concerns
+          [Explanation]
+          
+          ## How it addresses Model B concerns
+          [Explanation]
+          
+          ## Why it's better than either alone
+          [Explanation]
+          
+          ## Implementation
+          [Concrete solution]
+  
+  phase_4_verification:
+    name: "Verification: Validate Synthesis"
+    
+    steps:
+      - step: "Re-examine with Model A"
+        detail: |
+          Look at synthesis through lens of Model A.
+          Does it pass Model A's quality checks?
+          Would Model A approve?
+      
+      - step: "Re-examine with Model B"
+        detail: |
+          Look at synthesis through lens of Model B.
+          Does it pass Model B's quality checks?
+          Would Model B approve?
+      
+      - step: "Check for breakthrough quality"
+        detail: |
+          Does this feel like genuine insight?
+          Is it obviously better than initial ideas?
+          Does it solve problems neither model addressed directly?
+        
+        warning_signs:
+          - "Feels like weak compromise"
+          - "Neither perspective is satisfied"
+          - "Just averaging the two approaches"
+          - "No new insight emerged"
+        
+        if_warning_signs: "Return to Phase 2, re-examine tension"
+
+# Output Format
+# @copilot-context: Structure for collision chain outputs
+
+output_format: |
+  # COLLISION CHAIN OUTPUT
+  
+  ## Task
+  [Original task description]
+  
+  ## Models Applied
+  - Model A: [Name]
+  - Model B: [Name]
+  - Collision Pair: [Pair name from library]
+  
+  ---
+  
+  ## PHASE 1: DIVERGE
+  
+  ### Perspective A: [Model A Name]
+  [Complete Model A analysis]
+  
+  ### Perspective B: [Model B Name]
+  [Complete Model B analysis]
+  
+  ---
+  
+  ## PHASE 2: COLLISION
+  
+  ### Tension Point 1: [Name]
+  - Model A position: [Position]
+  - Model B position: [Position]
+  - The conflict: [Description]
+  - Validity assessment: [Both sides' legitimacy]
+  
+  ### Tension Point 2: [Name]
+  [Same structure]
+  
+  ---
+  
+  ## PHASE 3: SYNTHESIS
+  
+  ### Key Insight
+  [The breakthrough insight that emerged from collision]
+  
+  ### Synthesis Solution
+  [The solution that transcends both perspectives]
+  
+  ### How it Addresses Both Models
+  - Model A concerns: [How addressed]
+  - Model B concerns: [How addressed]
+  
+  ### Why Superior to Either Alone
+  [Explanation of breakthrough quality]
+  
+  ---
+  
+  ## PHASE 4: VERIFICATION
+  
+  ### Model A Validation
+  [Does synthesis pass Model A quality checks?]
+  
+  ### Model B Validation
+  [Does synthesis pass Model B quality checks?]
+  
+  ### Breakthrough Quality
+  [Assessment of insight quality]
+  
+  ---
+  
+  ## FINAL OUTPUT
+  
+  [Clean, actionable solution ready for next stage]
+
+# Quality Criteria
+# @copilot-context: What makes a successful collision
+
+success_criteria:
+  - "Genuine tension identified (not superficial disagreement)"
+  - "Both perspectives fully developed (not strawman)"
+  - "Synthesis transcends (not just compromises)"
+  - "Breakthrough insight emerged (not just averaging)"
+  - "Both models' concerns addressed in synthesis"
+  - "Solution superior to either perspective alone"
+  - "Synthesis is actionable and concrete"
+
+failure_modes:
+  weak_collision:
+    symptom: "Models mostly agree, little tension"
+    fix: "Choose more opposing models or find deeper conflict"
+  
+  strawman:
+    symptom: "One perspective weakly developed"
+    fix: "Fully develop both perspectives independently"
+  
+  compromise_not_synthesis:
+    symptom: "Solution is midpoint average, no breakthrough"
+    fix: "Seek higher-level reframing, question assumptions"
+  
+  unresolved_tension:
+    symptom: "Synthesis doesn't address core concerns"
+    fix: "Re-examine tension, find deeper insight"
+
+# Examples by Domain
+# @copilot-context: Domain-specific collision examples
+
+examples:
+  specification:
+    task: "Write security requirements for user data handling"
+    
+    models: ["inversion", "second_order_thinking"]
+    
+    collision: |
+      Inversion: List all ways data could be compromised
+      Second-Order: Consider T+1yr consequences of security measures
+      
+      Tension: Extreme security (inversion) vs. usability (second-order effect)
+      
+      Synthesis: Layered security with progressive disclosure
+      - Layer 1: Default good security (encryption, auth)
+      - Layer 2: High-value actions require additional verification
+      - Layer 3: Audit logging for forensics
+      
+      Addresses both: Prevents failures (inversion) while considering
+      long-term user experience and operational overhead (second-order)
+  
+  validation:
+    task: "Validate implementation completeness"
+    
+    models: ["inversion", "six_thinking_hats"]
+    
+    collision: |
+      Inversion: How would this implementation fail in production?
+      Six Hats: Comprehensive review (facts, intuition, caution, benefits)
+      
+      Tension: Pure pessimism vs. balanced assessment
+      
+      Synthesis: Risk-stratified validation
+      - Critical paths: Exhaustive inversion analysis
+      - Standard paths: Six hats balanced review
+      - Low-risk paths: Spot checks
+      
+      Addresses both: Thorough failure analysis where it matters (inversion)
+      with efficiency and balance (six hats)
+
+# Integration with SOMAS
+# @copilot-context: How collision chain integrates with pipeline
+
+integration:
+  recommended_stages:
+    - stage: "specification"
+      rationale: "Forces balanced specs considering both risks and opportunities"
+      
+    - stage: "validation"
+      rationale: "Ensures thorough validation without excessive pessimism"
+  
+  configuration:
+    location: ".somas/apo/chains/collision.yml"
+    referenced_from:
+      - ".somas/apo/mental-models.yml"
+      - ".somas/apo/task-analyzer.yml"
+  
+  activation:
+    automatic: "When task-analyzer selects collision strategy"
+    manual: "Agent can explicitly choose collision for complex decisions"

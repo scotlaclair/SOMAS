@@ -407,3 +407,221 @@ documentation:
     - "optimization_results"
     
   output_path: "docs/somas/"
+
+# APO (Autonomous Prompt Optimization)
+# @copilot-context: Cognitive enhancement layer for all SOMAS agents
+# APO enables agents to self-select optimal mental models for any task
+
+apo:
+  enabled: true
+  version: "1.0.0"
+  
+  # Core Configuration
+  
+  auto_model_selection: true  # Automatically select mental models via task analyzer
+  require_reasoning_trail: true  # Agents must document their reasoning process
+  verification_required: true  # Quality verification mandatory before finalizing
+  max_iterations: 3  # Maximum quality loop iterations before escalation
+  
+  # Mental Models Library
+  
+  mental_models:
+    enabled_models:
+      - "first_principles"
+      - "inversion"
+      - "second_order_thinking"
+      - "ooda_loop"
+      - "occams_razor"
+      - "six_thinking_hats"
+      - "tree_of_thoughts"
+    
+    library_path: ".somas/apo/mental-models.yml"
+    
+    # Agent-specific model preferences (overrides for specific stages)
+    agent_preferences:
+      specifier:
+        prefer: ["inversion", "second_order_thinking"]
+        avoid: []
+      
+      simulator:
+        prefer: ["tree_of_thoughts", "ooda_loop"]
+        avoid: []
+      
+      architect:
+        prefer: ["first_principles", "occams_razor"]
+        avoid: []
+      
+      coder:
+        prefer: ["ooda_loop", "occams_razor"]
+        avoid: ["tree_of_thoughts"]  # Too heavy for implementation
+      
+      validator:
+        prefer: ["inversion", "six_thinking_hats"]
+        avoid: []
+  
+  # Task Analysis
+  
+  task_analyzer:
+    enabled: true
+    config_path: ".somas/apo/task-analyzer.yml"
+    
+    complexity_thresholds:
+      simple: 1.5
+      moderate: 2.5
+      complex: 3.5
+      novel: 4.5
+    
+    domain_detection:
+      confidence_threshold: 0.7  # Minimum confidence for automatic classification
+      fallback_domain: "technical"
+    
+    risk_factors:
+      security_risk_multiplier: 2.5
+      external_dependency_multiplier: 1.5
+      novel_technology_multiplier: 2.0
+  
+  # Chain Strategies
+  
+  chains:
+    enabled: true
+    chains_path: ".somas/apo/chains/"
+    
+    available_strategies:
+      - "sequential"
+      - "collision"
+      - "draft_critique_refine"
+      - "parallel_synthesis"
+      - "strategic_diamond"
+    
+    default_strategy: "sequential"
+    
+    # Strategy selection rules
+    auto_select_strategy: true
+    strategy_rules:
+      high_ambiguity: "collision"
+      multiple_options: "strategic_diamond"
+      quality_critical: "draft_critique_refine"
+      exploration_needed: "parallel_synthesis"
+  
+  # Base Prompt
+  
+  base_prompt:
+    enabled: true
+    config_path: ".somas/apo/base-prompt.yml"
+    injection_method: "prepend"  # Prepend to all agent prompts
+    override_allowed: false  # Agents cannot disable APO
+    
+    anti_early_answering:
+      enabled: true
+      enforce_task_analysis: true
+      require_alternatives_consideration: true
+      minimum_reasoning_depth: 2  # At least 2 levels of "why"
+  
+  # Quality & Verification
+  
+  quality:
+    verification_checklist:
+      - "completeness"
+      - "correctness"
+      - "clarity"
+      - "quality"
+      - "alignment"
+      - "actionability"
+    
+    quality_loop:
+      enabled: true
+      max_iterations: 3
+      escalate_after_max: true
+      
+      escalation_criteria:
+        - "Unresolvable ambiguity"
+        - "Multiple valid solutions with no clear winner"
+        - "Risk exceeds agent authority"
+        - "Conflicting requirements"
+        - "Novel problem outside knowledge"
+    
+    output_requirements:
+      include_task_analysis: true
+      include_reasoning_process: true
+      include_verification_results: true
+      include_confidence_level: true
+      include_assumptions: true
+      include_uncertainties: true
+  
+  # Performance Optimization
+  
+  performance:
+    time_budgets:
+      simple_tasks_minutes: 10
+      moderate_tasks_minutes: 30
+      complex_tasks_minutes: 90
+      novel_tasks_minutes: 240
+    
+    efficiency_mode:
+      enabled: true
+      match_reasoning_depth_to_complexity: true
+      cache_similar_analyses: true
+      reuse_patterns: true
+  
+  # Monitoring & Analytics
+  
+  monitoring:
+    enabled: true
+    storage_path: ".somas/analytics/apo/"
+    
+    track_metrics:
+      - "model_selection_patterns"
+      - "task_completion_success_rate"
+      - "average_task_duration_by_model"
+      - "quality_scores_by_model"
+      - "verification_pass_fail_rates"
+      - "iteration_counts"
+      - "chain_strategy_effectiveness"
+    
+    learning:
+      enabled: true
+      update_model_selection_weights: true
+      learn_from_failures: true
+      adjust_complexity_thresholds: true
+      min_samples_for_learning: 50
+  
+  # Integration
+  
+  integration:
+    inject_into_all_agents: true
+    
+    stage_specific_config:
+      ideation:
+        primary_models: ["tree_of_thoughts", "first_principles"]
+        chain: "diverge_converge"
+      
+      specification:
+        primary_models: ["inversion", "second_order_thinking"]
+        chain: "collision"
+      
+      simulation:
+        primary_models: ["tree_of_thoughts", "ooda_loop"]
+        chain: "sequential"
+      
+      architecture:
+        primary_models: ["first_principles", "occams_razor"]
+        chain: "strategic_diamond"
+      
+      implementation:
+        primary_models: ["ooda_loop", "occams_razor"]
+        chain: "sequential"
+      
+      validation:
+        primary_models: ["inversion", "six_thinking_hats"]
+        chain: "collision"
+      
+      staging:
+        primary_models: ["second_order_thinking", "inversion"]
+        chain: "draft_critique_refine"
+  
+  # Documentation
+  
+  documentation:
+    guide_path: "docs/somas/apo-guide.md"
+    examples_included: true
+    troubleshooting_included: true

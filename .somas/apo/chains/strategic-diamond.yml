@@ -1,0 +1,660 @@
+# APO Strategic Diamond Chain
+# @copilot-context: Diverge-Converge pattern for option generation and selection
+# Expands solution space then systematically narrows to optimal choice
+
+version: "1.0.0"
+schema: "somas-apo-chain-strategic-diamond-v1"
+
+description: |
+  The Strategic Diamond chain follows a diverge-converge pattern:
+  1. DIVERGE: Generate many options (wide exploration)
+  2. CONVERGE: Systematically narrow to best option (disciplined selection)
+  
+  This pattern prevents premature convergence while ensuring timely decisions.
+  Particularly effective for strategic decisions, architecture choices, and planning.
+
+name: "Strategic Diamond"
+type: "chain_strategy"
+category: "decision_making"
+
+# When to Use
+# @copilot-context: Scenarios where strategic diamond is most effective
+
+when_to_use:
+  scenarios:
+    - "Multiple viable options exist"
+    - "Risk of premature convergence"
+    - "Strategic decision with long-term impact"
+    - "Architecture or design choices"
+    - "Technology selection"
+    - "Roadmap and planning decisions"
+    - "Need to explore solution space before committing"
+  
+  indicators:
+    - "Task includes 'evaluate options', 'compare approaches', 'select best'"
+    - "Multiple stakeholders with different preferences"
+    - "High uncertainty about best approach"
+    - "Irreversible or costly decision"
+    - "Need creative exploration before decision"
+  
+  agent_stages:
+    primary:
+      - "architecture"
+      - "simulation"
+      - "ideation"
+    secondary:
+      - "specification"
+      - "implementation"
+
+# Diamond Phases
+# @copilot-context: Four-phase diamond process
+
+phases:
+  phase_1_diverge:
+    name: "DIVERGE: Expand Option Space"
+    objective: "Generate maximum number of viable options"
+    mindset: "Quantity over quality, breadth over depth, openness over judgment"
+    
+    mental_models:
+      primary: "tree_of_thoughts"
+      secondary: "first_principles"
+      rationale: "Tree of Thoughts for parallel exploration, First Principles to break assumptions"
+    
+    process:
+      - step: "Remove constraints temporarily"
+        detail: |
+          Suspend judgment about feasibility, cost, time.
+          Imagine unlimited resources and perfect conditions.
+          What solutions become possible?
+        
+        questions:
+          - "If we had unlimited time, what would we build?"
+          - "If cost didn't matter, how would we solve this?"
+          - "If we could use any technology, what would we choose?"
+          - "What would a 10x better solution look like?"
+      
+      - step: "Apply generation techniques"
+        detail: |
+          Use systematic creativity techniques to generate options:
+          
+          1. **Analogy**: What solutions exist in other domains?
+          2. **Inversion**: What if we did the opposite?
+          3. **Combination**: Can we combine multiple approaches?
+          4. **Decomposition**: Break problem differently, generate options per piece
+          5. **Extreme**: Push each dimension to extremes
+          6. **Random**: Introduce random elements to spark ideas
+        
+        example: |
+          Problem: Design caching strategy
+          
+          Analogy: How does biology cache? (DNA, memory, muscle memory)
+          Inversion: What if we never cached? (Always fresh, no stale data)
+          Combination: Multi-tier caching (memory + disk + CDN)
+          Decomposition: Cache reads vs writes differently
+          Extreme: Cache everything forever vs. cache nothing
+          Random: What if cache was blockchain-based? (leads to distributed cache idea)
+      
+      - step: "Generate branches"
+        detail: |
+          Create 5-10 distinct solution branches.
+          Each branch should be genuinely different, not variations.
+          Document each with:
+          - Core concept
+          - Key characteristics
+          - Rough feasibility
+          - Unique advantages
+        
+        minimum_branches: 5
+        target_branches: 8
+        maximum_branches: 12
+      
+      - step: "Resist premature convergence"
+        detail: |
+          DON'T evaluate or judge yet.
+          DON'T combine or refine yet.
+          DON'T worry about feasibility yet.
+          DO keep generating until you have enough diversity.
+        
+        warning_signs:
+          - "Stopping at first good idea"
+          - "Variations of same approach"
+          - "Discarding 'crazy' ideas too quickly"
+          - "Fewer than 5 branches"
+    
+    output: |
+      # DIVERGE PHASE OUTPUT
+      
+      ## Option 1: [Name]
+      - **Core Concept**: [Description]
+      - **Key Characteristics**: [List]
+      - **Unique Advantage**: [What makes this special]
+      
+      ## Option 2: [Name]
+      [Same structure]
+      
+      ... (5-10 options total)
+  
+  phase_2_explore:
+    name: "EXPLORE: Develop Promising Options"
+    objective: "Develop top options enough to evaluate fairly"
+    mindset: "Depth on selected branches, fairness in development"
+    
+    mental_models:
+      primary: "first_principles"
+      secondary: "six_thinking_hats"
+      rationale: "First Principles for depth, Six Hats for balanced evaluation"
+    
+    process:
+      - step: "Initial screening"
+        detail: |
+          Quick filter to eliminate clearly non-viable options.
+          Remove only options that are:
+          - Fundamentally impossible (violate physics, logic)
+          - Completely infeasible (require tech that doesn't exist)
+          - Strictly dominated (another option is better in every way)
+        
+        retain: "5-7 options for deeper exploration"
+        
+        warning: "Don't eliminate too aggressively. When in doubt, keep it."
+      
+      - step: "Develop each option"
+        detail: |
+          For each remaining option, develop to same depth:
+          
+          1. **Architecture sketch**: High-level structure
+          2. **Key components**: Major building blocks
+          3. **Critical challenges**: Main difficulties
+          4. **Rough estimates**: Time, cost, complexity
+          5. **Risk assessment**: What could go wrong
+          6. **Potential benefits**: What could go right
+        
+        fairness_principle: |
+          Give each option equal development effort.
+          Don't favor your "pet" option with better development.
+          Aim for fair comparison.
+      
+      - step: "Apply Six Thinking Hats to each"
+        detail: |
+          For each option, run through all six hats:
+          
+          **White (Facts)**: What do we know? What data exists?
+          **Red (Intuition)**: How does this feel? Gut reaction?
+          **Black (Caution)**: What are risks? What could fail?
+          **Yellow (Benefits)**: What are advantages? Why would this win?
+          **Green (Creativity)**: How could we improve this? Variations?
+          **Blue (Process)**: What's next step to evaluate this?
+        
+        output_per_option: "Balanced perspective from all six hats"
+      
+      - step: "Identify evaluation criteria"
+        detail: |
+          Based on exploration, determine what matters for decision:
+          
+          - Performance requirements
+          - Complexity constraints
+          - Time/cost budgets
+          - Risk tolerance
+          - Strategic alignment
+          - Team capabilities
+          - Long-term maintainability
+        
+        criteria_count: "5-8 weighted criteria"
+    
+    output: |
+      # EXPLORE PHASE OUTPUT
+      
+      ## Remaining Options: [5-7 options]
+      
+      ### Option 1: [Name] - DETAILED
+      
+      #### Architecture Sketch
+      [High-level design]
+      
+      #### Key Components
+      [List with descriptions]
+      
+      #### Critical Challenges
+      [What makes this hard]
+      
+      #### Estimates
+      - Time: [Estimate]
+      - Cost: [Estimate]
+      - Complexity: [Assessment]
+      
+      #### Six Hats Analysis
+      - White: [Facts]
+      - Red: [Intuition]
+      - Black: [Caution]
+      - Yellow: [Benefits]
+      - Green: [Creativity]
+      - Blue: [Next steps]
+      
+      ... (repeat for each option)
+      
+      ---
+      
+      ## Evaluation Criteria
+      1. [Criterion 1] (weight: X)
+      2. [Criterion 2] (weight: Y)
+      ...
+  
+  phase_3_converge:
+    name: "CONVERGE: Select Best Option"
+    objective: "Systematically narrow to optimal choice"
+    mindset: "Disciplined analysis, clear reasoning, decisive"
+    
+    mental_models:
+      primary: "occams_razor"
+      secondary: "second_order_thinking"
+      rationale: "Occam's for simplicity preference, Second-Order for long-term impact"
+    
+    process:
+      - step: "Score against criteria"
+        detail: |
+          For each option, score against each criterion:
+          
+          Use 1-5 scale:
+          1 = Poor fit
+          2 = Below average
+          3 = Acceptable
+          4 = Good fit
+          5 = Excellent fit
+          
+          Apply weights from evaluation criteria.
+          Calculate weighted total score.
+        
+        format: |
+          | Option | Criterion 1 (w=2) | Criterion 2 (w=1.5) | ... | Total |
+          |--------|-------------------|---------------------|-----|-------|
+          | Opt 1  | 4 (8.0)          | 3 (4.5)            | ... | 27.5  |
+          | Opt 2  | 5 (10.0)         | 2 (3.0)            | ... | 25.0  |
+      
+      - step: "Apply Occam's Razor tiebreaker"
+        detail: |
+          If options score similarly (within 10%), prefer simpler option.
+          
+          Complexity factors:
+          - Number of components
+          - Number of dependencies
+          - Lines of code (estimated)
+          - Learning curve
+          - Operational complexity
+        
+        principle: "Choose simplest option that meets requirements"
+      
+      - step: "Second-order thinking check"
+        detail: |
+          For top 2-3 options, think through long-term consequences:
+          
+          T+6 months: What does life look like with this choice?
+          T+1 year: How has this choice affected the system/team?
+          T+2 years: Do we regret or celebrate this choice?
+          
+          Identify second-order effects:
+          - Team skill development
+          - Ecosystem evolution
+          - Technical debt accumulation
+          - Maintenance burden
+          - Future flexibility
+        
+        warning: "Watch for short-term wins with long-term pain"
+      
+      - step: "Make decision"
+        detail: |
+          Select winning option based on:
+          1. Weighted criteria scores
+          2. Occam's Razor (simplicity tiebreaker)
+          3. Second-order thinking (long-term fit)
+          
+          Document decision rationale clearly.
+          Explain why chosen option won.
+          Acknowledge what was given up.
+      
+      - step: "Document alternatives"
+        detail: |
+          For non-chosen options, document:
+          - Why they weren't selected
+          - Under what conditions they would be better
+          - What was learned from exploring them
+        
+        purpose: "Future reference if conditions change"
+    
+    output: |
+      # CONVERGE PHASE OUTPUT
+      
+      ## Scoring Matrix
+      [Table showing all options scored against criteria]
+      
+      ## Top Candidates
+      [Top 2-3 options with detailed comparison]
+      
+      ## Occam's Razor Analysis
+      [Complexity comparison of top candidates]
+      
+      ## Second-Order Analysis
+      ### Option A at T+6mo / T+1yr / T+2yr
+      [Long-term projection]
+      
+      ### Option B at T+6mo / T+1yr / T+2yr
+      [Long-term projection]
+      
+      ---
+      
+      ## DECISION: [Chosen Option]
+      
+      ### Why This Option Won
+      [Clear rationale]
+      
+      ### What We're Giving Up
+      [Honest assessment of tradeoffs]
+      
+      ### Conditions for Revisiting
+      [When we might reconsider]
+      
+      ---
+      
+      ## Alternative Options (Not Chosen)
+      
+      ### Option X
+      - Why not chosen: [Reason]
+      - When it would be better: [Conditions]
+      - Key learning: [Insight from exploring this]
+  
+  phase_4_commit:
+    name: "COMMIT: Create Implementation Plan"
+    objective: "Turn decision into actionable plan"
+    mindset: "Concrete, actionable, clear next steps"
+    
+    mental_models:
+      primary: "ooda_loop"
+      rationale: "OODA for execution planning and iteration"
+    
+    process:
+      - step: "Detailed design"
+        detail: |
+          Develop chosen option to implementation-ready level:
+          - Detailed architecture
+          - Component specifications
+          - Interface definitions
+          - Data models
+          - Technology stack
+      
+      - step: "Implementation phases"
+        detail: |
+          Break implementation into phases:
+          1. **Proof of Concept**: Validate critical assumptions (1-2 weeks)
+          2. **MVP**: Core functionality (4-6 weeks)
+          3. **Complete**: Full feature set (8-12 weeks)
+          4. **Polish**: Refinement and optimization (2-4 weeks)
+      
+      - step: "Risk mitigation"
+        detail: |
+          For each identified risk in chosen option:
+          - Mitigation strategy
+          - Contingency plan
+          - Early detection signals
+      
+      - step: "Success criteria"
+        detail: |
+          Define how we'll know implementation succeeded:
+          - Functional criteria
+          - Performance criteria
+          - Quality criteria
+          - Acceptance criteria
+      
+      - step: "Feedback loops"
+        detail: |
+          Build in learning opportunities:
+          - Checkpoints for assessment
+          - Metrics to track
+          - Decision points to pivot if needed
+        
+        ooda_loop: |
+          Regular OODA cycles during implementation:
+          - Observe: What's happening?
+          - Orient: What does it mean?
+          - Decide: Continue, adjust, or pivot?
+          - Act: Execute decision
+    
+    output: |
+      # COMMIT PHASE OUTPUT
+      
+      ## Chosen Option: [Name] - DETAILED DESIGN
+      
+      ### Architecture
+      [Detailed architecture]
+      
+      ### Component Specifications
+      [Detailed specs]
+      
+      ### Technology Stack
+      [Specific technologies and versions]
+      
+      ---
+      
+      ## Implementation Roadmap
+      
+      ### Phase 1: Proof of Concept (Weeks 1-2)
+      [Deliverables and success criteria]
+      
+      ### Phase 2: MVP (Weeks 3-8)
+      [Deliverables and success criteria]
+      
+      ### Phase 3: Complete (Weeks 9-20)
+      [Deliverables and success criteria]
+      
+      ### Phase 4: Polish (Weeks 21-24)
+      [Deliverables and success criteria]
+      
+      ---
+      
+      ## Risk Mitigation
+      [For each risk: mitigation, contingency, detection]
+      
+      ## Success Criteria
+      [Measurable criteria for success]
+      
+      ## Feedback Loops
+      [Checkpoints and metrics]
+
+# Complete Output Format
+# @copilot-context: Full strategic diamond output structure
+
+output_format: |
+  # STRATEGIC DIAMOND OUTPUT
+  
+  ## Task
+  [Original decision to be made]
+  
+  ## Chain Strategy
+  Strategic Diamond (Diverge → Explore → Converge → Commit)
+  
+  ═══════════════════════════════════════════════════════════
+  
+  ## PHASE 1: DIVERGE (Generate Options)
+  
+  ### All Options Generated (8 options)
+  1. [Option 1 - brief]
+  2. [Option 2 - brief]
+  ...
+  
+  ═══════════════════════════════════════════════════════════
+  
+  ## PHASE 2: EXPLORE (Develop Promising Options)
+  
+  ### Remaining After Screening (5 options)
+  
+  #### Option 1: [Name] - DEVELOPED
+  [Full development as per phase 2]
+  
+  #### Option 2: [Name] - DEVELOPED
+  [Full development as per phase 2]
+  
+  ...
+  
+  ### Evaluation Criteria
+  [Weighted criteria identified]
+  
+  ═══════════════════════════════════════════════════════════
+  
+  ## PHASE 3: CONVERGE (Select Best)
+  
+  ### Scoring
+  [Matrix of options vs criteria]
+  
+  ### Top Candidates Analysis
+  [Detailed comparison]
+  
+  ### DECISION: [Chosen Option]
+  [Rationale and tradeoffs]
+  
+  ### Alternatives (Not Chosen)
+  [Why they weren't selected, when they'd be better]
+  
+  ═══════════════════════════════════════════════════════════
+  
+  ## PHASE 4: COMMIT (Implementation Plan)
+  
+  ### Detailed Design
+  [Implementation-ready design]
+  
+  ### Roadmap
+  [Phased implementation plan]
+  
+  ### Risk Mitigation
+  [Strategies and contingencies]
+  
+  ═══════════════════════════════════════════════════════════
+  
+  ## SUMMARY FOR NEXT STAGE
+  
+  **Decision**: [One sentence]
+  **Key Design**: [Brief architecture]
+  **Next Steps**: [Immediate actions]
+
+# Quality Criteria
+# @copilot-context: What makes a successful strategic diamond
+
+success_criteria:
+  diverge:
+    - "Generated at least 5 genuinely different options"
+    - "Included creative/unconventional options"
+    - "Resisted premature judgment"
+    - "Explored wide solution space"
+  
+  explore:
+    - "Developed options fairly (no favorite bias)"
+    - "Applied consistent evaluation depth"
+    - "Identified clear evaluation criteria"
+    - "Balanced perspective (Six Hats) on each"
+  
+  converge:
+    - "Systematic scoring against criteria"
+    - "Clear decision rationale"
+    - "Acknowledged tradeoffs honestly"
+    - "Considered long-term implications"
+  
+  commit:
+    - "Actionable implementation plan"
+    - "Risk mitigation strategies defined"
+    - "Success criteria measurable"
+    - "Feedback loops built in"
+
+# Examples by Domain
+# @copilot-context: Domain-specific strategic diamond examples
+
+examples:
+  architecture:
+    task: "Select state management approach for React app"
+    
+    diverge_options:
+      - "Pure Redux with toolkit"
+      - "React Context + useReducer"
+      - "Zustand (lightweight store)"
+      - "Jotai (atomic state)"
+      - "MobX (observable state)"
+      - "Recoil (atomic with selectors)"
+      - "Props drilling (no central state)"
+      - "URL-based state (stateless)"
+    
+    explore_kept:
+      - "Redux Toolkit"
+      - "Context + useReducer"
+      - "Zustand"
+      - "Recoil"
+      - "URL-based state"
+    
+    converge_winner: "Context + useReducer for this app size"
+    
+    rationale: |
+      Scores: Redux 28, Context 32, Zustand 29, Recoil 26, URL 20
+      
+      Context won on:
+      - Simplicity (no dependencies)
+      - Team familiarity
+      - Adequate for app size
+      
+      Redux would win if:
+      - App grows beyond 20 contexts
+      - Need DevTools debugging
+      - Team grows beyond 5 developers
+      
+      Second-order check: Context → might need migration later
+      Mitigation: Design for easy Redux migration if needed
+  
+  simulation:
+    task: "Select task scheduling algorithm for pipeline optimization"
+    
+    diverge_options:
+      - "Topological sort (dependency-first)"
+      - "Critical path method"
+      - "Earliest deadline first"
+      - "Shortest job first"
+      - "Monte Carlo simulation"
+      - "Genetic algorithm optimization"
+      - "Linear programming"
+      - "Greedy heuristic"
+    
+    converge_winner: "Monte Carlo simulation with critical path"
+    
+    rationale: |
+      Scores: Topo 22, CPM 30, EDF 24, SJF 20, Monte Carlo 35, GA 28, LP 25, Greedy 18
+      
+      Monte Carlo won on:
+      - Handles uncertainty (task duration variance)
+      - Identifies critical path probability
+      - Provides confidence intervals
+      - Matches SOMAS requirements
+      
+      Trade-off: More complex than simple topological sort
+      But: Captures uncertainty essential for realistic planning
+
+# Integration with SOMAS
+# @copilot-context: How strategic diamond integrates with pipeline
+
+integration:
+  recommended_stages:
+    - stage: "architecture"
+      rationale: "Many design decisions benefit from wide exploration then convergence"
+      
+    - stage: "simulation"
+      rationale: "Selecting optimal scheduling strategy requires comparing alternatives"
+      
+    - stage: "ideation"
+      rationale: "Initial planning benefits from exploring multiple approaches"
+  
+  configuration:
+    location: ".somas/apo/chains/strategic-diamond.yml"
+    referenced_from:
+      - ".somas/apo/mental-models.yml"
+      - ".somas/apo/task-analyzer.yml"
+  
+  activation:
+    automatic: "When task-analyzer identifies multi-option decision"
+    manual: "Agent can explicitly choose strategic diamond for complex choices"
+  
+  time_budget:
+    diverge: "20-30% of total decision time"
+    explore: "30-40% of total decision time"
+    converge: "20-30% of total decision time"
+    commit: "10-20% of total decision time"
