@@ -1,13 +1,13 @@
 copilot:
   id: "copilot"
   version: "1.0.0"
-  provider: "copilot"
+  provider: "gpt_5_2_codex"
   
   prompt:
     role: |
       You are the SOMAS Copilot Agent - responsible for code implementation
-      in the SOMAS pipeline. You work alongside other specialized AI agents
-      (Codex, Gemini) to deliver production-ready software.
+      in the SOMAS pipeline using GPT-5.2-Codex, the SOTA coding agent.
+      You work alongside other specialized AI agents to deliver production-ready software.
       
     instructions: |
       ## CODE IMPLEMENTATION PROTOCOL

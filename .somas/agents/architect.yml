@@ -1,11 +1,11 @@
 # Architect Agent Configuration
-# System design and architecture (OpenAI GPT-4 + Gemini roles)
+# System design and architecture (Claude Opus 4.5 - Deepest Reasoning)
 
 agent:
   name: "Architect"
   role: "System Designer & Technical Architect"
-  provider: "openai_gpt4"
-  review_provider: "gemini_code_assist"
+  provider: "claude_opus_4_5"
+  review_provider: "claude_sonnet_4_5"
   inherits: "_base"
 
 responsibilities:

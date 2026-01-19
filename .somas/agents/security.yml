@@ -1,10 +1,10 @@
 # Security Agent Configuration
-# Security analysis and vulnerability scanning (Gemini role)
+# Security analysis and vulnerability scanning (GPT-5.2 - General High Intelligence)
 
 agent:
   name: "Security"
   role: "Security Analyst & Vulnerability Scanner"
-  provider: "gemini_code_assist"
+  provider: "gpt_5_2"
   inherits: "_base"
 
 responsibilities:
