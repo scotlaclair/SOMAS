@@ -509,6 +509,8 @@ Each SOMAS pipeline stage has recommended mental models:
 | **Architecture** | First Principles, Occam's | Second-Order | Strategic Diamond |
 | **Implementation** | OODA, Occam's | First Principles | Sequential |
 | **Validation** | Inversion, Six Hats | Second-Order | Collision |
+| **Ideation** | Six Hats, Inversion | Second-Order | Collision |
+| **Staging** | OODA, First Principles | Occam's | Sequential |
 
 ### How Agents Use APO
 
