@@ -1,3 +1,8 @@
+# @copilot-context: Specifier agent configuration for SOMAS specification stage
+# This agent is responsible for creating complete, unambiguous specifications
+# Provider: Codex (GPT-4) - Excels at structured documentation and requirement analysis
+# @copilot-delegate: This is a Codex agent, not a Copilot task
+
 specifier:
   id: "specifier"
   version: "1.0.0"

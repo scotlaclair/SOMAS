@@ -1,0 +1,215 @@
+# GitHub Copilot Configuration for SOMAS
+
+# This file provides repository-level configuration for GitHub Copilot
+# to optimize code suggestions and understand the SOMAS architecture.
+
+project:
+  name: "SOMAS"
+  description: "Self-Sovereign Orchestrated Multi-Agent System - Autonomous AI Development Pipeline"
+  type: "multi-agent-ai-system"
+  primary_language: "python"
+  
+architecture:
+  pattern: "multi-agent-pipeline"
+  stages:
+    - ideation
+    - specification
+    - simulation
+    - architecture
+    - implementation
+    - validation
+    - staging
+  
+  agents:
+    codex:
+      role: "specification, simulation, architecture, deployment"
+      model: "gpt-4"
+    gemini:
+      role: "validation, testing"
+      model: "gemini-pro"
+    copilot:
+      role: "implementation, code generation"
+      model: "gpt-4"
+
+code_style:
+  python:
+    style_guide: "PEP 8"
+    docstring_format: "Google"
+    type_hints: "required"
+    line_length: 100
+    
+  yaml:
+    indent: 2
+    quote_style: "double"
+    
+  markdown:
+    line_length: 100
+    heading_style: "atx"
+
+security:
+  priorities:
+    - "input_validation"
+    - "output_sanitization"
+    - "no_hardcoded_secrets"
+    - "parameterized_queries"
+    - "path_traversal_prevention"
+  
+  validation_patterns:
+    project_id: "^project-\\\\d+$"
+    
+  prohibited_patterns:
+    - "eval("
+    - "exec("
+    - "shell=True"
+    - "hardcoded_password"
+    - "hardcoded_api_key"
+    - "os.system("
+    - "subprocess.call"
+    - "importlib.import_module"
+
+testing:
+  framework: "pytest"
+  coverage_target: 80
+  test_locations:
+    - "tests/"
+    - "**/*_test.py"
+  
+  required_test_types:
+    - "unit"
+    - "integration"
+    - "security"
+
+file_patterns:
+  config:
+    location: ".somas/config.yml"
+    format: "yaml"
+    
+  agent_configs:
+    location: ".somas/agents/*.yml"
+    format: "yaml"
+    
+  templates:
+    location: ".somas/templates/*.md"
+    format: "markdown"
+    
+  workflows:
+    location: ".github/workflows/*.yml"
+    format: "yaml"
+    
+  project_artifacts:
+    location: "projects/{project_id}/artifacts/"
+    types:
+      - "SPEC.md"
+      - "ARCHITECTURE.md"
+      - "execution_plan.yml"
+
+conventions:
+  naming:
+    agents: "lowercase_with_underscores"
+    stages: "lowercase_with_underscores"
+    projects: "project-{number}"
+    requirements: "REQ-{F|NF}-{number}"
+    
+  file_organization:
+    - "Configuration in .somas/"
+    - "Documentation in docs/somas/"
+    - "Workflows in .github/workflows/"
+    - "Project artifacts in projects/{id}/artifacts/"
+    
+  comments:
+    use_tags:
+      - "@copilot-review: Request review of specific section"
+      - "@copilot-context: Provide important context"
+      - "@copilot-delegate: Indicate delegation to other agent"
+      - "@copilot-security: Mark security-critical code"
+
+delegation:
+  enabled: true
+  
+  delegation_targets:
+    specifier:
+      when: "requirement unclear or ambiguous"
+      config: ".somas/agents/specifier.yml"
+      
+    architect:
+      when: "design issue or scalability concern"
+      config: ".somas/agents/architect.yml"
+      
+    simulator:
+      when: "complex algorithm or optimization needed"
+      config: ".somas/agents/simulator.yml"
+      
+    validator:
+      when: "independent validation or testing needed"
+      config: ".somas/agents/validator.yml"
+  
+  delegation_template: ".somas/templates/ai_delegation.md"
+  delegation_location: "projects/{id}/delegation_requests.json"
+
+quality_gates:
+  implementation:
+    - "All tests passing"
+    - "Code coverage > 80%"
+    - "No critical security vulnerabilities"
+    - "Documentation complete"
+    - "Linting passes"
+    - "Type hints present"
+
+integration:
+  github_actions:
+    main_workflow: ".github/workflows/somas-pipeline.yml"
+    safe_execution: "Use Python for JSON operations, not bash"
+    
+  project_management:
+    github_projects: true
+    task_tracking: true
+
+# Meta-instructions for Copilot
+copilot_instructions:
+  read_first:
+    - ".github/copilot-instructions.md"
+    - ".somas/config.yml"
+    - "projects/{id}/artifacts/SPEC.md"
+    - "projects/{id}/artifacts/ARCHITECTURE.md"
+    
+  before_implementation:
+    - "Review specification and architecture"
+    - "Check execution plan for task sequence"
+    - "Understand dependencies"
+    - "Identify security requirements"
+    
+  during_implementation:
+    - "Write tests alongside code"
+    - "Follow security best practices"
+    - "Add meaningful comments"
+    - "Use configuration not hardcoding"
+    - "Document complex logic"
+    
+  after_implementation:
+    - "Run linters and formatters"
+    - "Execute all tests"
+    - "Check code coverage"
+    - "Review security checklist"
+    - "Update documentation"
+    
+  delegation_triggers:
+    - "Requirement ambiguous or incomplete"
+    - "Architecture doesn't support requirement"
+    - "Complex algorithm beyond straightforward implementation"
+    - "Need independent validation"
+
+# Resources
+resources:
+  documentation:
+    - "docs/somas/README.md - System overview"
+    - "docs/somas/COPILOT_GUIDE.md - Copilot integration guide"
+    - "docs/somas/optimization-guide.md - Optimization techniques"
+    - "docs/somas/TROUBLESHOOTING.md - Common issues"
+    
+  templates:
+    - ".somas/templates/SPEC.md - Specification template"
+    - ".somas/templates/ai_delegation.md - Delegation template"
+    
+  examples:
+    - ".somas/agents/ - Agent configuration examples"
+    - ".github/workflows/ - Workflow examples"

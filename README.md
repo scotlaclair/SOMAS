@@ -382,6 +382,22 @@ The original autonomous pipeline with comprehensive agent documentation:
 
 ---
 
+### AI Agent Configuration
+
+SOMAS uses multiple AI agents for different stages:
+
+| Agent | Provider | Stage | Purpose |
+|-------|----------|-------|---------|
+| Copilot | GitHub Copilot | Implementation | Code generation and testing |
+| Codex | GPT-4 | Multiple | Specification, simulation, architecture |
+| Gemini | Gemini Pro | Validation | Independent testing and verification |
+
+**For GitHub Copilot Users:**
+- Review **[Copilot Integration Guide](docs/somas/COPILOT_GUIDE.md)** for detailed instructions
+- Copilot instructions are in `.github/copilot-instructions.md`
+- Agent delegation template in `.somas/templates/ai_delegation.md`
+- Use `@copilot` meta-comments for PR targeting and code review guidance
+
 ## Documentation
 
 ### SOMAS Extended
@@ -455,6 +471,7 @@ docs/somas/
 ## Documentation
 
 - **[System Documentation](docs/somas/README.md)** - Complete SOMAS overview and architecture
+- **[Copilot Integration Guide](docs/somas/COPILOT_GUIDE.md)** - GitHub Copilot usage and AI agent delegation
 - **[Migration Guide](docs/somas/MIGRATION_GUIDE.md)** - Guide for migrating configurations and understanding changes
 - **[Troubleshooting Guide](docs/somas/TROUBLESHOOTING.md)** - Solutions to common issues and debugging tips
 - **[Optimization Guide](docs/somas/optimization-guide.md)** - Advanced optimization techniques

@@ -1,3 +1,8 @@
+# @copilot-context: Simulator agent configuration for SOMAS simulation stage
+# This agent performs Monte Carlo simulation for task optimization
+# Provider: Codex (GPT-4) - Excels at complex analysis and optimization
+# @copilot-delegate: This is a Codex agent, not a Copilot task
+
 simulator:
   id: "simulator"
   version: "1.0.0"
