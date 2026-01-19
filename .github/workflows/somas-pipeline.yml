@@ -1,6 +1,23 @@
 # @copilot-context: SOMAS main pipeline workflow
 # This workflow orchestrates the 7-stage AI development pipeline
-# Each stage is handled by a specialized AI agent (Codex, Copilot, Gemini)
+# Each stage is handled by specialized AI agents (Codex, Copilot, Gemini)
+# 
+# GitHub Copilot Custom Agents:
+#   - @copilot somas-requirements (Ideation → Specification)
+#   - @copilot somas-architect (Architecture)
+#   - @copilot somas-implementer (Implementation)
+#   - @copilot somas-tester (Implementation → Validation)
+#   - @copilot somas-reviewer (Implementation → Validation)
+#   - @copilot somas-security (All stages)
+#   - @copilot somas-optimizer (Implementation)
+#   - @copilot somas-documenter (All stages)
+#   - @copilot somas-debugger (Validation)
+#   - @copilot somas-merger (Staging)
+#   - @copilot somas-orchestrator (Coordination)
+#   - @copilot somas-advisor (Strategic planning)
+# 
+# See .github/agents/README.md for complete agent documentation
+# 
 # @copilot-review: Ensure security measures are maintained in all stages
 name: SOMAS Pipeline
 
@@ -119,6 +136,10 @@ jobs:
           fi
   
   stage-1-ideation:
+    # Agent Assignment: @copilot somas-requirements
+    # Responsible for: Extracting and structuring requirements from issue
+    # Output: requirements_analysis.md in project artifacts
+    # Feeds into: Codex Specifier agent
     runs-on: ubuntu-latest
     needs: [initialize-pipeline]
     if: |
@@ -132,6 +153,8 @@ jobs:
           ref: ${{ github.ref }}
       
       - name: Run Ideation Stage
+        # Agent: @copilot somas-requirements extracts structured requirements
+        # from the issue and prepares input for specification stage
         run: |
           PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
           echo "Running ideation stage for ${PROJECT_ID}"
@@ -142,6 +165,10 @@ jobs:
           echo "Stage 1: Ideation completed" >> .somas/projects/${PROJECT_ID}/artifacts/initial_plan.md
   
   stage-2-specification:
+    # Agent Assignment: Codex Specifier (primary)
+    # Supporting: @copilot somas-requirements (provides structured input)
+    # Responsible for: Creating complete, unambiguous SPEC.md
+    # Output: SPEC.md with all requirements documented
     runs-on: ubuntu-latest
     needs: [initialize-pipeline, stage-1-ideation]
     if: |
@@ -198,6 +225,9 @@ jobs:
             });
   
   stage-3-simulation:
+    # Agent Assignment: Codex Simulator
+    # Responsible for: Monte Carlo simulation for optimal task execution
+    # Output: execution_plan.yml with optimized task sequence
     runs-on: ubuntu-latest
     needs: [initialize-pipeline, stage-2-specification]
     if: |
@@ -258,6 +288,9 @@ jobs:
             });
   
   stage-4-architecture:
+    # Agent Assignment: @copilot somas-architect + Codex Architect
+    # Responsible for: System architecture, component design, API specs
+    # Output: ARCHITECTURE.md, api_specs.yml, data_models.yml, ADRs
     runs-on: ubuntu-latest
     needs: [initialize-pipeline, stage-3-simulation]
     if: |
@@ -269,12 +302,22 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Run Architecture Stage
+        # Agents: @copilot somas-architect designs system components,
+        # working alongside Codex Architect for comprehensive design
         run: |
           PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
           echo "Running architecture stage for ${PROJECT_ID}"
           echo "Stage 4: Architecture completed"
   
   stage-5-implementation:
+    # Agent Assignment: @copilot somas-implementer + Codex Coder
+    # Supporting Agents:
+    #   - @copilot somas-tester: Creates comprehensive test suites
+    #   - @copilot somas-security: Reviews security implementation
+    #   - @copilot somas-optimizer: Optimizes performance
+    #   - @copilot somas-documenter: Documents code and APIs
+    # Responsible for: Production-ready code generation with 80%+ test coverage
+    # Output: Source code, tests, documentation in implementation/ directory
     runs-on: ubuntu-latest
     needs: [initialize-pipeline, stage-4-architecture]
     if: |
@@ -286,12 +329,26 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Run Implementation Stage
+        # Agents: Multi-agent collaboration for complete implementation
+        # - @copilot somas-implementer: Generates code
+        # - @copilot somas-tester: Creates test suites (80%+ coverage)
+        # - @copilot somas-security: Security scanning and validation
+        # - @copilot somas-optimizer: Performance optimization
+        # - @copilot somas-documenter: Code and API documentation
         run: |
           PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
           echo "Running implementation stage for ${PROJECT_ID}"
           echo "Stage 5: Implementation completed"
   
   stage-6-validation:
+    # Agent Assignment: Gemini Validator (primary)
+    # Supporting Agents:
+    #   - @copilot somas-reviewer: Pre-validation code review
+    #   - @copilot somas-security: Security audit
+    #   - @copilot somas-tester: Test verification
+    #   - @copilot somas-debugger: Bug investigation if failures found
+    # Responsible for: Independent quality verification and validation
+    # Output: Validation report, test results, security scan results
     runs-on: ubuntu-latest
     needs: [initialize-pipeline, stage-5-implementation]
     if: |
@@ -303,12 +360,23 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Run Validation Stage
+        # Agents: Multi-agent quality verification
+        # - @copilot somas-reviewer: Code quality review
+        # - @copilot somas-security: Security vulnerability scanning
+        # - Gemini Validator: Independent validation
+        # - @copilot somas-debugger: Debug any failures found
         run: |
           PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
           echo "Running validation stage for ${PROJECT_ID}"
           echo "Stage 6: Validation completed"
   
   stage-7-staging:
+    # Agent Assignment: @copilot somas-merger + Codex Deployer
+    # Supporting Agents:
+    #   - @copilot somas-orchestrator: Final pipeline coordination
+    #   - @copilot somas-documenter: Deployment documentation
+    # Responsible for: Merge preparation and deployment staging
+    # Output: Clean merge, deployment documentation, ready for human approval
     runs-on: ubuntu-latest
     needs: [initialize-pipeline, stage-6-validation]
     if: |
@@ -320,6 +388,10 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Run Staging Stage
+        # Agents: Final preparation for human approval
+        # - @copilot somas-merger: Resolves merge conflicts
+        # - @copilot somas-orchestrator: Final status aggregation
+        # - Codex Deployer: Deployment preparation
         run: |
           PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
           echo "Running staging stage for ${PROJECT_ID}"
