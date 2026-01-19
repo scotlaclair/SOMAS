@@ -1,0 +1,208 @@
+# GitHub Project Template for SOMAS Pipeline
+# 
+# NOTE: This is a declarative specification for the project structure.
+# The current implementation uses GitHub Projects Classic API.
+# 
+# FUTURE MIGRATION: Consider migrating to GitHub Projects V2 (GraphQL API) for:
+# - Better long-term support (Classic API is in maintenance mode)
+# - Access to custom fields and advanced automation
+# - Improved performance and features
+# See: https://docs.github.com/en/issues/planning-and-tracking-with-projects
+
+name: "SOMAS Pipeline"
+description: "Automated project board for tracking SOMAS AI development pipeline execution"
+
+# Column Definitions
+columns:
+  - name: "📋 Backlog"
+    purpose: "Tasks waiting to be started"
+    automation:
+      trigger: "issue_created"
+      condition: "has_label:somas-task"
+      
+  - name: "📝 Specification"
+    purpose: "Specification stage - creating detailed requirements"
+    automation:
+      trigger: "label_added"
+      condition: "has_label:spec-in-progress"
+      
+  - name: "🔬 Simulation"
+    purpose: "Simulation stage - optimizing task sequence"
+    automation:
+      trigger: "label_added"
+      condition: "has_label:sim-in-progress"
+      
+  - name: "🏗️ Architecture"
+    purpose: "Architecture stage - designing system structure"
+    automation:
+      trigger: "label_added"
+      condition: "has_label:arch-in-progress"
+      
+  - name: "💻 Implementation"
+    purpose: "Implementation stage - writing code"
+    automation:
+      trigger: "label_added"
+      condition: "has_label:impl-in-progress"
+      
+  - name: "✅ Validation"
+    purpose: "Validation stage - testing and verification"
+    automation:
+      trigger: "label_added"
+      condition: "has_label:validation-in-progress"
+      
+  - name: "👤 Human Review"
+    purpose: "Waiting for human review or approval"
+    automation:
+      trigger: "label_added"
+      condition: "has_label:needs-human"
+      
+  - name: "🚀 Done"
+    purpose: "Completed tasks"
+    automation:
+      trigger: "issue_closed"
+
+# Label Definitions
+labels:
+  - name: "somas-task"
+    color: "0E8A16"
+    description: "Task created by SOMAS pipeline"
+    
+  - name: "spec-in-progress"
+    color: "1D76DB"
+    description: "Specification stage in progress"
+    
+  - name: "sim-in-progress"
+    color: "5319E7"
+    description: "Simulation stage in progress"
+    
+  - name: "arch-in-progress"
+    color: "0052CC"
+    description: "Architecture stage in progress"
+    
+  - name: "impl-in-progress"
+    color: "FFA500"
+    description: "Implementation stage in progress"
+    
+  - name: "validation-in-progress"
+    color: "FBCA04"
+    description: "Validation stage in progress"
+    
+  - name: "needs-human"
+    color: "D93F0B"
+    description: "Requires human review or intervention"
+    
+  - name: "high-risk"
+    color: "B60205"
+    description: "High-risk task requiring extra attention"
+    
+  - name: "critical-path"
+    color: "C5000B"
+    description: "Task on the critical path"
+    
+  - name: "blocked"
+    color: "666666"
+    description: "Task is blocked by dependencies"
+
+# Custom Fields
+custom_fields:
+  - name: "Duration Estimate"
+    type: "number"
+    description: "Estimated duration in hours"
+    
+  - name: "Actual Duration"
+    type: "number"
+    description: "Actual time taken in hours"
+    
+  - name: "Risk Level"
+    type: "select"
+    options:
+      - "LOW"
+      - "MEDIUM"
+      - "HIGH"
+      - "CRITICAL"
+    
+  - name: "Phase"
+    type: "select"
+    options:
+      - "Phase 1: Foundation"
+      - "Phase 2: Core Implementation"
+      - "Phase 3: Integration"
+      - "Phase 4: Validation"
+      - "Phase 5: Deployment"
+    
+  - name: "Dependencies"
+    type: "text"
+    description: "Comma-separated list of dependent task IDs"
+    
+  - name: "Started At"
+    type: "date"
+    description: "When work on this task began"
+    
+  - name: "Completed At"
+    type: "date"
+    description: "When this task was completed"
+    
+  - name: "Iteration Count"
+    type: "number"
+    description: "Number of iterations/retries required"
+
+# Automation Rules
+automation_rules:
+  - name: "Auto-move to Backlog"
+    trigger: "issue_opened"
+    condition: "has_label:somas-task"
+    action: "move_to_column:Backlog"
+    
+  - name: "Auto-move to Done"
+    trigger: "issue_closed"
+    action: "move_to_column:Done"
+    
+  - name: "Flag high-risk tasks"
+    trigger: "issue_opened"
+    condition: "has_label:high-risk"
+    action: "add_label:needs-human"
+    
+  - name: "Unblock dependent tasks"
+    trigger: "issue_closed"
+    action: "check_dependencies_and_unblock"
+
+# Views
+views:
+  - name: "By Phase"
+    group_by: "phase"
+    sort_by: "duration_estimate"
+    
+  - name: "By Risk"
+    filter: "risk_level != LOW"
+    sort_by: "risk_level"
+    
+  - name: "Critical Path"
+    filter: "has_label:critical-path"
+    sort_by: "started_at"
+    
+  - name: "Blocked Tasks"
+    filter: "has_label:blocked"
+    sort_by: "created_at"
+
+# Metrics Tracked
+metrics:
+  - name: "Cycle Time"
+    description: "Time from task creation to completion"
+    calculation: "completed_at - created_at"
+    
+  - name: "Lead Time"
+    description: "Time from task start to completion"
+    calculation: "completed_at - started_at"
+    
+  - name: "Estimation Accuracy"
+    description: "How accurate duration estimates are"
+    calculation: "duration_estimate > 0 ? (actual_duration - duration_estimate) / duration_estimate * 100 : null"
+    notes: "Returns null if duration_estimate is 0 to avoid division by zero"
+    
+  - name: "Iteration Rate"
+    description: "Average iterations per task"
+    calculation: "avg(iteration_count)"
+    
+  - name: "Blocked Time"
+    description: "Time tasks spend in blocked state"
+    calculation: "sum(time_in_blocked_state)"

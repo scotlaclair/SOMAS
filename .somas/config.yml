@@ -1,47 +1,402 @@
-system:
-  name: "SOMAS Lite"
-  version: "1.0.0"
-  owner: "scotlaclair"
+# SOMAS Configuration
+
+version: "1.0.0"
+name: "Self-Sovereign Orchestrated Multi-Agent System"
+description: "Configuration for AI-driven software development pipeline"
+
+# Pipeline Stages
 
 pipeline:
-  trigger:
-    method: "github_issue"
-    label: "somas:start"
   stages:
     - id: "ideation"
-      agents: ["planner"]
-      auto_proceed: true
+      order: 1
+      enabled: true
+      agent: "planner"
+      human_gate: false
+      
+    - id: "specification"
+      order: 2
+      enabled: true
+      agent: "specifier"
+      human_gate: true
+      timeout_hours: 24
+      
+    - id: "simulation"
+      order: 3
+      enabled: true
+      agent: "simulator"
+      human_gate: false
+      timeout_hours: 2
+      
     - id: "architecture"
-      agents: ["architect"]
-      auto_proceed: true
+      order: 4
+      enabled: true
+      agent: "architect"
+      human_gate: false
+      timeout_hours: 12
+      
     - id: "implementation"
-      agents: ["implementer", "tester"]
-      auto_proceed: true
+      order: 5
+      enabled: true
+      agent: "coder"
+      human_gate: false
+      timeout_hours: 48
+      
     - id: "validation"
-      agents: ["tester", "reviewer", "security"]
-      auto_proceed: true
+      order: 6
+      enabled: true
+      agent: "validator"
+      human_gate: false
+      timeout_hours: 12
+      
     - id: "staging"
-      agents: ["documenter", "reviewer"]
-      auto_proceed: false
+      order: 7
+      enabled: true
+      agent: "deployer"
+      human_gate: true
+      timeout_hours: 24
 
-quality:
-  test_coverage_minimum: 80
-  linting_required: true
+# Agent Configuration
 
-limits:
-  iterations:
-    per_task: 5
-    per_step: 10
-    per_stage: 25
-    per_pipeline: 100
+agents:
+  providers:
+    codex:
+      model: "gpt-4"
+      temperature: 0.7
+      max_tokens: 4000
+      
+    gemini:
+      model: "gemini-pro"
+      temperature: 0.5
+      max_tokens: 8000
+      
+    copilot:
+      model: "gpt-4"
+      temperature: 0.3
+      max_tokens: 4000
+      
+  agent_configs:
+    planner:
+      provider: "codex"
+      config_file: ".somas/agents/planner.yml"
+      
+    specifier:
+      provider: "codex"
+      config_file: ".somas/agents/specifier.yml"
+      
+    simulator:
+      provider: "codex"
+      config_file: ".somas/agents/simulator.yml"
+      
+    architect:
+      provider: "codex"
+      config_file: ".somas/agents/architect.yml"
+      
+    coder:
+      provider: "copilot"
+      config_file: ".somas/agents/coder.yml"
+      
+    validator:
+      provider: "gemini"
+      config_file: ".somas/agents/validator.yml"
+      
+    deployer:
+      provider: "codex"
+      config_file: ".somas/agents/deployer.yml"
 
-providers:
-  github_copilot:
-    role: "executor"
-    tasks: ["code_generation", "tests", "documentation", "pr_creation"]
-  gemini_code_assist:
-    role: "reviewer"
-    tasks: ["architecture_review", "security_analysis", "code_quality"]
-  openai_gpt4:
-    role: "planner"
-    tasks: ["planning", "reasoning", "problem_decomposition"]
+# Optimization Configuration
+
+optimization:
+  simulation:
+    enabled: true
+    method: "monte_carlo"
+    iterations: 1000
+    confidence_interval: 0.90
+    rerun_on_spec_change: true
+    save_intermediate_results: true
+    
+  parallelization:
+    enabled: true
+    max_concurrent_tasks: 5
+    respect_dependencies: true
+    load_balancing_strategy: "duration_based"
+    
+  adaptive_sizing:
+    enabled: true
+    target_task_duration_minutes: 240  # 4 hours
+    max_task_duration_minutes: 480    # 8 hours
+    min_task_duration_minutes: 60     # 1 hour
+    max_lines_per_task: 100
+    auto_decompose: true
+    decomposition_strategy: "feature_boundary"
+    
+  task_prioritization:
+    enabled: true
+    strategy: "critical_path_first"
+    consider_risk: true
+    consider_dependencies: true
+    
+  risk_multipliers:
+    external_dependencies: 1.5
+    new_technology: 2.0
+    high_complexity: 1.8
+    integration_heavy: 1.7
+
+# Project Management Integration
+
+project_management:
+  enabled: true
+  
+  github_project:
+    create_per_pipeline: true
+    template: "SOMAS Pipeline"
+    template_file: ".github/project-template.yml"
+    auto_archive_on_completion: false
+    
+    # Note: Column definitions are in .github/project-template.yml to maintain single source of truth
+        
+    task_decomposition:
+      create_issues_for: "each_component"
+      link_to_parent: true
+      auto_assign_labels: true
+      assign_from_execution_plan: true
+      
+    metrics_tracked:
+      - "time_in_stage"
+      - "iteration_count"
+      - "blocker_duration"
+      - "human_wait_time"
+      - "estimation_accuracy"
+      
+  notifications:
+    enabled: true
+    channels:
+      - "github_issue_comments"
+      - "github_notifications"
+    
+    notify_on:
+      - "stage_completed"
+      - "human_gate_opened"
+      - "error_occurred"
+      - "pipeline_completed"
+      - "high_risk_task_started"
+    
+    mention_owner: true
+    owner: "@scotlaclair"
+
+# Analytics & Learning
+
+analytics:
+  enabled: true
+  storage: ".somas/analytics/runs/"
+  schema_file: ".somas/analytics/schema.yml"
+  retention_days: 90
+  
+  track:
+    - "task_duration_vs_estimate"
+    - "iteration_count_by_task_type"
+    - "parallel_efficiency"
+    - "critical_path_accuracy"
+    - "human_intervention_frequency"
+    
+  export:
+    enabled: true
+    formats: ["json", "csv"]
+    schedule: "weekly"
+    
+  dashboards:
+    enabled: false  # Enable when visualization is implemented
+    update_frequency: "hourly"
+
+learning:
+  enabled: true
+  record_all_runs: true
+  update_estimates_from_actuals: true
+  pattern_extraction: true
+  
+  models:
+    duration_estimation:
+      enabled: true
+      algorithm: "gradient_boosting"
+      min_training_samples: 50
+      retrain_frequency: "weekly"
+      
+    critical_path_prediction:
+      enabled: true
+      algorithm: "random_forest"
+      min_training_samples: 100
+      retrain_frequency: "weekly"
+      
+  feedback_loop:
+    enabled: true
+    incorporate_human_feedback: true
+    adjust_risk_thresholds: true
+    update_decomposition_rules: true
+
+# Quality Gates
+
+quality_gates:
+  specification:
+    - "All requirements have unique IDs"
+    - "All requirements are testable"
+    - "No ambiguous language (TBD, maybe, etc.)"
+    - "Open questions resolved or escalated"
+    - "Security requirements defined"
+    
+  simulation:
+    - "Task graph is acyclic"
+    - "All tasks have duration estimates"
+    - "Critical path identified"
+    - "Parallelization opportunities documented"
+    
+  architecture:
+    - "All components defined"
+    - "Interfaces specified"
+    - "Data flows documented"
+    - "Technology choices justified"
+    
+  implementation:
+    - "All tests passing"
+    - "Code coverage > 80%"
+    - "No critical security vulnerabilities"
+    - "Documentation complete"
+    
+  validation:
+    - "All acceptance criteria met"
+    - "Performance requirements satisfied"
+    - "Security scan passed"
+    - "Integration tests passing"
+
+# Artifact Management
+
+artifacts:
+  storage: "projects/{project_id}/artifacts/"
+  
+  types:
+    specification:
+      - "SPEC.md"
+      - "requirements.yml"
+      
+    simulation:
+      - "execution_plan.yml"
+      - "task_graph.yml"
+      - "simulation_results.json"
+      
+    architecture:
+      - "ARCHITECTURE.md"
+      - "api_specs.yml"
+      - "data_models.yml"
+      
+    implementation:
+      - "source_code/"
+      - "tests/"
+      - "documentation/"
+      
+    validation:
+      - "test_results.json"
+      - "coverage_report.html"
+      - "security_scan.json"
+      
+  retention:
+    active_projects: "indefinite"
+    completed_projects: 365  # days
+    failed_projects: 180  # days
+    
+  versioning:
+    enabled: true
+    strategy: "git_based"
+
+# Security
+
+security:
+  secrets_management:
+    provider: "github_secrets"
+    required_secrets:
+      - "GITHUB_TOKEN"
+      - "AI_API_KEY"
+      
+  code_scanning:
+    enabled: true
+    tools:
+      - "codeql"
+      - "dependabot"
+      
+  vulnerability_management:
+    fail_on_critical: true
+    auto_fix_enabled: true
+    
+  access_control:
+    require_approval_for:
+      - "specification"
+      - "staging"
+    approvers:
+      - "@scotlaclair"
+      # Note: Consider using GitHub teams for better team management:
+      # - "@org-name/approvers-team"
+      # This avoids hardcoding individual usernames
+
+# Error Handling
+
+error_handling:
+  retry_strategy:
+    max_attempts: 3
+    backoff_strategy: "exponential"
+    base_delay_seconds: 60
+    
+  fallback_agents:
+    codex: "gemini"
+    gemini: "copilot"
+    
+  escalation:
+    enabled: true
+    notify_on_failure: true
+    create_issue_on_failure: true
+
+# Monitoring
+
+monitoring:
+  health_checks:
+    enabled: true
+    interval_minutes: 5
+    
+  metrics:
+    - "pipeline_duration"
+    - "stage_duration"
+    - "task_duration"
+    - "error_rate"
+    - "human_intervention_rate"
+    
+  alerts:
+    enabled: true
+    thresholds:
+      pipeline_duration_hours: 168  # 1 week
+      error_rate_percent: 20
+      human_wait_time_hours: 48
+
+# Development
+
+development:
+  debug_mode: false
+  verbose_logging: true
+  save_intermediate_states: true
+  
+  testing:
+    dry_run_mode: false
+    mock_ai_responses: false
+    skip_human_gates: false
+
+# Documentation
+
+documentation:
+  auto_generate: true
+  formats:
+    - "markdown"
+    - "html"
+    
+  include:
+    - "pipeline_overview"
+    - "agent_descriptions"
+    - "quality_gates"
+    - "optimization_results"
+    
+  output_path: "docs/somas/"

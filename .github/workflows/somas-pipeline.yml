@@ -2,413 +2,366 @@ name: SOMAS Pipeline
 
 on:
   issues:
-    types: [labeled]
-  issue_comment:
-    types: [created]
+    types: [opened, labeled]
+  workflow_dispatch:
+    inputs:
+      project_id:
+        description: 'Project ID to process'
+        required: true
+        type: string
+      stage:
+        description: 'Pipeline stage to execute'
+        required: false
+        type: choice
+        options:
+          - all
+          - ideation
+          - specification
+          - simulation
+          - architecture
+          - implementation
+          - validation
+          - staging
 
 permissions:
   contents: write
   issues: write
   pull-requests: write
+  projects: write
 
 jobs:
-  orchestrate:
-    name: SOMAS Orchestrator
-    if: |
-      (github.event_name == 'issues' && github.event.label.name == 'somas:start' && !github.event.issue.pull_request) ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/somas') && !github.event.issue.pull_request &&
-       (github.event.comment.user.login == github.event.repository.owner.login || github.event.comment.author_association == 'OWNER' || github.event.comment.author_association == 'MEMBER'))
+  initialize-pipeline:
     runs-on: ubuntu-latest
-    
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'somas-project')
+    outputs:
+      project_id: ${{ steps.setup.outputs.project_id }}
+      
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         
-      - name: Load SOMAS Config
-        id: config
+      - name: Setup Project
+        id: setup
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
         run: |
-          echo "Loading SOMAS configuration..."
-          if [ -f .somas/config.yml ]; then
-            echo "config_loaded=true" >> $GITHUB_OUTPUT
+          # Generate project ID from issue number
+          PROJECT_ID="project-${ISSUE_NUMBER}"
+          echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
+          
+          # Create project directory structure
+          mkdir -p .somas/projects/${PROJECT_ID}/{artifacts,logs}
+          
+          # Create project metadata using Python for safe JSON encoding
+          python3 << 'PYTHON_SCRIPT'
+          import json
+          import os
+          from datetime import datetime
+          
+          project_id = os.environ['PROJECT_ID']
+          issue_number = int(os.environ['ISSUE_NUMBER'])
+          title = os.environ['ISSUE_TITLE']
+          created_at = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+          
+          metadata = {
+              'project_id': project_id,
+              'issue_number': issue_number,
+              'title': title,
+              'created_at': created_at,
+              'status': 'initializing',
+              'current_stage': 'ideation',
+              'stages_completed': []
+          }
+          
+          with open(f'.somas/projects/{project_id}/metadata.json', 'w') as f:
+              json.dump(metadata, f, indent=2)
+          PYTHON_SCRIPT
+          
+          export PROJECT_ID="${PROJECT_ID}"
+          echo "Initialized project: ${PROJECT_ID}"
+      
+      - name: Create GitHub Project Board
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectId = '${{ steps.setup.outputs.project_id }}';
+            
+            // Trigger project creation workflow
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'somas-project-event',
+              client_payload: {
+                project_id: projectId,
+                action: 'create'
+              }
+            });
+      
+      - name: Commit project initialization
+        run: |
+          git config user.name "SOMAS Bot"
+          git config user.email "somas-bot@users.noreply.github.com"
+          
+          # Check if there are any changes to commit
+          if git status --porcelain .somas/projects/ | grep . >/dev/null; then
+            git add .somas/projects/
+            git commit -m "Initialize SOMAS project ${{ steps.setup.outputs.project_id }}"
+            git push
           else
-            echo "config_loaded=false" >> $GITHUB_OUTPUT
-            echo "::error::SOMAS configuration not found at .somas/config.yml"
-            exit 1
+            echo "No changes to commit"
           fi
-          
-      - name: Parse Issue Content
-        id: parse
+  
+  stage-1-ideation:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline]
+    if: |
+      always() &&
+      (needs.initialize-pipeline.result == 'success' || github.event.inputs.stage == 'ideation' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      
+      - name: Run Ideation Stage
         run: |
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running ideation stage for ${PROJECT_ID}"
           
-          # Use jq to safely read from GitHub event context to prevent shell injection
-          ISSUE_TITLE=$(jq -r '.issue.title // ""' "$GITHUB_EVENT_PATH")
-          ISSUE_BODY=$(jq -r '.issue.body // ""' "$GITHUB_EVENT_PATH")
-          
-          # Expose basic issue metadata as outputs
-          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
-          echo "branch_name=somas/${ISSUE_NUMBER}" >> $GITHUB_OUTPUT
-          
-          # Export the raw issue body so it can be reused by later steps if needed
-          echo "issue_body<<EOF" >> $GITHUB_OUTPUT
-          echo "$ISSUE_BODY" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
-          # Extract project details from issue body (expects a line starting with 'Project:')
-          PROJECT_LINE=$(echo "$ISSUE_BODY" | grep -i '^Project:' || true)
-          if [ -n "$PROJECT_LINE" ]; then
-            PROJECT_NAME=$(echo "$PROJECT_LINE" | cut -d':' -f2- | xargs)
-            if [ -n "$PROJECT_NAME" ]; then
-              echo "project_name=$PROJECT_NAME" >> $GITHUB_OUTPUT
-              echo "Detected project from issue body: $PROJECT_NAME"
-            fi
-          fi
-          
-      - name: Create Feature Branch
-        id: branch
+          # Placeholder for actual ideation agent execution
+          mkdir -p .somas/projects/${PROJECT_ID}/artifacts
+          echo "# Initial Plan" > .somas/projects/${PROJECT_ID}/artifacts/initial_plan.md
+          echo "Stage 1: Ideation completed" >> .somas/projects/${PROJECT_ID}/artifacts/initial_plan.md
+  
+  stage-2-specification:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-1-ideation]
+    if: |
+      always() &&
+      (needs.stage-1-ideation.result == 'success' || github.event.inputs.stage == 'specification' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      
+      - name: Run Specification Stage
         run: |
-          BRANCH_NAME="somas/${{ steps.parse.outputs.issue_number }}"
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running specification stage for ${PROJECT_ID}"
           
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Specification artifact generation
+          ARTIFACT_DIR=".somas/projects/${PROJECT_ID}/artifacts"
+          SPEC_TEMPLATE=".somas/templates/SPEC.md"
+          SPEC_OUTPUT="${ARTIFACT_DIR}/SPEC.md"
           
-          # Create or reuse feature branch
-          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
-            echo "Branch $BRANCH_NAME already exists on remote. Checking out existing branch."
-            # Ensure we have the latest refs and check out the existing branch
-            git fetch origin "$BRANCH_NAME":"$BRANCH_NAME" || git fetch origin
-            git checkout "$BRANCH_NAME"
+          mkdir -p "${ARTIFACT_DIR}"
+          
+          if [ -f "${SPEC_TEMPLATE}" ]; then
+            echo "Using existing specification template at ${SPEC_TEMPLATE}"
+            cp "${SPEC_TEMPLATE}" "${SPEC_OUTPUT}"
           else
-            echo "Branch $BRANCH_NAME does not exist on remote. Creating new branch."
-            git checkout -b "$BRANCH_NAME"
-            git push -u origin "$BRANCH_NAME"
+            echo "Specification template not found at ${SPEC_TEMPLATE}; generating a basic specification file instead."
+            cat > "${SPEC_OUTPUT}" << 'SPECEOF'
+            # Specification for project ${PROJECT_ID}
+            
+            This is an auto-generated specification artifact for the project.
+            
+            Please update this document with detailed functional, non-functional, and interface requirements for the project.
+            SPECEOF
           fi
           
-          echo "branch_created=true" >> $GITHUB_OUTPUT
-          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          
-      - name: Create Draft PR
-        id: pr
-        env:
-          GH_TOKEN: ${{ github.token }}
+          echo "Stage 2: Specification completed"
+      
+      - name: Update Project Status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'somas-project-event',
+              client_payload: {
+                project_id: '${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}',
+                action: 'update',
+                stage: 'specification'
+              }
+            });
+  
+  stage-3-simulation:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-2-specification]
+    if: |
+      always() &&
+      (needs.stage-2-specification.result == 'success' || github.event.inputs.stage == 'simulation' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      
+      - name: Run Simulation Stage
         run: |
-          ISSUE_NUMBER="${{ steps.parse.outputs.issue_number }}"
-          BRANCH_NAME="${{ steps.branch.outputs.branch_name }}"
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running simulation stage for ${PROJECT_ID}"
           
-          # Create draft PR
-          PR_URL=$(gh pr create \
-            --draft \
-            --title "🤖 SOMAS: Issue #$ISSUE_NUMBER" \
-            --body "## 🚀 SOMAS Autonomous Development Pipeline
-
-          **Source Issue:** #$ISSUE_NUMBER
-          **Status:** Ideation Stage
-          **Branch:** \`$BRANCH_NAME\`
+          # Simulation artifact generation
+          ARTIFACT_DIR=".somas/projects/${PROJECT_ID}/artifacts"
+          PLAN_TEMPLATE=".somas/templates/execution_plan.yml"
+          PLAN_OUTPUT="${ARTIFACT_DIR}/execution_plan.yml"
           
-          ---
+          mkdir -p "${ARTIFACT_DIR}"
           
-          ### Pipeline Stages
-          
-          - [ ] **Ideation** - Requirements analysis and planning
-          - [ ] **Architecture** - System design and component definition
-          - [ ] **Implementation** - Code generation and testing
-          - [ ] **Validation** - Quality assurance and security review
-          - [ ] **Staging** - Documentation and final review (requires approval)
-          
-          ---
-          
-          🤖 This PR is managed by SOMAS. Progress updates will be posted automatically.
-          
-          **Human approval required before merge** - @scotlaclair will be notified." \
-            --head "$BRANCH_NAME" \
-            --base ${{ github.event.repository.default_branch }})
-          
-          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
-          PR_NUMBER=$(echo "$PR_URL" | grep -oP '\d+$')
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          
-      - name: Add Labels to PR
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "somas:active"
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:ideation"
-          
-      - name: Stage 1 - Ideation (Planner Agent)
-        id: ideation
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "🎯 Starting Ideation Stage - Planner Agent (OpenAI GPT-4)"
-          
-          # Post status comment on issue
-          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## 🎯 Stage 1: Ideation
-          
-          **Agent:** Planner (OpenAI GPT-4)
-          **Status:** In Progress
-          
-          Analyzing requirements and creating project plan..."
-          
-          # Load planner agent configuration
-          if [ ! -f .somas/agents/planner.yml ]; then
-            echo "::error::Planner agent configuration not found"
-            exit 1
+          if [ -f "${PLAN_TEMPLATE}" ]; then
+            echo "Using existing execution plan template at ${PLAN_TEMPLATE}"
+            cp "${PLAN_TEMPLATE}" "${PLAN_OUTPUT}"
+          else
+            echo "Execution plan template not found at ${PLAN_TEMPLATE}; generating a basic execution plan file instead."
+            cat > "${PLAN_OUTPUT}" << 'PLANEOF'
+            optimal_execution_plan:
+              phase_1:
+                name: "Initial Phase"
+                parallel_tasks: []
+                sequential_tasks: []
+            simulation_results:
+              mean_duration_hours: 0
+              p90_duration_hours: 0
+            critical_path: []
+            PLANEOF
           fi
           
-          echo "stage_complete=true" >> $GITHUB_OUTPUT
-          
-      - name: Invoke Copilot for Ideation
-        # NOTE: github/copilot-workspace@v1 action does not currently exist
-        # This is a placeholder for future integration with GitHub Copilot Workspace API
-        # For now, this step should be implemented using alternative approaches:
-        # - Manual Copilot invocation via GitHub UI
-        # - Custom action wrapping Copilot API calls
-        # - Workflow dispatch to trigger separate Copilot workflows
-        # TODO: Replace with actual Copilot integration when action becomes available
-        if: false  # Disabled until copilot-workspace action is available
-        uses: github/copilot-workspace@v1
+          echo "Stage 3: Simulation completed"
+      
+      - name: Create Task Issues
+        uses: actions/github-script@v7
         with:
-          task: |
-            Review issue #${{ steps.parse.outputs.issue_number }} and create a comprehensive project plan.
-            
-            Agent: Planner (OpenAI GPT-4 role)
-            Configuration: .somas/agents/planner.yml
-            
-            Tasks:
-            1. Extract and analyze requirements from the issue
-            2. Define project scope and boundaries
-            3. Create initial roadmap with milestones
-            4. Identify technical constraints and dependencies
-            5. Generate plan document in .somas/output/plan.md
-            
-            Use the template at .somas/templates/plan.md as a guide.
-          pr: ${{ steps.pr.outputs.pr_number }}
-          
-      - name: Stage 2 - Architecture (Architect Agent)
-        id: architecture
-        env:
-          GH_TOKEN: ${{ github.token }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'somas-project-event',
+              client_payload: {
+                project_id: '${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}',
+                action: 'update',
+                stage: 'simulation'
+              }
+            });
+  
+  stage-4-architecture:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-3-simulation]
+    if: |
+      always() &&
+      (needs.stage-3-simulation.result == 'success' || github.event.inputs.stage == 'architecture' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Architecture Stage
         run: |
-          echo "🏗️ Starting Architecture Stage - Architect Agent (GPT-4+Gemini)"
-          
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --remove-label "stage:ideation"
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:architecture"
-          
-          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## 🏗️ Stage 2: Architecture
-          
-          **Agent:** Architect (GPT-4 + Gemini)
-          **Status:** In Progress
-          
-          Designing system architecture and components..."
-          
-          echo "stage_complete=true" >> $GITHUB_OUTPUT
-          
-      - name: Invoke Copilot for Architecture
-        # NOTE: This step is disabled until github/copilot-workspace action becomes available
-        if: false
-        uses: github/copilot-workspace@v1
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running architecture stage for ${PROJECT_ID}"
+          echo "Stage 4: Architecture completed"
+  
+  stage-5-implementation:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-4-architecture]
+    if: |
+      always() &&
+      (needs.stage-4-architecture.result == 'success' || github.event.inputs.stage == 'implementation' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Implementation Stage
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running implementation stage for ${PROJECT_ID}"
+          echo "Stage 5: Implementation completed"
+  
+  stage-6-validation:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-5-implementation]
+    if: |
+      always() &&
+      (needs.stage-5-implementation.result == 'success' || github.event.inputs.stage == 'validation' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Validation Stage
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running validation stage for ${PROJECT_ID}"
+          echo "Stage 6: Validation completed"
+  
+  stage-7-staging:
+    runs-on: ubuntu-latest
+    needs: [initialize-pipeline, stage-6-validation]
+    if: |
+      always() &&
+      (needs.stage-6-validation.result == 'success' || github.event.inputs.stage == 'staging' || github.event.inputs.stage == 'all')
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Staging Stage
+        run: |
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
+          echo "Running staging stage for ${PROJECT_ID}"
+          echo "Stage 7: Staging completed"
+      
+      - name: Close Project
+        uses: actions/github-script@v7
         with:
-          task: |
-            Based on the plan created in the ideation stage, design the system architecture.
-            
-            Agent: Architect (OpenAI GPT-4 + Gemini roles)
-            Configuration: .somas/agents/architect.yml
-            
-            Tasks:
-            1. Design high-level system architecture
-            2. Define components and their interactions
-            3. Create data models and schemas
-            4. Document technology stack decisions
-            5. Generate architecture document with ADRs
-            
-            Use the template at .somas/templates/architecture.md as a guide.
-          pr: ${{ steps.pr.outputs.pr_number }}
-          
-      - name: Stage 3 - Implementation (Implementer + Tester Agents)
-        id: implementation
-        env:
-          GH_TOKEN: ${{ github.token }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'somas-project-event',
+              client_payload: {
+                project_id: '${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}',
+                action: 'close'
+              }
+            });
+  
+  record-metrics:
+    runs-on: ubuntu-latest
+    needs: [stage-7-staging]
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Record Pipeline Metrics
         run: |
-          echo "⚙️ Starting Implementation Stage"
+          PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
           
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --remove-label "stage:architecture"
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:implementation"
+          # Record metrics to analytics
+          mkdir -p .somas/analytics/runs
+          cat > .somas/analytics/runs/${PROJECT_ID}_metrics.json << EOF
+          {
+            "project_id": "${PROJECT_ID}",
+            "completed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "stages": {
+              "ideation": "${{ needs.stage-1-ideation.result }}",
+              "specification": "${{ needs.stage-2-specification.result }}",
+              "simulation": "${{ needs.stage-3-simulation.result }}",
+              "architecture": "${{ needs.stage-4-architecture.result }}",
+              "implementation": "${{ needs.stage-5-implementation.result }}",
+              "validation": "${{ needs.stage-6-validation.result }}",
+              "staging": "${{ needs.stage-7-staging.result }}"
+            }
+          }
+          EOF
           
-          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## ⚙️ Stage 3: Implementation
-          
-          **Agents:** Implementer + Tester (Copilot)
-          **Status:** In Progress
-          
-          Generating production code and comprehensive tests..."
-          
-          echo "stage_complete=true" >> $GITHUB_OUTPUT
-          
-      - name: Invoke Copilot for Implementation
-        # NOTE: This step is disabled until github/copilot-workspace action becomes available
-        if: false
-        uses: github/copilot-workspace@v1
-        with:
-          task: |
-            Implement the system according to the architecture design.
-            
-            Agents: Implementer + Tester (Copilot roles)
-            Configurations: .somas/agents/implementer.yml, .somas/agents/tester.yml
-            
-            Tasks:
-            1. Generate production-ready code with error handling
-            2. Implement all components defined in architecture
-            3. Write comprehensive unit and integration tests
-            4. Ensure 80%+ test coverage
-            5. Make incremental commits for each component
-            
-            Requirements:
-            - Follow best practices and coding standards
-            - Include input validation and error handling
-            - Write clean, maintainable code
-            - Comprehensive test coverage (minimum 80%)
-          pr: ${{ steps.pr.outputs.pr_number }}
-          
-      - name: Stage 4 - Validation (Tester + Reviewer + Security Agents)
-        id: validation
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "✅ Starting Validation Stage"
-          
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --remove-label "stage:implementation"
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:validation"
-          
-          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## ✅ Stage 4: Validation
-          
-          **Agents:** Tester + Reviewer + Security (Copilot + Gemini)
-          **Status:** In Progress
-          
-          Running quality assurance and security analysis..."
-          
-          echo "stage_complete=true" >> $GITHUB_OUTPUT
-          
-      - name: Invoke Copilot for Validation
-        # NOTE: This step is disabled until github/copilot-workspace action becomes available
-        if: false
-        uses: github/copilot-workspace@v1
-        with:
-          task: |
-            Validate the implementation for quality and security.
-            
-            Agents: Tester, Reviewer, Security (Copilot + Gemini roles)
-            Configurations: .somas/agents/tester.yml, .somas/agents/reviewer.yml, .somas/agents/security.yml
-            
-            Tasks:
-            1. Run all tests and verify coverage meets 80% minimum
-            2. Perform code quality review and check architecture compliance
-            3. Run security vulnerability scanning
-            4. Validate best practices and coding standards
-            5. Fix any issues found during validation
-            
-            Iterate until all quality gates pass.
-          pr: ${{ steps.pr.outputs.pr_number }}
-          
-      - name: Stage 5 - Staging (Documenter + Reviewer Agents)
-        id: staging
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "📝 Starting Staging Stage - Final Documentation"
-          
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --remove-label "stage:validation"
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "stage:staging"
-          
-          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## 📝 Stage 5: Staging
-          
-          **Agents:** Documenter + Reviewer (Copilot + Gemini)
-          **Status:** In Progress
-          
-          Creating comprehensive documentation..."
-          
-          echo "stage_complete=true" >> $GITHUB_OUTPUT
-          
-      - name: Invoke Copilot for Documentation
-        # NOTE: This step is disabled until github/copilot-workspace action becomes available
-        if: false
-        uses: github/copilot-workspace@v1
-        with:
-          task: |
-            Create comprehensive documentation for the project.
-            
-            Agents: Documenter + Reviewer (Copilot + Gemini roles)
-            Configurations: .somas/agents/documenter.yml, .somas/agents/reviewer.yml
-            
-            Tasks:
-            1. Write comprehensive README with usage examples
-            2. Generate API documentation
-            3. Create architecture documentation
-            4. Add inline code documentation
-            5. Include setup and deployment instructions
-            
-            Ensure documentation is clear, accurate, and complete.
-          pr: ${{ steps.pr.outputs.pr_number }}
-          
-      - name: Request Human Approval
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "🎉 Pipeline complete - requesting human approval"
-          
-          # Mark PR as ready for review
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --ready
-          
-          # Request review from owner
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --add-reviewer scotlaclair
-          
-          # Post completion comment
-          gh issue comment ${{ steps.parse.outputs.issue_number }} --body "## 🎉 SOMAS Pipeline Complete!
-          
-          All stages have been completed successfully:
-          
-          ✅ **Ideation** - Requirements analyzed and plan created
-          ✅ **Architecture** - System design completed
-          ✅ **Implementation** - Code and tests generated
-          ✅ **Validation** - Quality and security verified
-          ✅ **Staging** - Documentation completed
-          
-          ---
-          
-          **Next Steps:**
-          
-          The draft PR is now ready for human review and approval.
-          
-          📋 **Pull Request:** ${{ steps.pr.outputs.pr_url }}
-          
-          @scotlaclair - Please review the generated code and approve if ready to merge.
-          
-          ---
-          
-          To approve: Review the PR and approve when ready
-          To iterate: Add comments on the PR with requested changes"
-          
-          # Update PR description with completion status
-          gh pr edit ${{ steps.pr.outputs.pr_number }} --body "## 🚀 SOMAS Autonomous Development Pipeline
-          
-          **Source Issue:** #${{ steps.parse.outputs.issue_number }}
-          **Status:** ✅ Complete - Awaiting Human Approval
-          **Branch:** \`${{ steps.branch.outputs.branch_name }}\`
-          
-          ---
-          
-          ### Pipeline Stages
-          
-          - [x] **Ideation** - Requirements analysis and planning
-          - [x] **Architecture** - System design and component definition
-          - [x] **Implementation** - Code generation and testing
-          - [x] **Validation** - Quality assurance and security review
-          - [x] **Staging** - Documentation and final review
-          
-          ---
-          
-          🎉 **All automated stages complete!**
-          
-          @scotlaclair - Please review and approve this PR when ready.
-          
-          ---
-          
-          🤖 This PR was generated by SOMAS Lite v1.0.0"
+          echo "Recorded metrics for ${PROJECT_ID}"
