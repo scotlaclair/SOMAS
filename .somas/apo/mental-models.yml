@@ -466,6 +466,26 @@ agent_mappings:
       perspectives (six hats).
     chain_strategy: "collision"
 
+  ideation:
+    primary_models:
+      - "first_principles"
+      - "tree_of_thoughts"
+      - "six_thinking_hats"
+    rationale: |
+      Ideation benefits from breaking problems down to fundamentals (first principles),
+      exploring multiple possible solution branches (tree of thoughts), and examining
+      ideas from diverse perspectives (six thinking hats).
+    chain_strategy: "parallel_synthesis"
+
+  staging:
+    primary_models:
+      - "occams_razor"
+      - "second_order_thinking"
+    rationale: |
+      Staging focuses on preparing changes for release by simplifying plans to their
+      essentials (Occam's razor) and evaluating downstream impacts and risks
+      (second-order thinking) before execution.
+    chain_strategy: "draft_critique_refine"
 # Chaining Strategies
 # @copilot-context: How to combine multiple mental models
 
