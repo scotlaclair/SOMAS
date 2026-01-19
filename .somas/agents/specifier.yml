@@ -87,8 +87,6 @@ specifier:
         - "maybe"
         - "probably"
         - "approximately"
-        - "should"
-        - "could"
       
     ambiguity_detection:
       enabled: true
@@ -98,6 +96,8 @@ specifier:
         - "when appropriate"
         - "suitable"
         - "adequate"
+        - "should"  # Moved from reject_patterns - often used for non-mandatory goals
+        - "could"   # Moved from reject_patterns - often used to express preferences
         
     completeness:
       required_sections:

@@ -41,6 +41,12 @@ jobs:
           script: |
             const projectId = '${{ github.event.inputs.project_id }}' || context.payload.client_payload.project_id;
             
+            // Validate project_id to prevent path traversal
+            if (!projectId || !/^[a-zA-Z0-9_-]+$/.test(projectId)) {
+              core.setFailed('Invalid project_id format. Must contain only alphanumeric characters, hyphens, and underscores.');
+              return;
+            }
+            
             // Create new project
             const { data: project } = await github.rest.projects.createForRepo({
               owner: context.repo.owner,
@@ -102,6 +108,16 @@ jobs:
             echo "plan_exists=false" >> $GITHUB_OUTPUT
             echo "No execution plan found"
           fi
+      
+      - name: Setup Node.js for YAML parsing
+        if: steps.parse-plan.outputs.plan_exists == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install js-yaml
+        if: steps.parse-plan.outputs.plan_exists == 'true'
+        run: npm install js-yaml
       
       - name: Create Task Issues
         if: steps.parse-plan.outputs.plan_exists == 'true'
@@ -251,13 +267,25 @@ jobs:
             fs.writeFileSync(metaPath, JSON.stringify(projectMeta, null, 2));
       
       - name: Commit metadata changes
-        if: github.event.inputs.action == 'create' || github.event.action == 'create'
+        if: >
+          github.event.inputs.action == 'create' ||
+          github.event.inputs.action == 'update' ||
+          github.event.inputs.action == 'close' ||
+          github.event.action == 'create' ||
+          github.event.action == 'update' ||
+          github.event.action == 'close'
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          git add .somas/projects/
-          git commit -m "Add project metadata for ${{ github.event.inputs.project_id }}" || echo "No changes to commit"
-          git push || echo "No changes to push"
+          
+          # Check if there are any metadata changes to commit
+          if git status --porcelain .somas/projects/ | grep . >/dev/null; then
+            git add .somas/projects/
+            git commit -m "Update project metadata for ${{ github.event.inputs.project_id }}"
+            git push
+          else
+            echo "No metadata changes to commit"
+          fi
       
       - name: Record Metrics
         uses: actions/github-script@v7

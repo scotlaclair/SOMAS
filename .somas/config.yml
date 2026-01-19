@@ -135,6 +135,12 @@ optimization:
     strategy: "critical_path_first"
     consider_risk: true
     consider_dependencies: true
+    
+  risk_multipliers:
+    external_dependencies: 1.5
+    new_technology: 2.0
+    high_complexity: 1.8
+    integration_heavy: 1.7
 
 # Project Management Integration
 
@@ -147,23 +153,7 @@ project_management:
     template_file: ".github/project-template.yml"
     auto_archive_on_completion: false
     
-    columns:
-      - name: "📋 Backlog"
-        automation: "new_issues"
-      - name: "📝 Specification"
-        automation: "labeled:spec-in-progress"
-      - name: "🔬 Simulation"
-        automation: "labeled:sim-in-progress"
-      - name: "🏗️ Architecture"
-        automation: "labeled:arch-in-progress"
-      - name: "💻 Implementation"
-        automation: "labeled:impl-in-progress"
-      - name: "✅ Validation"
-        automation: "labeled:validation-in-progress"
-      - name: "👤 Human Review"
-        automation: "labeled:needs-human"
-      - name: "🚀 Done"
-        automation: "closed"
+    # Note: Column definitions are in .github/project-template.yml to maintain single source of truth
         
     task_decomposition:
       create_issues_for: "each_component"
@@ -341,6 +331,9 @@ security:
       - "staging"
     approvers:
       - "@scotlaclair"
+      # Note: Consider using GitHub teams for better team management:
+      # - "@org-name/approvers-team"
+      # This avoids hardcoding individual usernames
 
 # Error Handling
 
