@@ -16,12 +16,15 @@ pipeline:
       enabled: true
       agent: "planner"
       human_gate: false
+      auto_proceed: true
+      timeout_hours: 2
       
     - id: "specification"
       order: 2
       enabled: true
       agent: "specifier"
-      human_gate: true
+      human_gate: false  # CHANGED: No longer requires human approval
+      auto_proceed: true
       timeout_hours: 24
       
     - id: "simulation"
@@ -29,6 +32,7 @@ pipeline:
       enabled: true
       agent: "simulator"
       human_gate: false
+      auto_proceed: true
       timeout_hours: 2
       
     - id: "architecture"
@@ -36,6 +40,7 @@ pipeline:
       enabled: true
       agent: "architect"
       human_gate: false
+      auto_proceed: true
       timeout_hours: 12
       
     - id: "implementation"
@@ -43,6 +48,7 @@ pipeline:
       enabled: true
       agent: "coder"
       human_gate: false
+      auto_proceed: true
       timeout_hours: 48
       
     - id: "validation"
@@ -50,13 +56,17 @@ pipeline:
       enabled: true
       agent: "validator"
       human_gate: false
+      auto_proceed: true
       timeout_hours: 12
+      max_retries: 3  # Auto-retry validation failures up to 3 times
       
     - id: "staging"
       order: 7
       enabled: true
       agent: "deployer"
-      human_gate: true
+      human_gate: true  # ONLY stage requiring human approval
+      auto_proceed: false
+      human_action: "merge_approval"
       timeout_hours: 24
 
 # Agent Configuration
