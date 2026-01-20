@@ -544,10 +544,20 @@ print(json.dumps(matrix))
           echo "Project: ${PROJECT_ID}"
           echo "========================================"
           
-          # Define context files for the task
-          CONTEXT_FILES=".somas/projects/${PROJECT_ID}/artifacts/SPEC.md"
-          CONTEXT_FILES="${CONTEXT_FILES},.somas/projects/${PROJECT_ID}/artifacts/ARCHITECTURE.md"
-          CONTEXT_FILES="${CONTEXT_FILES},.somas/projects/${PROJECT_ID}/artifacts/execution_plan.yml"
+          # Define and validate required context files for the task
+          SPEC_FILE=".somas/projects/${PROJECT_ID}/artifacts/SPEC.md"
+          ARCH_FILE=".somas/projects/${PROJECT_ID}/artifacts/ARCHITECTURE.md"
+          PLAN_FILE=".somas/projects/${PROJECT_ID}/artifacts/execution_plan.yml"
+          
+          for context_file in "${SPEC_FILE}" "${ARCH_FILE}" "${PLAN_FILE}"; do
+            if [ ! -f "${context_file}" ]; then
+              echo "ERROR: Required context file not found: ${context_file}"
+              echo "Ensure that specification, simulation, and architecture stages have completed successfully for project ${PROJECT_ID}."
+              exit 1
+            fi
+          done
+          
+          CONTEXT_FILES="${SPEC_FILE},${ARCH_FILE},${PLAN_FILE}"
           
           # Define output path for this task
           OUTPUT_PATH=".somas/projects/${PROJECT_ID}/artifacts/tasks/${TASK_ID}_result.md"
