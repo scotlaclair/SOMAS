@@ -109,7 +109,7 @@ Human approves and merges
 
 ### Stage 2: Specification
 
-**Agent**: Specifier (GPT-5.2)  
+**Agent**: Specifier (Claude Sonnet 4.5)  
 **Autonomous**: Yes (No human gate)  
 **Duration**: ~15-30 minutes
 
@@ -134,7 +134,7 @@ Human approves and merges
 
 ### Stage 3: Simulation
 
-**Agent**: Simulator (GPT-5.2)  
+**Agent**: Simulator (Claude Sonnet 4.5)  
 **Autonomous**: Yes  
 **Duration**: ~10-15 minutes
 
@@ -380,10 +380,14 @@ quality_gates:
 
 Each agent has a detailed configuration:
 
+**Available agent files:** architect.yml, copilot.yml, documenter.yml, implementer.yml, orchestrator.yml, planner.yml, reviewer.yml, security.yml, simulator.yml, specifier.yml, tester.yml, _base.yml
+
+**Note:** Config references coder.yml, validator.yml, deployer.yml, and advisor.yml which don't have dedicated files yet - these use shared configurations.
+
 ```yaml
 # Example: .somas/agents/implementer.yml
 role: "Code Implementation Specialist"
-provider: "gpt_5_2_codex"
+provider: "claude_sonnet_4_5"
 
 instructions: |
   Generate production-ready code based on architecture design.
@@ -405,6 +409,8 @@ quality_checks:
 
 Stage-specific settings:
 
+**Note:** Currently only 2 stage files exist (simulation.yml, specification.yml). Other stage configurations are defined in the main config.yml.
+
 ```yaml
 # Example: .somas/stages/specification.yml
 specification:
@@ -414,7 +420,6 @@ specification:
   
   agents:
     primary: "specifier"
-    review: "reviewer"
     
   human_gate: false  # Autonomous - no human approval
 ```
@@ -485,8 +490,8 @@ while (attempt < maxRetries && !passed) {
   passed = await checkQualityGates();
   
   if (!passed && attempt < maxRetries) {
-    // Invoke debugger
-    await invokeDebugger();
+    // Validator analyzes and applies fixes
+    await applyValidationFixes();
     await waitForFixes();
   }
 }
@@ -782,12 +787,12 @@ A: Varies by complexity:
 - Complex systems: 4-8 hours
 
 **Q: When do I need to get involved?**  
-A: Only twice:
-1. Creating the initial issue with project description
-2. Reviewing and approving the final PR (Stage 7)
+A: Depends on environment:
+- **Dev environment**: Only once - creating the initial issue with project description (fully autonomous)
+- **Prod environment**: Twice - creating the issue and approving the final PR (Stage 7)
 
 **Q: What if validation fails 3 times?**  
-A: You'll be notified to investigate manually. The pipeline provides detailed logs of what failed and what the Debugger agent attempted.
+A: You'll be notified to investigate manually. The pipeline provides detailed logs of what failed and what fixes the Validator agent attempted.
 
 **Q: Can I customize which AI models are used?**  
 A: Yes! Edit `.somas/config.yml` agent provider mappings. Current models are optimized for each task.
