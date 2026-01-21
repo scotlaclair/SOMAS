@@ -132,6 +132,71 @@ class APOTaskAnalyzer:
         self,
         task_description: str,
         context: Dict[str, Any],
+        advisor_agent: Any,
+    ) -> ComplexityAnalysis:
+        """
+        Perform complexity analysis using an optional advisor agent.
+
+        The advisor can refine or override the heuristic analysis. If anything
+        goes wrong while calling the advisor, we safely fall back to the
+        heuristic result to avoid breaking task routing.
+        """
+        # Start with heuristic analysis as a baseline
+        base_analysis = self._analyze_heuristic(task_description, context)
+
+        if advisor_agent is None:
+            return base_analysis
+
+        # Best-effort advisory refinement; never fail hard here.
+        try:
+            advisor_method = getattr(advisor_agent, "analyze_task", None)
+            if callable(advisor_method):
+                advisor_result = advisor_method(
+                    task_description=task_description,
+                    context=context,
+                    base_analysis=base_analysis,
+                )
+            else:
+                advisor_method = getattr(advisor_agent, "advise_on_complexity", None)
+                if not callable(advisor_method):
+                    return base_analysis
+                advisor_result = advisor_method(
+                    task_description=task_description,
+                    context=context,
+                    base_analysis=base_analysis,
+                )
+
+            # Allow the advisor to either return a fully-formed ComplexityAnalysis
+            # or a partial update as a mapping.
+            if isinstance(advisor_result, ComplexityAnalysis):
+                return advisor_result
+
+            if isinstance(advisor_result, dict):
+                merged = base_analysis.__dict__.copy()
+                merged.update(advisor_result)
+                try:
+                    return ComplexityAnalysis(**merged)
+                except TypeError:
+                    # If the advisor returns an unexpected structure, fall back.
+                    logger.warning(
+                        "Advisor returned incompatible dict structure; "
+                        "falling back to heuristic analysis",
+                    )
+                    return base_analysis
+
+        except Exception as exc:
+            logger.warning(
+                "Advisor-based analysis failed; falling back to heuristic "
+                "analysis: %s",
+                exc,
+            )
+
+        return base_analysis
+    
+    def _analyze_with_advisor(
+        self,
+        task_description: str,
+        context: Dict[str, Any],
         advisor_agent: Any
     ) -> ComplexityAnalysis:
         """
