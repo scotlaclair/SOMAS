@@ -1,0 +1,510 @@
+# APO Task Analyzer
+# @copilot-context: Task classification and mental model selection system
+# Analyzes tasks to automatically select optimal mental models and chaining strategies
+
+version: "1.0.0"
+schema: "somas-apo-task-analyzer-v1"
+
+description: |
+  The Task Analyzer examines incoming tasks to classify their domain, assess complexity,
+  and automatically select the most appropriate mental models and chaining strategies.
+
+# Domain Detection
+# @copilot-review: Patterns should be kept up-to-date with evolving task types
+
+domain_detection:
+  technical:
+    indicators:
+      keywords:
+        - "implement"
+        - "code"
+        - "debug"
+        - "optimize"
+        - "refactor"
+        - "algorithm"
+        - "data structure"
+        - "API"
+        - "database"
+        - "performance"
+      patterns:
+        - "write.*function"
+        - "fix.*bug"
+        - "optimize.*query"
+        - "implement.*feature"
+        - "create.*endpoint"
+    recommended_models:
+      - "ooda_loop"
+      - "occams_razor"
+      - "first_principles"
+    
+  creative:
+    indicators:
+      keywords:
+        - "design"
+        - "architecture"
+        - "innovate"
+        - "explore"
+        - "brainstorm"
+        - "prototype"
+        - "concept"
+        - "novel"
+        - "alternative"
+        - "rethink"
+      patterns:
+        - "design.*system"
+        - "create.*architecture"
+        - "explore.*approaches"
+        - "generate.*ideas"
+        - "propose.*solution"
+    recommended_models:
+      - "tree_of_thoughts"
+      - "first_principles"
+      - "six_thinking_hats"
+    
+  strategic:
+    indicators:
+      keywords:
+        - "plan"
+        - "roadmap"
+        - "strategy"
+        - "prioritize"
+        - "decide"
+        - "evaluate"
+        - "assess"
+        - "long-term"
+        - "impact"
+        - "tradeoff"
+      patterns:
+        - "plan.*implementation"
+        - "create.*roadmap"
+        - "evaluate.*options"
+        - "prioritize.*tasks"
+        - "assess.*impact"
+    recommended_models:
+      - "second_order_thinking"
+      - "six_thinking_hats"
+      - "tree_of_thoughts"
+    
+  analytical:
+    indicators:
+      keywords:
+        - "analyze"
+        - "review"
+        - "validate"
+        - "test"
+        - "verify"
+        - "assess"
+        - "examine"
+        - "investigate"
+        - "inspect"
+        - "audit"
+      patterns:
+        - "analyze.*requirements"
+        - "review.*code"
+        - "validate.*implementation"
+        - "test.*functionality"
+        - "verify.*correctness"
+    recommended_models:
+      - "inversion"
+      - "six_thinking_hats"
+      - "occams_razor"
+    
+  risk_assessment:
+    indicators:
+      keywords:
+        - "risk"
+        - "security"
+        - "vulnerability"
+        - "failure"
+        - "threat"
+        - "attack"
+        - "breach"
+        - "mitigation"
+        - "prevent"
+      patterns:
+        - "assess.*risk"
+        - "identify.*vulnerabilities"
+        - "security.*review"
+        - "threat.*model"
+        - "failure.*analysis"
+    recommended_models:
+      - "inversion"
+      - "second_order_thinking"
+      - "six_thinking_hats"
+
+# Complexity Assessment
+# @copilot-context: Multi-factor complexity analysis
+
+complexity_assessment:
+  factors:
+    scope_size:
+      description: "Scale of the task in terms of components or changes"
+      levels:
+        simple:
+          criteria: "Single component or <50 lines of code"
+          score: 1
+        moderate:
+          criteria: "2-5 components or 50-200 lines of code"
+          score: 2
+        complex:
+          criteria: "5+ components or 200-500 lines of code"
+          score: 3
+        very_complex:
+          criteria: ">10 components or >500 lines of code"
+          score: 4
+    
+    dependencies:
+      description: "Number and nature of dependencies"
+      levels:
+        simple:
+          criteria: "0-2 dependencies, all internal"
+          score: 1
+        moderate:
+          criteria: "3-5 dependencies, mostly internal"
+          score: 2
+        complex:
+          criteria: "6-10 dependencies or external dependencies"
+          score: 3
+        very_complex:
+          criteria: ">10 dependencies or critical external dependencies"
+          score: 4
+    
+    novelty:
+      description: "How familiar is this type of task"
+      levels:
+        simple:
+          criteria: "Well-established pattern, done many times"
+          score: 1
+        moderate:
+          criteria: "Familiar pattern with some variations"
+          score: 2
+        complex:
+          criteria: "New pattern or unfamiliar technology"
+          score: 3
+        novel:
+          criteria: "Never done before, requires research"
+          score: 4
+    
+    ambiguity:
+      description: "Clarity of requirements and acceptance criteria"
+      levels:
+        simple:
+          criteria: "Crystal clear requirements, specific criteria"
+          score: 1
+        moderate:
+          criteria: "Mostly clear with minor ambiguities"
+          score: 2
+        complex:
+          criteria: "Significant ambiguities requiring clarification"
+          score: 3
+        very_ambiguous:
+          criteria: "Highly unclear, multiple interpretations"
+          score: 4
+    
+    risk:
+      description: "Potential impact of errors or failures"
+      levels:
+        low:
+          criteria: "Low impact, easily reversible"
+          score: 1
+        moderate:
+          criteria: "Medium impact, reversible with effort"
+          score: 2
+        high:
+          criteria: "High impact, difficult to reverse"
+          score: 3
+        critical:
+          criteria: "Critical impact (security, data loss, compliance)"
+          score: 4
+  
+  aggregation:
+    method: "weighted_average"
+    weights:
+      scope_size: 1.0
+      dependencies: 1.5
+      novelty: 2.0
+      ambiguity: 1.5
+      risk: 2.5
+    
+    thresholds:
+      simple: 1.5
+      moderate: 2.5
+      complex: 3.5
+      novel: 4.5
+
+# Automatic Model Selection Algorithm
+# @copilot-context: Rules for selecting mental models based on task analysis
+
+model_selection:
+  algorithm: "multi_factor_scoring"
+  
+  scoring_rules:
+    # Domain matching
+    domain_match:
+      weight: 3.0
+      logic: "If task domain matches model's recommended domain, add weight"
+    
+    # Complexity matching
+    complexity_match:
+      weight: 2.0
+      simple_tasks:
+        prefer: ["occams_razor", "ooda_loop"]
+        avoid: ["tree_of_thoughts", "six_thinking_hats"]
+      moderate_tasks:
+        prefer: ["ooda_loop", "first_principles", "occams_razor"]
+        avoid: []
+      complex_tasks:
+        prefer: ["first_principles", "tree_of_thoughts", "six_thinking_hats"]
+        avoid: []
+      novel_tasks:
+        prefer: ["first_principles", "tree_of_thoughts", "inversion"]
+        avoid: ["occams_razor"]
+    
+    # Risk-based selection
+    risk_match:
+      weight: 2.5
+      high_risk_tasks:
+        require: ["inversion"]
+        prefer: ["second_order_thinking", "six_thinking_hats"]
+      low_risk_tasks:
+        prefer: ["occams_razor", "ooda_loop"]
+    
+    # Ambiguity handling
+    ambiguity_match:
+      weight: 2.0
+      high_ambiguity:
+        prefer: ["six_thinking_hats", "tree_of_thoughts", "first_principles"]
+      low_ambiguity:
+        prefer: ["ooda_loop", "occams_razor"]
+  
+  selection_strategy:
+    primary_model: "highest_score"
+    secondary_model: "second_highest_score"
+    min_score_difference: 0.5  # If scores are closer than this, use both models
+    
+  fallback:
+    default_primary: "first_principles"
+    default_secondary: "occams_razor"
+    reason: "These models provide good balance of depth and practicality"
+
+# Chaining Strategy Determination
+# @copilot-context: Rules for combining multiple mental models
+
+chaining_strategy:
+  rules:
+    collision:
+      when:
+        - "High ambiguity tasks (clarification needed)"
+        - "Models are complementary opposites (e.g., inversion + second_order)"
+        - "Innovation required"
+        - "Breaking assumptions needed"
+      models_that_collide_well:
+        - ["inversion", "second_order_thinking"]
+        - ["inversion", "six_thinking_hats"]
+        - ["first_principles", "occams_razor"]
+      process: |
+        1. Apply first model to generate perspective A
+        2. Apply second model to generate perspective B
+        3. Identify contradictions and tensions
+        4. Synthesize insights from the collision
+        5. Generate solution that incorporates learnings
+    
+    sequential:
+      when:
+        - "Clear progression of thought needed"
+        - "Building on previous insights"
+        - "Refinement and elaboration"
+      process: |
+        1. Apply first model completely
+        2. Use output as input to second model
+        3. Continue chain until final output
+      example_chains:
+        - ["first_principles", "occams_razor"]
+        - ["tree_of_thoughts", "ooda_loop"]
+        - ["six_thinking_hats", "second_order_thinking"]
+    
+    draft_critique_refine:
+      when:
+        - "Quality assurance critical"
+        - "Balance needed between speed and thoroughness"
+        - "Risk mitigation required"
+      process: |
+        1. DRAFT: Use generative model to create solution
+        2. CRITIQUE: Use analytical model to identify issues
+        3. REFINE: Iterate to address critiques
+      model_pairs:
+        draft:
+          - "tree_of_thoughts"
+          - "first_principles"
+          - "ooda_loop"
+        critique:
+          - "inversion"
+          - "six_thinking_hats"
+          - "occams_razor"
+    
+    parallel_synthesis:
+      when:
+        - "Comprehensive analysis needed"
+        - "Multiple perspectives valuable"
+        - "No clear single approach"
+      process: |
+        1. Apply all selected models in parallel
+        2. Collect insights from each
+        3. Identify common themes
+        4. Synthesize unified solution
+      max_parallel_models: 3
+
+    strategic_diamond:
+      when:
+        - "End-to-end problem framing and solution design"
+        - "Architecture or strategy work with unclear boundaries"
+        - "Need to both explore options and then converge on a plan"
+      process: |
+        1. DISCOVER: Explore the problem space, stakeholders, and constraints.
+        2. DEFINE: Synthesize insights into a clear problem definition and goals.
+        3. DEVELOP: Generate multiple solution approaches or architectural options.
+        4. DELIVER: Evaluate options, converge on a coherent strategy, and outline next steps.
+# Task Classification Examples
+# @copilot-context: Reference examples for task classification
+
+examples:
+  - task: "Implement user authentication API endpoint"
+    analysis:
+      domain: "technical"
+      complexity: "moderate"
+      scope_size: "moderate"
+      dependencies: "moderate"
+      novelty: "simple"
+      ambiguity: "simple"
+      risk: "high"
+    selected_models:
+      primary: "ooda_loop"
+      secondary: "inversion"
+    chain_strategy: "sequential"
+    rationale: |
+      Technical implementation (OODA for iteration) with high security risk
+      (inversion for failure analysis). Sequential chain allows iterative
+      implementation followed by security review.
+  
+  - task: "Design microservices architecture for new system"
+    analysis:
+      domain: "creative"
+      complexity: "complex"
+      scope_size: "very_complex"
+      dependencies: "complex"
+      novelty: "moderate"
+      ambiguity: "moderate"
+      risk: "high"
+    selected_models:
+      primary: "first_principles"
+      secondary: "second_order_thinking"
+    chain_strategy: "draft_critique_refine"
+    rationale: |
+      Creative architectural task requiring fundamental thinking (first principles)
+      and consideration of long-term consequences (second-order). Draft-critique-refine
+      ensures quality given high risk.
+  
+  - task: "Analyze specification for completeness"
+    analysis:
+      domain: "analytical"
+      complexity: "moderate"
+      scope_size: "moderate"
+      dependencies: "simple"
+      novelty: "simple"
+      ambiguity: "low"
+      risk: "moderate"
+    selected_models:
+      primary: "six_thinking_hats"
+      secondary: "inversion"
+    chain_strategy: "parallel_synthesis"
+    rationale: |
+      Analytical validation requiring multiple perspectives (six hats) and
+      failure mode analysis (inversion). Parallel synthesis provides comprehensive review.
+  
+  - task: "Optimize database query performance"
+    analysis:
+      domain: "technical"
+      complexity: "moderate"
+      scope_size: "simple"
+      dependencies: "moderate"
+      novelty: "simple"
+      ambiguity: "simple"
+      risk: "moderate"
+    selected_models:
+      primary: "ooda_loop"
+      secondary: "occams_razor"
+    chain_strategy: "sequential"
+    rationale: |
+      Technical optimization requiring rapid iteration (OODA) and simple solutions
+      (Occam's). Sequential chain: iterate quickly, then simplify.
+  
+  - task: "Create long-term product roadmap"
+    analysis:
+      domain: "strategic"
+      complexity: "complex"
+      scope_size: "very_complex"
+      dependencies: "complex"
+      novelty: "moderate"
+      ambiguity: "high"
+      risk: "high"
+    selected_models:
+      primary: "second_order_thinking"
+      secondary: "tree_of_thoughts"
+    chain_strategy: "collision"
+    rationale: |
+      Strategic planning requiring long-term thinking (second-order) and exploration
+      of multiple paths (tree of thoughts). Collision strategy forces resolution
+      of tensions between near-term and long-term thinking.
+
+# Integration with SOMAS Agents
+# @copilot-context: How agents should use the task analyzer
+
+integration:
+  agent_workflow:
+    - step: "Receive task"
+      detail: "Agent receives task assignment from orchestrator"
+    
+    - step: "Invoke task analyzer"
+      detail: "Agent calls task analyzer with task description"
+    
+    - step: "Receive model recommendations"
+      detail: "Task analyzer returns recommended models and chain strategy"
+    
+    - step: "Load mental models"
+      detail: "Agent loads model definitions from mental-models.yml"
+    
+    - step: "Load base prompt"
+      detail: "Agent loads cognitive scaffolding from base-prompt.yml"
+    
+    - step: "Execute with APO"
+      detail: "Agent applies selected models using chain strategy"
+    
+    - step: "Generate output"
+      detail: "Agent produces enhanced output with reasoning trail"
+  
+  configuration_path: ".somas/apo/"
+  
+  override_capability:
+    enabled: true
+    description: |
+      Agents can override automatic model selection if they have specific
+      reasoning for different approach. Override must be documented in output.
+
+# Monitoring and Learning
+# @copilot-context: Track effectiveness of model selections
+
+monitoring:
+  track_metrics:
+    - "Model selection accuracy"
+    - "Task completion success rate by model"
+    - "Average task duration by model"
+    - "Quality scores by model combination"
+  
+  feedback_loop:
+    enabled: true
+    description: |
+      System learns from outcomes to improve model selection over time.
+      Successful task outcomes reinforce model-task associations.
+      Failed tasks trigger review of model selection criteria.
+  
+  storage: ".somas/analytics/apo/"

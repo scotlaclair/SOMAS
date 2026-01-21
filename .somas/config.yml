@@ -23,8 +23,7 @@ pipeline:
       order: 2
       enabled: true
       agent: "specifier"
-      human_gate: false  # CHANGED: No longer requires human approval
-      auto_proceed: true
+      human_gate: false  # Changed: Autonomous in dev
       timeout_hours: 24
       
     - id: "simulation"
@@ -34,6 +33,8 @@ pipeline:
       human_gate: false
       auto_proceed: true
       timeout_hours: 2
+      feedback_loop_enabled: true  # New: Can send back to specification
+      max_feedback_iterations: 3
       
     - id: "architecture"
       order: 4
@@ -50,6 +51,7 @@ pipeline:
       human_gate: false
       auto_proceed: true
       timeout_hours: 48
+      execution_mode: "single_shot"  # New: Single-shot implementation
       
     - id: "validation"
       order: 6
@@ -64,10 +66,59 @@ pipeline:
       order: 7
       enabled: true
       agent: "deployer"
-      human_gate: true  # ONLY stage requiring human approval
-      auto_proceed: false
-      human_action: "merge_approval"
+      human_gate: false  # Changed: Autonomous in dev
       timeout_hours: 24
+      auto_merge_to_dev: true  # New: Auto-merge in dev environment
+
+# Environment Configuration
+# @copilot-context: Defines behavior for dev vs prod environments
+
+environments:
+  dev:
+    branch_pattern: "somas/*"
+    auto_proceed: true          # Autonomous execution, no human gates
+    human_gates: []             # Zero human intervention in dev
+    auto_merge: true            # Auto-merge to dev branch on success
+    
+  prod:
+    branch_pattern: "main"
+    human_gates: ["production_deployment"]
+    require_approval_from: ["@scotlaclair"]
+    auto_merge: false           # Manual merge to production
+
+# Execution Configuration
+# @copilot-context: Single-project proof-of-concept mode
+
+execution:
+  mode: "single_project_sequential"
+  concurrent_projects: 1        # Proof of concept - one project at a time
+  
+  focus:
+    - quality_over_cost         # Cost is fixed at $10/month subscription
+    - comprehensive_logging     # Prove the concept works
+    - metric_collection         # Show value
+  
+  optimization_goals:
+    primary: "minimize_human_time"
+    secondary: "maximize_quality"
+    tertiary: "maximize_autonomy"
+
+# Limits Configuration
+# @copilot-context: Simplified for single-project mode
+
+limits:
+  # No API rate limiting needed (single project, unlimited subscription)
+  api_calls: none
+  
+  # Standard iteration limits
+  iterations:
+    per_stage: 3
+    per_feedback_loop: 2
+    per_project: 8
+  
+  # GitHub Actions limits
+  workflow_runtime_mins: 300
+  checkpoint_enabled: true
 
 # Agent Configuration
 # @copilot-delegate: Agent configurations define AI provider mappings
@@ -193,68 +244,87 @@ agents:
   agent_configs:
     planner:
       provider: "gpt_5_2"
+      fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/planner.yml"
       description: "Requirements analysis with general intelligence"
       
     specifier:
-      provider: "gpt_5_2"
+      provider: "claude_sonnet_4_5"  # Changed from gpt_5_2 for SWE-bench #1 coding
+      fallback: "claude_opus_4_5"
       config_file: ".somas/agents/specifier.yml"
-      description: "Specification with general intelligence"
+      description: "Specification with coding-optimized intelligence"
       
     simulator:
-      provider: "gpt_5_2"
+      provider: "claude_sonnet_4_5"  # Changed from gpt_5_2 for better coding analysis
+      fallback: "grok_code_fast_1"
       config_file: ".somas/agents/simulator.yml"
-      description: "Simulation planning with general intelligence"
+      description: "Simulation planning with coding intelligence"
       
     architect:
       provider: "claude_opus_4_5"
+      fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/architect.yml"
       description: "System design with deepest reasoning"
       
     implementer:
-      provider: "gpt_5_2_codex"
+      provider: "claude_sonnet_4_5"  # Changed from gpt_5_2_codex for SWE-bench #1
+      fallback: "grok_code_fast_1"
       config_file: ".somas/agents/implementer.yml"
-      description: "Code generation with SOTA coding agent"
+      description: "Code generation with #1 coding model"
       
     coder:
-      provider: "gpt_5_2_codex"
+      provider: "claude_sonnet_4_5"  # Changed from gpt_5_2_codex for consistency
+      fallback: "grok_code_fast_1"
       config_file: ".somas/agents/coder.yml"
-      description: "Code generation with SOTA coding agent"
+      description: "Code generation with #1 coding model"
       
     reviewer:
       provider: "claude_sonnet_4_5"
+      fallback: "claude_opus_4_5"
       config_file: ".somas/agents/reviewer.yml"
       description: "Code review with balanced power"
       
     security:
       provider: "gpt_5_2"
+      fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/security.yml"
       description: "Security analysis with adversarial creativity"
       
     tester:
       provider: "claude_sonnet_4_5"
+      fallback: "grok_code_fast_1"
       config_file: ".somas/agents/tester.yml"
       description: "Testing with balanced power"
       
     documenter:
       provider: "gemini_3_pro"
+      fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/documenter.yml"
       description: "Documentation with massive context window"
       
     orchestrator:
       provider: "grok_code_fast_1"
+      fallback: "claude_haiku_4_5"
       config_file: ".somas/agents/orchestrator.yml"
       description: "Pipeline coordination with low latency"
       
     validator:
       provider: "claude_sonnet_4_5"
+      fallback: "grok_code_fast_1"
       config_file: ".somas/agents/validator.yml"
       description: "Validation with balanced power"
       
     deployer:
       provider: "claude_opus_4_5"
+      fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/deployer.yml"
       description: "Deployment planning with deep reasoning"
+      
+    advisor:
+      provider: "claude_opus_4_5"  # For APO task complexity analysis
+      fallback: "claude_sonnet_4_5"
+      config_file: ".somas/agents/advisor.yml"
+      description: "Strategic analysis and recommendations"
 
 # Optimization Configuration
 
@@ -561,3 +631,237 @@ documentation:
     - "optimization_results"
     
   output_path: "docs/somas/"
+
+# APO (Autonomous Prompt Optimization)
+# @copilot-context: Cognitive enhancement layer for all SOMAS agents
+# APO enables agents to self-select optimal mental models for any task
+
+apo:
+  enabled: true
+  version: "1.0.0"
+  
+  # Core Configuration
+  
+  auto_model_selection: true  # Automatically select mental models via task analyzer
+  require_reasoning_trail: true  # Agents must document their reasoning process
+  verification_required: true  # Quality verification mandatory before finalizing
+  max_iterations: 3  # Maximum quality loop iterations before escalation
+  
+  # Mental Models Library
+  
+  mental_models:
+    enabled_models:
+      - "first_principles"
+      - "inversion"
+      - "second_order_thinking"
+      - "ooda_loop"
+      - "occams_razor"
+      - "six_thinking_hats"
+      - "tree_of_thoughts"
+    
+    library_path: ".somas/apo/mental-models.yml"
+    
+    # Agent-specific model preferences (overrides for specific stages)
+    agent_preferences:
+      specifier:
+        prefer: ["inversion", "second_order_thinking"]
+        avoid: []
+      
+      simulator:
+        prefer: ["tree_of_thoughts", "ooda_loop"]
+        avoid: []
+      
+      architect:
+        prefer: ["first_principles", "occams_razor"]
+        avoid: []
+      
+      coder:
+        prefer: ["ooda_loop", "occams_razor"]
+        avoid: ["tree_of_thoughts"]  # Too heavy for implementation
+      
+      validator:
+        prefer: ["inversion", "six_thinking_hats"]
+        avoid: []
+  
+  # Task Analysis
+  
+  task_analyzer:
+    enabled: true
+    config_path: ".somas/apo/task-analyzer.yml"
+    
+    # Use APO for moderate+ complexity only
+    minimum_complexity_for_apo: 2.0
+    
+    complexity_thresholds:
+      simple: 2.0
+      moderate: 3.5
+      complex: 5.0
+    
+    # Auto-routing based on complexity
+    auto_routing:
+      enabled: true
+      rules:
+        - complexity: "> 3.5"
+          model: "claude_opus_4_5"
+          chain: "draft_critique_refine"
+        - complexity: "2.0-3.5"
+          model: "claude_sonnet_4_5"
+          chain: "sequential"
+        - complexity: "< 2.0"
+          model: "grok_code_fast_1"
+          chain: "sequential"
+    
+    domain_detection:
+      confidence_threshold: 0.7  # Minimum confidence for automatic classification
+      fallback_domain: "technical"
+    
+    risk_factors:
+      security_risk_multiplier: 2.5
+      external_dependency_multiplier: 1.5
+      novel_technology_multiplier: 2.0
+  
+  # Chain Strategies
+  
+  chains:
+    enabled: true
+    chains_path: ".somas/apo/chains/"
+    
+    available_strategies:
+      - "sequential"
+      - "collision"
+      - "draft_critique_refine"
+      - "parallel_synthesis"
+      - "strategic_diamond"
+    
+    default_strategy: "sequential"
+    
+    # Strategy selection rules
+    auto_select_strategy: true
+    strategy_rules:
+      high_ambiguity: "collision"
+      multiple_options: "strategic_diamond"
+      quality_critical: "draft_critique_refine"
+      exploration_needed: "parallel_synthesis"
+  
+  # Base Prompt
+  
+  base_prompt:
+    enabled: true
+    config_path: ".somas/apo/base-prompt.yml"
+    injection_method: "prepend"  # Prepend to all agent prompts
+    override_allowed: false  # Agents cannot disable APO
+    
+    anti_early_answering:
+      enabled: true
+      enforce_task_analysis: true
+      require_alternatives_consideration: true
+      minimum_reasoning_depth: 2  # At least 2 levels of "why"
+  
+  # Quality & Verification
+  
+  quality:
+    verification_checklist:
+      - "completeness"
+      - "correctness"
+      - "clarity"
+      - "quality"
+      - "alignment"
+      - "actionability"
+    
+    quality_loop:
+      enabled: true
+      max_iterations: 3
+      escalate_after_max: true
+      
+      escalation_criteria:
+        - "Unresolvable ambiguity"
+        - "Multiple valid solutions with no clear winner"
+        - "Risk exceeds agent authority"
+        - "Conflicting requirements"
+        - "Novel problem outside knowledge"
+    
+    output_requirements:
+      include_task_analysis: true
+      include_reasoning_process: true
+      include_verification_results: true
+      include_confidence_level: true
+      include_assumptions: true
+      include_uncertainties: true
+  
+  # Performance Optimization
+  
+  performance:
+    time_budgets:
+      simple_tasks_minutes: 10
+      moderate_tasks_minutes: 30
+      complex_tasks_minutes: 90
+      novel_tasks_minutes: 240
+    
+    efficiency_mode:
+      enabled: true
+      match_reasoning_depth_to_complexity: true
+      cache_similar_analyses: true
+      reuse_patterns: true
+  
+  # Monitoring & Analytics
+  
+  monitoring:
+    enabled: true
+    storage_path: ".somas/analytics/apo/"
+    
+    track_metrics:
+      - "model_selection_patterns"
+      - "task_completion_success_rate"
+      - "average_task_duration_by_model"
+      - "quality_scores_by_model"
+      - "verification_pass_fail_rates"
+      - "iteration_counts"
+      - "chain_strategy_effectiveness"
+    
+    learning:
+      enabled: true
+      update_model_selection_weights: true
+      learn_from_failures: true
+      adjust_complexity_thresholds: true
+      min_samples_for_learning: 50
+  
+  # Integration
+  
+  integration:
+    inject_into_all_agents: true
+    
+    stage_specific_config:
+      ideation:
+        primary_models: ["tree_of_thoughts", "first_principles"]
+        chain: "strategic_diamond"
+      
+      specification:
+        primary_models: ["inversion", "second_order_thinking"]
+        chain: "collision"
+      
+      simulation:
+        primary_models: ["tree_of_thoughts", "ooda_loop"]
+        chain: "sequential"
+      
+      architecture:
+        primary_models: ["first_principles", "occams_razor"]
+        chain: "strategic_diamond"
+      
+      implementation:
+        primary_models: ["ooda_loop", "occams_razor"]
+        chain: "sequential"
+      
+      validation:
+        primary_models: ["inversion", "six_thinking_hats"]
+        chain: "collision"
+      
+      staging:
+        primary_models: ["second_order_thinking", "inversion"]
+        chain: "draft_critique_refine"
+  
+  # Documentation
+  
+  documentation:
+    guide_path: "docs/somas/apo-guide.md"
+    examples_included: true
+    troubleshooting_included: true

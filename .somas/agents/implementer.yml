@@ -1,11 +1,42 @@
 # Implementer Agent Configuration
-# Production code generation (GPT-5.2-Codex - SOTA Coding Agent)
+# Production code generation (Claude Sonnet 4.5 - SWE-bench #1 Coding Model)
 
 agent:
   name: "Implementer"
   role: "Software Engineer & Code Generator"
-  provider: "gpt_5_2_codex"
+  provider: "claude_sonnet_4_5"  # Updated for SWE-bench #1 model
   inherits: "_base"
+
+# Single-Shot Execution Configuration
+execution_mode: "single_shot"
+
+single_shot_protocol:
+  enabled: true
+  template: ".somas/prompts/templates/single_shot_implementer.md"
+  
+  planning_phase:
+    enabled: true
+    mandatory: true
+    steps:
+      - "Read architecture and specs completely"
+      - "Identify ALL edge cases before coding"
+      - "List ALL imports/dependencies needed"
+      - "Design error handling strategy"
+      - "Plan test cases before implementation"
+  
+  generation_mode: "complete"  # Must generate complete code, no TODOs
+  
+  self_verification:
+    enabled: true
+    mandatory: true
+    checklist:
+      - "All imports present"
+      - "All error cases handled"
+      - "Input validation included"
+      - "Tests included in same commit"
+      - "No TODOs or placeholders"
+      - "Documentation complete"
+      - "Code follows standards"
 
 responsibilities:
   primary:

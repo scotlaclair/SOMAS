@@ -1,0 +1,511 @@
+# APO Mental Models Library
+# @copilot-context: Mental model definitions for cognitive enhancement across all SOMAS agents
+# Each model provides a different reasoning framework for approaching tasks
+
+version: "1.0.0"
+schema: "somas-apo-mental-models-v1"
+
+description: |
+  This library contains cognitive frameworks (mental models) that agents can apply
+  to enhance their reasoning process. Each model offers a different lens through which
+  to analyze problems and generate solutions.
+
+mental_models:
+  first_principles:
+    id: "first_principles"
+    name: "First Principles Thinking"
+    category: "analytical"
+    
+    description: |
+      Break down complex problems into fundamental truths, then reason up from there.
+      Strip away assumptions and conventions to rebuild understanding from axioms.
+    
+    when_to_use:
+      - "Novel problems without established solutions"
+      - "When conventional approaches seem inadequate"
+      - "Architectural decisions requiring deep understanding"
+      - "Complex technical problems with unclear root causes"
+      - "Innovation and creative problem-solving"
+    
+    process:
+      - step: "Identify and define current assumptions"
+        detail: "List all assumptions about the problem, solution space, and constraints"
+        
+      - step: "Break down into fundamental truths"
+        detail: "What are the absolute, irreducible facts? What can we prove?"
+        
+      - step: "Question each assumption"
+        detail: "Which assumptions are really true? Which are inherited beliefs?"
+        
+      - step: "Reconstruct from axioms"
+        detail: "Build up from fundamental truths without relying on assumptions"
+        
+      - step: "Generate new approaches"
+        detail: "Create solutions based on first principles rather than analogies"
+    
+    quality_checks:
+      - "Have all assumptions been identified and questioned?"
+      - "Are the fundamental truths truly foundational?"
+      - "Does the solution follow logically from first principles?"
+      - "Have conventional approaches been consciously set aside?"
+    
+    example_application: |
+      Problem: Design authentication system
+      
+      Assumptions to question:
+      - Must use JWT (why not sessions? why not certificates?)
+      - Must store passwords (why not passwordless? why not delegated auth?)
+      - Must have user database (why not federated identity?)
+      
+      First principles:
+      - User must prove identity (fundamental requirement)
+      - System must trust that proof (security requirement)
+      - Proof must be verifiable (technical requirement)
+      
+      Rebuild: From these axioms, evaluate ALL authentication approaches without
+      bias toward conventional JWT-based systems.
+
+  inversion:
+    id: "inversion"
+    name: "Inversion (Pre-Mortem)"
+    category: "risk_analysis"
+    
+    description: |
+      Think backwards. Instead of asking "How do we succeed?", ask "How would this fail?"
+      Work backward from failure to identify risks and anti-patterns.
+    
+    when_to_use:
+      - "Risk assessment and mitigation planning"
+      - "Quality assurance and validation"
+      - "Architecture review"
+      - "Specification completeness checking"
+      - "Security analysis"
+    
+    process:
+      - step: "Assume complete failure"
+        detail: "Imagine the project/feature has failed catastrophically"
+        
+      - step: "Enumerate failure modes"
+        detail: "List all the ways it could have gone wrong (technical, process, user)"
+        
+      - step: "Identify root causes"
+        detail: "For each failure mode, what would be the underlying cause?"
+        
+      - step: "Assess probability and impact"
+        detail: "How likely is each failure? How severe would it be?"
+        
+      - step: "Design preventions"
+        detail: "What can we do NOW to prevent each identified failure?"
+    
+    quality_checks:
+      - "Have we considered all failure categories (technical, user, process, security)?"
+      - "Are root causes identified, not just symptoms?"
+      - "Do preventions address root causes?"
+      - "Have we considered cascading failures?"
+    
+    example_application: |
+      Feature: User data export
+      
+      Failure scenario: "6 months from now, we're dealing with a massive data breach
+      from the export feature."
+      
+      Failure modes identified:
+      - No authentication on export endpoint
+      - Export includes other users' data
+      - Exports stored unencrypted
+      - No audit logging of exports
+      - No rate limiting (DoS vector)
+      
+      Preventions designed:
+      - Add JWT authentication requirement
+      - Implement strict user ID filtering
+      - Encrypt exports at rest
+      - Log all export requests with user ID
+      - Add rate limiting (5 exports per hour)
+
+  second_order_thinking:
+    id: "second_order_thinking"
+    name: "Second-Order Thinking"
+    category: "strategic"
+    
+    description: |
+      Consider consequences of consequences. Ask "And then what?" repeatedly.
+      Think through second-order effects at T+6mo and T+1yr time horizons.
+    
+    when_to_use:
+      - "Strategic decisions with long-term impact"
+      - "Technology selection and architecture"
+      - "API design and interfaces"
+      - "Data model design"
+      - "Process and workflow design"
+    
+    process:
+      - step: "Identify first-order effects"
+        detail: "What are the immediate, obvious consequences of this decision?"
+        
+      - step: "Project T+6mo effects"
+        detail: "What happens 6 months from now as a result? And then what?"
+        
+      - step: "Project T+1yr effects"
+        detail: "What happens 1 year from now? What are the accumulated effects?"
+        
+      - step: "Consider compounding effects"
+        detail: "What feedback loops emerge? What amplifies or dampens over time?"
+        
+      - step: "Evaluate strategic fit"
+        detail: "Do second-order effects align with long-term goals?"
+    
+    quality_checks:
+      - "Have we thought through at least 3 levels of consequences?"
+      - "Have we considered both positive and negative second-order effects?"
+      - "Have we identified feedback loops and compounding dynamics?"
+      - "Are we prepared for the second-order consequences?"
+    
+    example_application: |
+      Decision: Use microservices architecture
+      
+      First-order: Better separation of concerns, independent deployment
+      
+      Second-order (T+6mo):
+      - Team splits into service-specific teams
+      - Inter-team communication overhead increases
+      - Deployment complexity grows
+      - Debugging across services becomes harder
+      
+      Second-order (T+1yr):
+      - Need service mesh for observability
+      - Need sophisticated monitoring/tracing
+      - Need to hire DevOps specialists
+      - Organizational structure changes
+      - Different teams work at different velocities
+      
+      Strategic question: Are we prepared for these second-order effects?
+      Do we have the team size and expertise to manage this complexity?
+
+  ooda_loop:
+    id: "ooda_loop"
+    name: "OODA Loop"
+    category: "execution"
+    
+    description: |
+      Observe → Orient → Decide → Act → Loop. Rapid iteration cycle for 
+      dynamic environments requiring adaptive responses.
+    
+    when_to_use:
+      - "Implementation and coding tasks"
+      - "Debugging and problem-solving"
+      - "Iterative development"
+      - "Responding to changing requirements"
+      - "Optimization and refinement"
+    
+    process:
+      - step: "Observe"
+        detail: "Gather data. What is the current state? What feedback exists?"
+        
+      - step: "Orient"
+        detail: "Analyze data in context. What does this mean? What patterns exist?"
+        
+      - step: "Decide"
+        detail: "Choose action based on analysis. What should we do?"
+        
+      - step: "Act"
+        detail: "Execute the decision. Implement the chosen approach."
+        
+      - step: "Loop"
+        detail: "Return to Observe. Has the action changed the state?"
+    
+    quality_checks:
+      - "Is each observation based on actual data, not assumptions?"
+      - "Does orientation consider full context and patterns?"
+      - "Are decisions explicit and justified?"
+      - "Are actions measurable and reversible?"
+      - "Is the loop happening at appropriate frequency?"
+    
+    example_application: |
+      Task: Optimize slow database query
+      
+      OBSERVE: Query takes 5 seconds. Examine query plan, table sizes, indexes.
+      
+      ORIENT: Full table scan on 1M row table. No index on filter column.
+      Query pattern shows filtering on 'created_at' column frequently.
+      
+      DECIDE: Add index on 'created_at' column.
+      
+      ACT: CREATE INDEX idx_created_at ON table(created_at);
+      
+      LOOP back to OBSERVE: Query now takes 50ms. Success. Monitor for other
+      slow queries. Find next bottleneck. Repeat cycle.
+
+  occams_razor:
+    id: "occams_razor"
+    name: "Occam's Razor"
+    category: "simplification"
+    
+    description: |
+      Among competing solutions, prefer the simplest valid one. Eliminate
+      unnecessary complexity and assumptions.
+    
+    when_to_use:
+      - "Architecture design decisions"
+      - "Choosing between implementation approaches"
+      - "API design and interface definition"
+      - "Debugging complex problems"
+      - "Refactoring and optimization"
+    
+    process:
+      - step: "List all viable solutions"
+        detail: "Enumerate all approaches that meet requirements"
+        
+      - step: "Identify core requirements"
+        detail: "What must the solution absolutely accomplish?"
+        
+      - step: "Measure complexity"
+        detail: "For each solution: components, dependencies, assumptions, edge cases"
+        
+      - step: "Eliminate unnecessary elements"
+        detail: "Remove anything that doesn't serve a core requirement"
+        
+      - step: "Choose simplest valid solution"
+        detail: "Select the solution with minimal complexity that meets requirements"
+    
+    quality_checks:
+      - "Does the solution meet all core requirements?"
+      - "Have we eliminated all non-essential complexity?"
+      - "Can this be explained in simple terms?"
+      - "Will this be easy to maintain and understand?"
+    
+    example_application: |
+      Problem: Store user preferences
+      
+      Complex solution:
+      - NoSQL document store
+      - Caching layer
+      - Async update queue
+      - Versioning system
+      - Event sourcing
+      
+      Core requirements:
+      - Store key-value pairs per user
+      - Retrieve quickly
+      - Update occasionally
+      
+      Simple solution:
+      - JSON column in existing user table
+      - Standard database query (already fast)
+      
+      Occam's Razor: Start with simple solution. Add complexity only when
+      requirements demand it (e.g., if preferences grow to thousands of items).
+
+  six_thinking_hats:
+    id: "six_thinking_hats"
+    name: "Six Thinking Hats"
+    category: "comprehensive_analysis"
+    
+    description: |
+      Examine problem from six distinct perspectives: Facts, Intuition, Caution,
+      Benefits, Creativity, and Process. Ensures balanced, thorough analysis.
+    
+    when_to_use:
+      - "Validation and testing"
+      - "Complex decision-making"
+      - "Requirement review"
+      - "Architecture review"
+      - "Risk assessment"
+    
+    process:
+      - step: "White Hat (Facts)"
+        detail: "What are the objective facts? What data do we have? What's missing?"
+        
+      - step: "Red Hat (Intuition)"
+        detail: "What does intuition say? Gut feelings? Emotional reactions?"
+        
+      - step: "Black Hat (Caution)"
+        detail: "What could go wrong? What are the risks? Where are the weaknesses?"
+        
+      - step: "Yellow Hat (Benefits)"
+        detail: "What are the benefits? Why would this succeed? What's the upside?"
+        
+      - step: "Green Hat (Creativity)"
+        detail: "What are alternative approaches? Wild ideas? Novel solutions?"
+        
+      - step: "Blue Hat (Process)"
+        detail: "What's the process? What comes next? How do we decide?"
+    
+    quality_checks:
+      - "Have we explicitly considered all six perspectives?"
+      - "Did we avoid mixing modes (e.g., debating benefits while in caution mode)?"
+      - "Are facts separated from opinions and intuitions?"
+      - "Have we balanced caution with optimism?"
+    
+    example_application: |
+      Decision: Adopt GraphQL for API
+      
+      WHITE (Facts): REST API has 47 endpoints. Client makes avg 6 calls per page load.
+      GraphQL allows single call. Team has no GraphQL experience.
+      
+      RED (Intuition): Feels like it would simplify frontend code significantly.
+      Worried about the learning curve.
+      
+      BLACK (Caution): Team inexperience could lead to mistakes. Ecosystem less
+      mature than REST. Debugging might be harder. Query complexity attacks possible.
+      
+      YELLOW (Benefits): Reduces over-fetching. Self-documenting. Better frontend DX.
+      Single endpoint simplifies infrastructure.
+      
+      GREEN (Creativity): Could use GraphQL only for complex queries, REST for
+      simple CRUD. Could build GraphQL layer on top of existing REST services.
+      
+      BLUE (Process): Research phase (1 week), proof-of-concept (2 weeks),
+      decision point with team review.
+
+  tree_of_thoughts:
+    id: "tree_of_thoughts"
+    name: "Tree of Thoughts"
+    category: "exploration"
+    
+    description: |
+      Generate multiple reasoning branches, evaluate each, select best paths,
+      recurse. Parallel exploration of solution space.
+    
+    when_to_use:
+      - "Complex problem-solving"
+      - "Simulation and planning"
+      - "Algorithm design"
+      - "Architecture exploration"
+      - "Novel problems requiring creativity"
+    
+    process:
+      - step: "Generate branches"
+        detail: "Create multiple distinct approaches (3-5 branches)"
+        
+      - step: "Evaluate each branch"
+        detail: "For each: assess feasibility, complexity, risks, benefits"
+        
+      - step: "Select promising paths"
+        detail: "Choose 1-2 best branches based on evaluation"
+        
+      - step: "Recurse on selected paths"
+        detail: "For chosen branches, generate sub-branches and repeat"
+        
+      - step: "Synthesize final solution"
+        detail: "Combine insights from explored branches into optimal solution"
+    
+    quality_checks:
+      - "Are branches genuinely different approaches, not variations?"
+      - "Have we evaluated each branch fairly and thoroughly?"
+      - "Did we explore deeply enough (at least 2 levels)?"
+      - "Does final solution incorporate learnings from exploration?"
+    
+    example_application: |
+      Problem: Optimize task execution order
+      
+      BRANCH 1: Dependency-based topological sort
+        - Sub-branch 1a: Kahn's algorithm
+        - Sub-branch 1b: DFS-based topological sort
+        Evaluation: Guarantees valid order, but ignores task duration
+      
+      BRANCH 2: Critical path method
+        - Sub-branch 2a: Forward/backward pass
+        - Sub-branch 2b: Monte Carlo simulation
+        Evaluation: Optimizes for duration, good for scheduling
+      
+      BRANCH 3: Constraint satisfaction
+        - Sub-branch 3a: Backtracking with heuristics
+        - Sub-branch 3b: Local search (simulated annealing)
+        Evaluation: Flexible but potentially slow
+      
+      SYNTHESIS: Use Branch 2b (Monte Carlo simulation with critical path)
+      as primary method. Incorporates uncertainty, optimizes duration,
+      respects dependencies. Most aligned with SOMAS requirements.
+
+# Agent-Model Mappings
+# @copilot-context: Recommended mental models for each SOMAS pipeline stage
+
+agent_mappings:
+  specification:
+    primary_models:
+      - "inversion"
+      - "second_order_thinking"
+    rationale: |
+      Specifications benefit from thinking about how they could fail (inversion)
+      and considering long-term consequences of decisions (second-order thinking).
+    chain_strategy: "collision"
+    
+  simulation:
+    primary_models:
+      - "tree_of_thoughts"
+      - "ooda_loop"
+    rationale: |
+      Simulation requires exploring multiple execution strategies (tree of thoughts)
+      and iterative refinement (OODA loop).
+    chain_strategy: "sequential"
+    
+  architecture:
+    primary_models:
+      - "first_principles"
+      - "occams_razor"
+    rationale: |
+      Architecture needs fundamental understanding (first principles) balanced
+      with simplicity (Occam's razor).
+    chain_strategy: "strategic_diamond"
+    
+  implementation:
+    primary_models:
+      - "ooda_loop"
+      - "occams_razor"
+    rationale: |
+      Implementation requires rapid iteration (OODA) and simple solutions (Occam's).
+    chain_strategy: "sequential"
+    
+  validation:
+    primary_models:
+      - "inversion"
+      - "six_thinking_hats"
+    rationale: |
+      Validation needs to think about failures (inversion) and comprehensive
+      perspectives (six hats).
+    chain_strategy: "collision"
+
+  ideation:
+    primary_models:
+      - "first_principles"
+      - "tree_of_thoughts"
+      - "six_thinking_hats"
+    rationale: |
+      Ideation benefits from breaking problems down to fundamentals (first principles),
+      exploring multiple possible solution branches (tree of thoughts), and examining
+      ideas from diverse perspectives (six thinking hats).
+    chain_strategy: "parallel_synthesis"
+
+  staging:
+    primary_models:
+      - "occams_razor"
+      - "second_order_thinking"
+    rationale: |
+      Staging focuses on preparing changes for release by simplifying plans to their
+      essentials (Occam's razor) and evaluating downstream impacts and risks
+      (second-order thinking) before execution.
+    chain_strategy: "draft_critique_refine"
+# Chaining Strategies
+# @copilot-context: How to combine multiple mental models
+
+chaining:
+  sequential:
+    description: "Apply models one after another, each building on previous"
+    pattern: "Model1 → Model2 → Model3"
+    use_cases: ["Refinement", "Progressive elaboration", "Building complexity"]
+    
+  collision:
+    description: "Apply contradictory models to force insight from tension"
+    pattern: "Model1 ⟷ Model2 (resolve tension)"
+    use_cases: ["Innovation", "Breaking assumptions", "Finding synthesis"]
+    
+  draft_critique_refine:
+    description: "Generate with one model, critique with another, refine"
+    pattern: "Draft (Model1) → Critique (Model2) → Refine"
+    use_cases: ["Quality improvement", "Balanced solutions", "Risk mitigation"]
+    
+  parallel_synthesis:
+    description: "Apply multiple models in parallel, synthesize insights"
+    pattern: "Model1 ∥ Model2 ∥ Model3 → Synthesize"
+    use_cases: ["Comprehensive analysis", "Multiple perspectives", "Robust solutions"]

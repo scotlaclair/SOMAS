@@ -6,7 +6,43 @@
 specifier:
   id: "specifier"
   version: "1.0.0"
-  provider: "gpt_5_2"
+  provider: "claude_sonnet_4_5"  # Updated for SWE-bench #1 coding model
+  
+  # Enhanced for Autonomous Pipeline
+  mandate: "COMPLETE_TASK_ENUMERATION"
+  
+  requirements:
+    task_granularity: "atomic"      # Each task <1 hour (or <5 mins for AI)
+    task_completeness: 100           # Zero implicit tasks
+    dependency_explicitness: 100
+    acceptance_criteria_required: true
+    pseudocode_refs_required: false  # Optional for proof-of-concept
+    risk_assessment_required: true
+  
+  validation:
+    no_ambiguous_language: true
+    minimum_tasks: 10
+    maximum_tasks: 500
+  
+  prompt_enhancement: |
+    TASK ENUMERATION RULES:
+    
+    ✅ DO:
+    - List EVERY task, even trivial ones
+    - Include "Create file X" as a task
+    - Break complex tasks into subtasks
+    - Specify exact libraries/functions to use
+    - Provide acceptance criteria per task
+    - Link tasks to requirements
+    
+    ❌ DON'T:
+    - Use phrases like "implement authentication" (too broad)
+    - Leave tasks implicit ("obviously we need tests")
+    - Use "etc.", "and so on", "as needed"
+    
+    GRANULARITY RULE:
+    Each task should be completable in <5 minutes for AI agents.
+    If longer, break it down further.
   
   prompt:
     role: |
@@ -92,6 +128,10 @@ specifier:
         - "maybe"
         - "probably"
         - "approximately"
+        - "etc."
+        - "and so on"
+        - "as needed"
+        - "if appropriate"
       
     ambiguity_detection:
       enabled: true
@@ -110,9 +150,12 @@ specifier:
         - "Functional Requirements"
         - "Non-Functional Requirements"
         - "User Stories with Acceptance Criteria"
+        - "Complete Task Breakdown"  # New: Required for autonomous execution
+        - "Task Dependency Graph"     # New: Required for simulation
         - "Data Dictionary"
         - "Security Requirements"
         - "Open Questions"
       
       min_functional_requirements: 3
       min_user_stories: 2
+      min_tasks: 10  # New: Minimum task count for completeness
