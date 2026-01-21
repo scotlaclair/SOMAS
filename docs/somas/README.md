@@ -186,7 +186,7 @@ Human approves and merges
 
 ### Stage 5: Implementation
 
-**Agents**: Implementer (GPT-5.2-Codex), Tester (Claude Sonnet 4.5), Security (GPT-5.2), Optimizer (Claude Sonnet 4.5), Documenter (Gemini 3 Pro)  
+**Agent**: Implementer (Claude Sonnet 4.5)  
 **Autonomous**: Yes  
 **Duration**: ~2-8 hours (varies by complexity)
 
@@ -196,11 +196,10 @@ Human approves and merges
 - Generate source code following architecture
 - Create comprehensive test suites (80%+ coverage)
 - Perform security vulnerability scanning
-- Optimize performance bottlenecks
 - Document code and APIs
-- Make incremental commits
+- Make incremental commits with progress updates
 
-**Output**: Source code, tests, documentation in `implementation/` directory
+**Output**: Source code, tests, documentation in project directory
 
 **Quality Gates**:
 - All tests passing
@@ -213,7 +212,7 @@ Human approves and merges
 
 ### Stage 6: Validation
 
-**Agents**: Tester (Claude Sonnet 4.5), Reviewer (Claude Sonnet 4.5), Security (GPT-5.2), Debugger (Claude Haiku 4.5)  
+**Agent**: Validator (Claude Sonnet 4.5)  
 **Autonomous**: Yes (with auto-retry)  
 **Duration**: ~30-90 minutes  
 **Max Retries**: 3
@@ -226,7 +225,7 @@ Human approves and merges
 - Execute security vulnerability scan
 - Validate against all acceptance criteria
 - Check performance requirements
-- **Auto-retry on failure**: Debugger investigates and fixes issues
+- **Auto-retry on failure**: Apply fixes and re-validate
 
 **Output**: `validation_report.json`, `test_results.json`, `security_scan.json`
 
@@ -239,7 +238,7 @@ Human approves and merges
 
 **Self-Healing**:
 1. Attempt 1: Run validation suite
-2. If failed, invoke Debugger agent
+2. If failed, apply fixes based on failure analysis
 3. Attempt 2: Re-run validation after fixes
 4. Repeat up to 3 total attempts
 5. Escalate to human only after all retries exhausted
@@ -248,24 +247,28 @@ Human approves and merges
 
 ### Stage 7: Staging
 
-**Agents**: Merger (Claude Opus 4.5), Documenter (Gemini 3 Pro)  
-**Autonomous**: No (requires human approval)  
-**Duration**: Variable (waits for human review)
+**Agent**: Deployer (Claude Opus 4.5)  
+**Autonomous**: Yes (in dev), No (in prod)  
+**Duration**: Variable (auto-merges in dev, waits for human approval in prod)
 
-**Purpose**: Prepare for merge and request human approval
+**Purpose**: Prepare for merge and deploy to appropriate environment
 
 **Activities**:
 - Create pull request with all artifacts
 - Generate deployment documentation
 - Resolve any merge conflicts
 - Aggregate final status and metrics
-- Request human review and approval
+- Auto-merge to dev branch, or request human approval for production
 
 **Output**: Pull request, deployment docs, final report
 
-**Quality Gates**: Human approval required
+**Quality Gates**: 
+- Dev: Auto-merge after all checks pass
+- Prod: Human approval required
 
-**Human Action**: This is the **ONLY** stage requiring human intervention. Human reviews the complete work product and approves merge when ready.
+**Human Action**: 
+- **Dev environment**: Fully autonomous with auto-merge
+- **Prod environment**: Human reviews and approves merge
 
 ---
 
@@ -279,17 +282,16 @@ SOMAS uses 12 specialized AI agents, each powered by the optimal 2026 Frontier T
 |-------|-------|----------|------------------|
 | **Orchestrator** | Grok Code Fast 1 | All | Pipeline coordination, state management, agent handoff |
 | **Planner** | GPT-5.2 | Ideation | Requirements analysis, roadmap creation |
-| **Specifier** | GPT-5.2 | Specification | Complete specification generation |
-| **Simulator** | GPT-5.2 | Simulation | Monte Carlo simulation, task optimization |
+| **Specifier** | Claude Sonnet 4.5 | Specification | Complete specification generation |
+| **Simulator** | Claude Sonnet 4.5 | Simulation | Monte Carlo simulation, task optimization |
 | **Architect** | Claude Opus 4.5 | Architecture | System architecture, design decisions |
-| **Implementer** | GPT-5.2-Codex | Implementation | Production-ready code generation |
+| **Implementer** | Claude Sonnet 4.5 | Implementation | Production-ready code generation, testing, security |
 | **Tester** | Claude Sonnet 4.5 | Implementation, Validation | Test suite creation, test execution |
 | **Reviewer** | Claude Sonnet 4.5 | Validation | Code quality review, architecture review |
 | **Security** | GPT-5.2 | Implementation, Validation | Security scanning, vulnerability detection |
-| **Optimizer** | Claude Sonnet 4.5 | Implementation | Performance optimization |
-| **Debugger** | Claude Haiku 4.5 | Validation (on failure) | Bug investigation and fixes |
 | **Documenter** | Gemini 3 Pro | Implementation, Staging | Documentation, API references |
-| **Merger** | Claude Opus 4.5 | Staging | Merge preparation, conflict resolution |
+| **Deployer** | Claude Opus 4.5 | Staging | Deployment planning, merge preparation, conflict resolution |
+| **Advisor** | Claude Opus 4.5 | Strategic | Task complexity analysis, strategic recommendations |
 
 ### Agent Invocation
 
@@ -423,13 +425,16 @@ specification:
 
 ### Autonomous Operation Principles
 
-1. **Minimal Human Intervention**
-   - Human engaged ONLY for final merge approval
+1. **Environment-Based Autonomy**
+   - **Dev environment**: Fully autonomous across all 7 stages
+   - **Prod environment**: Human approval required at Staging (Stage 7)
    - Human notified ONLY when autonomous resolution fails
 
 2. **Bounded Autonomy**
-   - All stages 1-6 are fully autonomous
-   - Stage 7 (Staging) requires human approval
+   - All stages 1-6 are fully autonomous in all environments
+   - Stage 7 (Staging) behavior depends on environment:
+     - Dev: Auto-merge after all checks pass
+     - Prod: Requires human approval
    - Clear escalation path when automation cannot resolve issues
 
 3. **Progress Transparency**
@@ -444,11 +449,11 @@ When validation failures occur:
 ```
 Attempt 1: Run validation suite
   ↓ (if failed)
-Invoke Debugger agent to investigate and fix
+Validator agent analyzes failures and applies fixes
   ↓
 Attempt 2: Re-run validation
   ↓ (if failed)
-Invoke Debugger again
+Validator applies additional fixes
   ↓
 Attempt 3: Final validation attempt
   ↓ (if still failed)
@@ -457,7 +462,7 @@ Escalate to human: @scotlaclair
 
 **Key Features**:
 - Automatic retry up to 3 attempts
-- Debugger agent analyzes failures and applies fixes
+- Validator agent analyzes failures and applies fixes
 - No human intervention unless all retries exhausted
 - Failure analysis stored for learning
 

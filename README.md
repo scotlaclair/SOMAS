@@ -52,17 +52,16 @@ SOMAS leverages the best 2026 Frontier Tier models for each task:
 |-------|-------|------|
 | **Orchestrator** | Grok Code Fast 1 | Pipeline coordination and state management |
 | **Planner** | GPT-5.2 | Requirements analysis and roadmap creation |
-| **Specifier** | GPT-5.2 | Complete specification generation |
-| **Simulator** | GPT-5.2 | Monte Carlo simulation for task optimization |
+| **Specifier** | Claude Sonnet 4.5 | Complete specification generation |
+| **Simulator** | Claude Sonnet 4.5 | Monte Carlo simulation for task optimization |
 | **Architect** | Claude Opus 4.5 | System architecture and design |
-| **Implementer** | GPT-5.2-Codex | Production-ready code generation |
+| **Implementer** | Claude Sonnet 4.5 | Production-ready code generation |
 | **Tester** | Claude Sonnet 4.5 | Comprehensive test suites (80%+ coverage) |
 | **Reviewer** | Claude Sonnet 4.5 | Code quality and architecture reviews |
 | **Security** | GPT-5.2 | Security vulnerability scanning |
-| **Optimizer** | Claude Sonnet 4.5 | Performance optimization |
-| **Debugger** | Claude Haiku 4.5 | Bug investigation and fixes |
 | **Documenter** | Gemini 3 Pro | Documentation and API references |
-| **Merger** | Claude Opus 4.5 | Merge preparation and conflict resolution |
+| **Deployer** | Claude Opus 4.5 | Deployment planning and merge preparation |
+| **Advisor** | Claude Opus 4.5 | Strategic analysis and recommendations |
 
 ---
 
@@ -148,38 +147,35 @@ When staging completes:
 - Designs API specifications
 
 ### Stage 5: Implementation
-**Agents:** Implementer, Tester, Security, Optimizer  
-**Models:** GPT-5.2-Codex, Claude Sonnet 4.5, GPT-5.2  
+**Agent:** Implementer (Claude Sonnet 4.5)  
 **Autonomous:** Yes
 
 - Generates production-ready code
 - Creates comprehensive test suites (80%+ coverage)
 - Performs security vulnerability scanning
-- Optimizes performance bottlenecks
 - Documents code and APIs
+- Makes incremental commits with progress updates
 
 ### Stage 6: Validation
-**Agents:** Tester, Reviewer, Security, Debugger  
-**Models:** Claude Sonnet 4.5, GPT-5.2, Claude Haiku 4.5  
+**Agent:** Validator (Claude Sonnet 4.5)  
 **Autonomous:** Yes (with auto-retry)
 
 - Runs all tests and verifies coverage
 - Performs code quality review
 - Executes security vulnerability scan
 - Auto-retries on failure (max 3 attempts)
-- Invokes Debugger agent to fix issues
+- Applies fixes and re-validates
 - Notifies human only after retries exhausted
 
 ### Stage 7: Staging
-**Agents:** Merger, Documenter  
-**Models:** Claude Opus 4.5, Gemini 3 Pro  
-**Autonomous:** No (requires human approval)
+**Agent:** Deployer (Claude Opus 4.5)  
+**Autonomous:** Yes (in dev environment)
 
 - Creates pull request with all artifacts
 - Generates deployment documentation
 - Resolves merge conflicts
-- Requests human review and approval
-- **ONLY stage requiring human interaction**
+- Auto-merges to dev branch on success
+- **Note:** Requires human approval for production deployments only
 
 ---
 
@@ -188,16 +184,16 @@ When staging completes:
 ### Automatic Retry Logic
 
 When validation failures occur:
-1. **Attempt 1-3**: Debugger agent investigates and fixes issues
+1. **Attempt 1-3**: Validator agent re-runs validation with fixes
 2. **Each retry**: Full validation suite runs again
 3. **After retry 3**: Human notified for intervention
 
 ### Bounded Autonomy
 
 SOMAS operates autonomously with clear boundaries:
-- ✅ **Autonomous**: All 6 stages (Ideation → Validation)
-- ⏸️ **Human Gate**: Only at Staging (final merge approval)
-- 🚨 **Human Escalation**: Only when max retries exhausted
+- ✅ **Autonomous in Dev**: All 7 stages (Ideation → Staging) run without human gates
+- ⏸️ **Human Gate in Prod**: Staging requires approval for production deployments
+- 🚨 **Human Escalation**: Only when max retries exhausted or critical failures occur
 
 ### Progress Notifications
 
