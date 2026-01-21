@@ -1,0 +1,61 @@
+implementation:
+  id: "implementation"
+  order: 5
+  objective: "Generate production-ready code with tests and documentation"
+  
+  inputs:
+    - "ARCHITECTURE.md (from architecture)"
+    - "SPEC.md (from specification)"
+    - "execution_plan.yml (from simulation)"
+    - "api_specs.yml (from architecture)"
+    - "data_models.yml (from architecture)"
+    
+  outputs:
+    - artifact: "source_code/"
+      description: "Complete implementation in structured directories"
+    - artifact: "tests/"
+      types:
+        - "unit_tests"
+        - "integration_tests"
+        - "end_to_end_tests"
+    - artifact: "documentation/"
+      files:
+        - "README.md"
+        - "API_REFERENCE.md"
+        - "CONTRIBUTING.md"
+        - "inline_code_documentation"
+    - artifact: "configuration/"
+      files:
+        - "environment_configs"
+        - "dependency_manifests"
+        - "build_scripts"
+        
+  agents:
+    primary: "coder"  # or "implementer" (both reference same agent)
+    tester: "tester"
+    security: "security"
+    documenter: "documenter"
+    
+  execution_mode: "single_shot"  # Single-shot implementation as per config
+  
+  quality_gates:
+    - "All code compiles/runs without errors"
+    - "All tests passing"
+    - "Code coverage >= 80%"
+    - "No critical security vulnerabilities"
+    - "All TODOs resolved or documented"
+    - "Documentation complete"
+    - "Error handling comprehensive"
+    - "Logging implemented"
+    
+  human_gate: false  # Autonomous
+  auto_proceed: true
+  timeout_hours: 48
+  
+  notes: |
+    The Implementation stage generates all production code.
+    Primary agent (coder/implementer) generates code following architecture.
+    Tester creates comprehensive test suites.
+    Security agent scans for vulnerabilities.
+    Documenter creates user and developer documentation.
+    All work is done in single-shot mode for efficiency.

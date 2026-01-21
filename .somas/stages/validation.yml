@@ -1,0 +1,91 @@
+validation:
+  id: "validation"
+  order: 6
+  objective: "Independent quality verification with auto-retry on failure"
+  
+  inputs:
+    - "source_code/ (from implementation)"
+    - "tests/ (from implementation)"
+    - "SPEC.md (from specification)"
+    - "ARCHITECTURE.md (from architecture)"
+    
+  outputs:
+    - artifact: "validation_report.json"
+      contents:
+        - "test_results"
+        - "coverage_metrics"
+        - "security_scan_results"
+        - "quality_metrics"
+        - "acceptance_criteria_status"
+        - "performance_results"
+        - "failures_and_fixes"
+    - artifact: "test_results.json"
+      description: "Detailed test execution results"
+    - artifact: "security_scan.json"
+      description: "Security vulnerability scan report"
+    - artifact: "coverage_report.html"
+      description: "Visual coverage report"
+        
+  agents:
+    primary: "validator"
+    fallback: "tester"  # For additional test analysis
+    security: "security"  # For security verification
+    reviewer: "reviewer"  # For code quality review
+    
+  max_retries: 3
+  retry_strategy: "progressive"  # Each attempt more thorough
+  
+  retry_behavior:
+    attempt_1:
+      description: "Standard validation"
+      actions:
+        - "Run complete test suite"
+        - "Check code coverage"
+        - "Execute security scan"
+        - "Validate acceptance criteria"
+        - "Check performance"
+    attempt_2:
+      description: "Deeper analysis with fixes"
+      actions:
+        - "Analyze root causes of failures"
+        - "Apply targeted fixes"
+        - "Re-run failed tests"
+        - "Verify fixes don't break other tests"
+        - "Run full validation again"
+    attempt_3:
+      description: "Maximum scrutiny with final fixes"
+      actions:
+        - "Comprehensive failure analysis"
+        - "Apply all possible fixes"
+        - "Run extended test suite"
+        - "Manual verification of critical paths"
+        - "Final validation attempt"
+    escalation:
+      description: "After 3 failed attempts"
+      actions:
+        - "Document all failures comprehensively"
+        - "Create detailed issue comment"
+        - "Tag repository owner (@scotlaclair)"
+        - "Provide failure analysis and recommendations"
+        - "Await human intervention"
+  
+  quality_gates:
+    - "All tests passing (100%)"
+    - "Code coverage >= 80%"
+    - "No critical security vulnerabilities"
+    - "No high security vulnerabilities"
+    - "All acceptance criteria met"
+    - "Performance requirements satisfied"
+    - "Code quality standards met"
+    - "Documentation complete"
+    
+  human_gate: false  # Autonomous with auto-retry
+  auto_proceed: true  # Proceeds after passing validation
+  timeout_hours: 12
+  
+  notes: |
+    The Validation stage provides independent quality verification.
+    The Validator agent runs comprehensive checks and can retry up to 3 times.
+    On each retry, it analyzes failures and applies fixes.
+    Only escalates to human after all retry attempts exhausted.
+    This ensures robust quality without requiring human intervention for common issues.

@@ -1,0 +1,54 @@
+architecture:
+  id: "architecture"
+  order: 4
+  objective: "Design comprehensive system architecture with components, APIs, and data models"
+  
+  inputs:
+    - "SPEC.md (from specification)"
+    - "execution_plan.yml (from simulation)"
+    - "initial_plan.md (from ideation)"
+    
+  outputs:
+    - artifact: "ARCHITECTURE.md"
+      sections:
+        - "System Overview"
+        - "Architecture Style (monolithic/microservices/serverless)"
+        - "Component Architecture"
+        - "Data Architecture"
+        - "API Design"
+        - "Security Architecture"
+        - "Deployment Architecture"
+        - "Technology Stack"
+        - "Architectural Decision Records (ADRs)"
+        - "Quality Attributes"
+    - artifact: "api_specs.yml"
+      format: "OpenAPI 3.0"
+    - artifact: "data_models.yml"
+      contents:
+        - "database_schemas"
+        - "data_relationships"
+        - "validation_rules"
+    - artifact: "adrs/"
+      description: "Directory containing ADR files for major decisions"
+        
+  agents:
+    primary: "architect"
+    review: "reviewer"
+    advisor: "advisor"
+    
+  quality_gates:
+    - "All components defined with clear responsibilities"
+    - "Interfaces specified with contracts"
+    - "Data flows documented"
+    - "Technology choices justified in ADRs"
+    - "Security architecture addresses threats"
+    - "Scalability considerations documented"
+    
+  human_gate: false  # Autonomous
+  auto_proceed: true
+  timeout_hours: 12
+  
+  notes: |
+    The Architecture stage designs the complete system blueprint.
+    The Architect agent creates comprehensive design documentation.
+    All major decisions are documented in ADRs with rationale.
