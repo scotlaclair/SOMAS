@@ -201,6 +201,34 @@ project_id = os.environ['PROJECT_ID']
 PYTHON_SCRIPT
 ```
 
+## Decision-Making Principles
+
+### Source of Truth Hierarchy
+@copilot When encountering mismatches between artifacts:
+1. **Documentation/Specs = The Vision** - What SHOULD exist
+2. **Configuration = The Plan** - How it should be implemented  
+3. **Code/Implementation = Current State** - May be incomplete
+
+**Default Action:** Build out implementation to match documentation, NOT remove documentation to match incomplete code.
+
+### When to Escalate vs. Act
+@copilot Before making changes that:
+- Remove functionality or documentation
+- Simplify by elimination rather than completion
+- Contradict existing specifications
+
+**STOP and ask first** by creating a clarification comment BEFORE creating a PR, NOT by including questions in the PR description.
+
+### Build-First Principle
+@copilot When finding gaps (config references non-existent files, docs mention unbuilt features):
+1. **Default:** Create the missing files/features
+2. **If unclear:** Ask "Should I create X?" BEFORE the PR
+3. **Never:** Remove references to "fix" the mismatch
+
+Example - Config references `.somas/agents/validator.yml` but file doesn't exist:
+- ✅ CORRECT: Create the validator.yml file with appropriate content
+- ❌ WRONG: Remove the config reference or document it as "missing"
+
 ## Resources
 
 - **Configuration Reference**: `.somas/config.yml`

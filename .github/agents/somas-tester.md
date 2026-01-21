@@ -450,6 +450,26 @@ security_test_cases = [
 
 ---
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Create tests for features specified in documentation but not yet implemented
+- Build comprehensive test suites matching planned functionality
+- Test implementations to drive feature completion
+
+### What I Should NOT Do Without Asking First:
+- Skip tests because features aren't implemented yet
+- Mark tests as "pending" or "TODO" for documented features
+- Remove test references for unimplemented features
+- Reduce test scope to match incomplete implementations
+
+### When I Encounter Gaps:
+1. **First choice:** Write tests for the specified feature (failing tests drive implementation)
+2. **Second choice:** Ask via comment BEFORE creating PR if test approach is unclear
+3. **Never:** Remove test references to "fix" the gap
+
+---
+
 ## Do Not Do ❌
 
 - ❌ Skip testing "because the code looks right"

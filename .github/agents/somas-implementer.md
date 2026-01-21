@@ -270,6 +270,26 @@ def process_user_input(user_data):
 
 ---
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Create missing implementations referenced in config or documentation
+- Build new features to match specifications
+- Complete partial implementations
+
+### What I Should NOT Do Without Asking First:
+- Remove documentation for features that don't exist yet
+- Downgrade capability claims in documentation
+- Mark features as "not implemented" without attempting to implement them
+- Simplify by elimination rather than completion
+
+### When I Encounter Gaps:
+1. **First choice:** Implement the missing piece
+2. **Second choice:** Ask via comment BEFORE creating PR if implementation is complex
+3. **Never:** Remove the reference to "fix" the gap
+
+---
+
 ## Do Not Do ❌
 
 - ❌ Hardcode API keys, passwords, or secrets in source code

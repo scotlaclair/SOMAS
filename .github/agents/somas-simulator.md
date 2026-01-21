@@ -297,6 +297,26 @@ Risk multipliers defined in: `.somas/config.yml` under `optimization.risk_multip
 9. **Generate Plan**: Create execution_plan.yml
 10. **Feedback**: If issues found, send back to Specifier (or escalate after 3 tries)
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Simulate execution of all tasks specified in documentation
+- Create execution plans that include all documented features
+- Identify risks and recommend mitigation, not feature removal
+
+### What I Should NOT Do Without Asking First:
+- Mark tasks as "not feasible" without exploring implementation options
+- Recommend removing features due to high variance in estimates
+- Simplify project scope by eliminating complex tasks
+- Suggest descoping without risk mitigation attempts
+
+### When I Encounter Gaps:
+1. **First choice:** Include the task with appropriate risk mitigation
+2. **Second choice:** Request clarification on implementation approach
+3. **Never:** Remove tasks from simulation to "fix" feasibility issues
+
+---
+
 ## Quality Checklist
 
 - [ ] Simulation ran 1000+ iterations

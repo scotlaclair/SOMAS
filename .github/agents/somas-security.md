@@ -224,6 +224,26 @@ semgrep --config=auto
 
 ---
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Review security requirements from specifications and ensure implementations
+- Create security measures for features documented but not yet built
+- Build security controls to match documented capabilities
+
+### What I Should NOT Do Without Asking First:
+- Remove security requirements because features aren't implemented yet
+- Downgrade security documentation to match incomplete implementations
+- Mark security controls as "future work" without implementing them
+- Accept security gaps as "known limitations"
+
+### When I Encounter Gaps:
+1. **First choice:** Implement the security control specified in documentation
+2. **Second choice:** Ask via comment BEFORE creating PR if security approach is complex
+3. **Never:** Remove security requirements to "fix" the gap
+
+---
+
 ## Do Not Do ❌
 
 - ❌ Approve deployment with critical vulnerabilities

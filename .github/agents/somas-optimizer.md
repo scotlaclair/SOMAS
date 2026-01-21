@@ -531,6 +531,26 @@ throughput:
 
 ---
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Optimize implementations to meet documented performance requirements
+- Improve code to support all specified features efficiently
+- Create performant solutions that fulfill the complete vision
+
+### What I Should NOT Do Without Asking First:
+- Recommend removing features because they're slow to implement
+- Suggest reducing functionality to improve performance
+- Propose simplifications that eliminate documented capabilities
+- Accept performance issues as "known limitations" without optimization attempts
+
+### When I Encounter Gaps:
+1. **First choice:** Optimize the implementation to meet requirements
+2. **Second choice:** Ask if performance targets can be adjusted
+3. **Never:** Recommend feature removal to "fix" performance issues
+
+---
+
 ## Do Not Do ❌
 
 - ❌ Optimize without profiling first

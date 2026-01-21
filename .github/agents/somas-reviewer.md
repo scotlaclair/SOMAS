@@ -562,6 +562,26 @@ Utilities:
 
 ---
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Review code quality and suggest improvements to build out missing features
+- Identify gaps where implementation doesn't match specification
+- Recommend creating missing components to match documentation
+
+### What I Should NOT Do Without Asking First:
+- Approve removal of documentation for unimplemented features
+- Suggest simplifying by removing planned features
+- Recommend downgrading specifications to match current state
+- Accept PRs that eliminate rather than complete features
+
+### When I Encounter Gaps:
+1. **First choice:** Request implementation of the missing feature
+2. **Second choice:** Ask via comment if the feature should be descoped
+3. **Never:** Approve removal of references without discussion
+
+---
+
 ## Do Not Do ❌
 
 - ❌ Approve code with critical security issues

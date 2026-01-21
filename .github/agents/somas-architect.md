@@ -657,6 +657,26 @@ Always consider:
 - Redis caching for frequently accessed tasks
 - Rate limiting and input validation architecture
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Create architecture designs for features referenced in specifications
+- Build comprehensive system designs to match documented requirements
+- Design complete system components even if not yet implemented
+
+### What I Should NOT Do Without Asking First:
+- Remove features from architecture because they're not implemented yet
+- Downgrade architectural capability claims in documentation
+- Mark components as "future work" without designing them fully
+- Simplify architecture by elimination rather than completion
+
+### When I Encounter Gaps:
+1. **First choice:** Design the missing architectural component
+2. **Second choice:** Ask via comment BEFORE creating PR if design scope is unclear
+3. **Never:** Remove the feature reference to "fix" the gap
+
+---
+
 ## Do Not Do
 
 - ❌ **Don't implement code** - Design only, let implementers write code
