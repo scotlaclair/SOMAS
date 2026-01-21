@@ -23,10 +23,10 @@ SOMAS uses a multi-agent approach where different AI systems handle different st
 | Agent | Provider | Stage | Responsibility |
 |-------|----------|-------|----------------|
 | Planner | GPT-5.2 | Ideation | High-level planning |
-| Specifier | Claude Sonnet 4.5 | Specification | Requirements documentation |
-| Simulator | Claude Sonnet 4.5 | Simulation | Task optimization |
+| Specifier | GPT-5.2 | Specification | Requirements documentation |
+| Simulator | GPT-5.2 | Simulation | Task optimization |
 | Architect | Claude Opus 4.5 | Architecture | System design |
-| **Implementer** | **Claude Sonnet 4.5** | **Implementation** | **Code generation** |
+| **Implementer** | **GPT-5.2-Codex** | **Implementation** | **Code generation** |
 | Tester | Claude Sonnet 4.5 | Testing | Test suite creation |
 | Reviewer | Claude Sonnet 4.5 | Review | Code quality assessment |
 | Security | GPT-5.2 | Security | Vulnerability scanning |
@@ -36,8 +36,9 @@ SOMAS uses a multi-agent approach where different AI systems handle different st
 ### Why Multiple Agents?
 
 Each agent is specialized for its domain:
-- **Claude Sonnet 4.5** is the #1 SWE-bench coding model, optimized for implementation and testing
+- **GPT-5.2-Codex** is the SOTA coding agent, optimized for agentic loops and complex refactors
 - **Claude Opus 4.5** provides the deepest reasoning for architecture and system design
+- **Claude Sonnet 4.5** offers balanced power for code review and testing
 - **GPT-5.2** excels at general intelligence tasks like requirements and security analysis
 - **Gemini 3 Pro** has massive context windows for comprehensive documentation
 - **Grok Code Fast 1** provides lowest latency for orchestration and routing

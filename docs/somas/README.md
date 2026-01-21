@@ -24,15 +24,15 @@ Complete technical documentation for the autonomous AI development pipeline.
 
 ## Introduction
 
-SOMAS is an AI-first Software Development Life Cycle (SDLC) that transforms project ideas into production-ready software through orchestrated AI agents. The system leverages 2026 Frontier Tier models (Claude Opus 4.5, Claude Sonnet 4.5, GPT-5.2, Gemini 3 Pro, and Grok Code Fast 1) to handle the complete development lifecycle autonomously.
+SOMAS is an AI-first Software Development Life Cycle (SDLC) that transforms project ideas into production-ready software through orchestrated AI agents. The system leverages 2026 Frontier Tier models (GPT-5.2-Codex, Claude Opus 4.5, Claude Sonnet 4.5, GPT-5.2, Gemini 3 Pro, and Grok Code Fast 1) to handle the complete development lifecycle autonomously.
 
 ### Key Concepts
 
 - **Fully Autonomous**: AI agents handle all 7 pipeline stages with minimal human intervention
 - **12 Specialized Agents**: Each with domain expertise and optimal AI model selection
-- **Self-Healing**: Automatic retry and validation for failures
+- **Self-Healing**: Automatic retry and debugging for validation failures
 - **Simulation-Based Optimization**: Monte Carlo analysis for optimal task sequencing
-- **Environment-Based Autonomy**: Fully autonomous in dev, human approval for prod deployments
+- **Bounded Autonomy**: Human engagement only for final merge approval and unrecoverable failures
 - **Quality First**: 80%+ test coverage, security scanning, and comprehensive code review
 
 ---
@@ -69,7 +69,7 @@ Human approves and merges
 
 4. **Self-Healing Validation**
    - Validation failures trigger automatic retry (up to 3 attempts)
-   - Validator agent analyzes failures and applies fixes
+   - Debugger agent investigates and fixes issues
    - Only escalates to human after retries exhausted
 
 5. **Staging & Human Review**
@@ -109,7 +109,7 @@ Human approves and merges
 
 ### Stage 2: Specification
 
-**Agent**: Specifier (Claude Sonnet 4.5)  
+**Agent**: Specifier (GPT-5.2)  
 **Autonomous**: Yes (No human gate)  
 **Duration**: ~15-30 minutes
 
@@ -134,7 +134,7 @@ Human approves and merges
 
 ### Stage 3: Simulation
 
-**Agent**: Simulator (Claude Sonnet 4.5)  
+**Agent**: Simulator (GPT-5.2)  
 **Autonomous**: Yes  
 **Duration**: ~10-15 minutes
 
@@ -186,7 +186,7 @@ Human approves and merges
 
 ### Stage 5: Implementation
 
-**Agent**: Implementer (Claude Sonnet 4.5)  
+**Agents**: Implementer (GPT-5.2-Codex), Tester (Claude Sonnet 4.5), Security (GPT-5.2), Optimizer (Claude Sonnet 4.5), Documenter (Gemini 3 Pro)  
 **Autonomous**: Yes  
 **Duration**: ~2-8 hours (varies by complexity)
 
@@ -196,10 +196,11 @@ Human approves and merges
 - Generate source code following architecture
 - Create comprehensive test suites (80%+ coverage)
 - Perform security vulnerability scanning
+- Optimize performance bottlenecks
 - Document code and APIs
-- Make incremental commits with progress updates
+- Make incremental commits
 
-**Output**: Source code, tests, documentation in project directory
+**Output**: Source code, tests, documentation in `implementation/` directory
 
 **Quality Gates**:
 - All tests passing
@@ -212,7 +213,7 @@ Human approves and merges
 
 ### Stage 6: Validation
 
-**Agent**: Validator (Claude Sonnet 4.5)  
+**Agents**: Tester (Claude Sonnet 4.5), Reviewer (Claude Sonnet 4.5), Security (GPT-5.2), Debugger (Claude Haiku 4.5)  
 **Autonomous**: Yes (with auto-retry)  
 **Duration**: ~30-90 minutes  
 **Max Retries**: 3
@@ -225,7 +226,7 @@ Human approves and merges
 - Execute security vulnerability scan
 - Validate against all acceptance criteria
 - Check performance requirements
-- **Auto-retry on failure**: Apply fixes and re-validate
+- **Auto-retry on failure**: Debugger investigates and fixes issues
 
 **Output**: `validation_report.json`, `test_results.json`, `security_scan.json`
 
@@ -238,7 +239,7 @@ Human approves and merges
 
 **Self-Healing**:
 1. Attempt 1: Run validation suite
-2. If failed, apply fixes based on failure analysis
+2. If failed, invoke Debugger agent
 3. Attempt 2: Re-run validation after fixes
 4. Repeat up to 3 total attempts
 5. Escalate to human only after all retries exhausted
@@ -247,28 +248,24 @@ Human approves and merges
 
 ### Stage 7: Staging
 
-**Agent**: Deployer (Claude Opus 4.5)  
-**Autonomous**: Yes (in dev), No (in prod)  
-**Duration**: Variable (auto-merges in dev, waits for human approval in prod)
+**Agents**: Merger (Claude Opus 4.5), Documenter (Gemini 3 Pro)  
+**Autonomous**: No (requires human approval)  
+**Duration**: Variable (waits for human review)
 
-**Purpose**: Prepare for merge and deploy to appropriate environment
+**Purpose**: Prepare for merge and request human approval
 
 **Activities**:
 - Create pull request with all artifacts
 - Generate deployment documentation
 - Resolve any merge conflicts
 - Aggregate final status and metrics
-- Auto-merge to dev branch, or request human approval for production
+- Request human review and approval
 
 **Output**: Pull request, deployment docs, final report
 
-**Quality Gates**: 
-- Dev: Auto-merge after all checks pass
-- Prod: Human approval required
+**Quality Gates**: Human approval required
 
-**Human Action**: 
-- **Dev environment**: Fully autonomous with auto-merge
-- **Prod environment**: Human reviews and approves merge
+**Human Action**: This is the **ONLY** stage requiring human intervention. Human reviews the complete work product and approves merge when ready.
 
 ---
 
@@ -282,16 +279,17 @@ SOMAS uses 12 specialized AI agents, each powered by the optimal 2026 Frontier T
 |-------|-------|----------|------------------|
 | **Orchestrator** | Grok Code Fast 1 | All | Pipeline coordination, state management, agent handoff |
 | **Planner** | GPT-5.2 | Ideation | Requirements analysis, roadmap creation |
-| **Specifier** | Claude Sonnet 4.5 | Specification | Complete specification generation |
-| **Simulator** | Claude Sonnet 4.5 | Simulation | Monte Carlo simulation, task optimization |
+| **Specifier** | GPT-5.2 | Specification | Complete specification generation |
+| **Simulator** | GPT-5.2 | Simulation | Monte Carlo simulation, task optimization |
 | **Architect** | Claude Opus 4.5 | Architecture | System architecture, design decisions |
-| **Implementer** | Claude Sonnet 4.5 | Implementation | Production-ready code generation, testing, security |
+| **Implementer** | GPT-5.2-Codex | Implementation | Production-ready code generation |
 | **Tester** | Claude Sonnet 4.5 | Implementation, Validation | Test suite creation, test execution |
 | **Reviewer** | Claude Sonnet 4.5 | Validation | Code quality review, architecture review |
 | **Security** | GPT-5.2 | Implementation, Validation | Security scanning, vulnerability detection |
+| **Optimizer** | Claude Sonnet 4.5 | Implementation | Performance optimization |
+| **Debugger** | Claude Haiku 4.5 | Validation (on failure) | Bug investigation and fixes |
 | **Documenter** | Gemini 3 Pro | Implementation, Staging | Documentation, API references |
-| **Deployer** | Claude Opus 4.5 | Staging | Deployment planning, merge preparation, conflict resolution |
-| **Advisor** | Claude Opus 4.5 | Strategic | Task complexity analysis, strategic recommendations |
+| **Merger** | Claude Opus 4.5 | Staging | Merge preparation, conflict resolution |
 
 ### Agent Invocation
 
@@ -380,14 +378,10 @@ quality_gates:
 
 Each agent has a detailed configuration:
 
-**Available agent files:** architect.yml, copilot.yml, documenter.yml, implementer.yml, orchestrator.yml, planner.yml, reviewer.yml, security.yml, simulator.yml, specifier.yml, tester.yml, _base.yml
-
-**Note:** Config references coder.yml, validator.yml, deployer.yml, and advisor.yml which don't have dedicated files yet - these use shared configurations.
-
 ```yaml
 # Example: .somas/agents/implementer.yml
 role: "Code Implementation Specialist"
-provider: "claude_sonnet_4_5"
+provider: "gpt_5_2_codex"
 
 instructions: |
   Generate production-ready code based on architecture design.
@@ -409,8 +403,6 @@ quality_checks:
 
 Stage-specific settings:
 
-**Note:** Currently only 2 stage files exist (simulation.yml, specification.yml). Other stage configurations are defined in the main config.yml.
-
 ```yaml
 # Example: .somas/stages/specification.yml
 specification:
@@ -420,6 +412,7 @@ specification:
   
   agents:
     primary: "specifier"
+    review: "reviewer"
     
   human_gate: false  # Autonomous - no human approval
 ```
@@ -430,16 +423,13 @@ specification:
 
 ### Autonomous Operation Principles
 
-1. **Environment-Based Autonomy**
-   - **Dev environment**: Fully autonomous across all 7 stages
-   - **Prod environment**: Human approval required at Staging (Stage 7)
+1. **Minimal Human Intervention**
+   - Human engaged ONLY for final merge approval
    - Human notified ONLY when autonomous resolution fails
 
 2. **Bounded Autonomy**
-   - All stages 1-6 are fully autonomous in all environments
-   - Stage 7 (Staging) behavior depends on environment:
-     - Dev: Auto-merge after all checks pass
-     - Prod: Requires human approval
+   - All stages 1-6 are fully autonomous
+   - Stage 7 (Staging) requires human approval
    - Clear escalation path when automation cannot resolve issues
 
 3. **Progress Transparency**
@@ -454,11 +444,11 @@ When validation failures occur:
 ```
 Attempt 1: Run validation suite
   ↓ (if failed)
-Validator agent analyzes failures and applies fixes
+Invoke Debugger agent to investigate and fix
   ↓
 Attempt 2: Re-run validation
   ↓ (if failed)
-Validator applies additional fixes
+Invoke Debugger again
   ↓
 Attempt 3: Final validation attempt
   ↓ (if still failed)
@@ -467,7 +457,7 @@ Escalate to human: @scotlaclair
 
 **Key Features**:
 - Automatic retry up to 3 attempts
-- Validator agent analyzes failures and applies fixes
+- Debugger agent analyzes failures and applies fixes
 - No human intervention unless all retries exhausted
 - Failure analysis stored for learning
 
@@ -490,8 +480,8 @@ while (attempt < maxRetries && !passed) {
   passed = await checkQualityGates();
   
   if (!passed && attempt < maxRetries) {
-    // Validator analyzes and applies fixes
-    await applyValidationFixes();
+    // Invoke debugger
+    await invokeDebugger();
     await waitForFixes();
   }
 }
@@ -721,7 +711,7 @@ project_management:
 **Validation Failures**
 - **Symptom**: Stage 6 fails repeatedly
 - **Solution**: Check validation logs, review test failures, verify acceptance criteria met
-- **Auto-healing**: Validator agent automatically investigates and applies fixes after failures
+- **Auto-healing**: Debugger agent automatically investigates after first failure
 
 **Artifact Not Generated**
 - **Symptom**: Stage waits indefinitely for artifact
@@ -787,12 +777,12 @@ A: Varies by complexity:
 - Complex systems: 4-8 hours
 
 **Q: When do I need to get involved?**  
-A: Depends on environment:
-- **Dev environment**: Only once - creating the initial issue with project description (fully autonomous)
-- **Prod environment**: Twice - creating the issue and approving the final PR (Stage 7)
+A: Only twice:
+1. Creating the initial issue with project description
+2. Reviewing and approving the final PR (Stage 7)
 
 **Q: What if validation fails 3 times?**  
-A: You'll be notified to investigate manually. The pipeline provides detailed logs of what failed and what fixes the Validator agent attempted.
+A: You'll be notified to investigate manually. The pipeline provides detailed logs of what failed and what the Debugger agent attempted.
 
 **Q: Can I customize which AI models are used?**  
 A: Yes! Edit `.somas/config.yml` agent provider mappings. Current models are optimized for each task.
