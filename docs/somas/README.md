@@ -24,15 +24,15 @@ Complete technical documentation for the autonomous AI development pipeline.
 
 ## Introduction
 
-SOMAS is an AI-first Software Development Life Cycle (SDLC) that transforms project ideas into production-ready software through orchestrated AI agents. The system leverages 2026 Frontier Tier models (GPT-5.2-Codex, Claude Opus 4.5, Claude Sonnet 4.5, GPT-5.2, Gemini 3 Pro, and Grok Code Fast 1) to handle the complete development lifecycle autonomously.
+SOMAS is an AI-first Software Development Life Cycle (SDLC) that transforms project ideas into production-ready software through orchestrated AI agents. The system leverages 2026 Frontier Tier models (Claude Opus 4.5, Claude Sonnet 4.5, GPT-5.2, Gemini 3 Pro, and Grok Code Fast 1) to handle the complete development lifecycle autonomously.
 
 ### Key Concepts
 
 - **Fully Autonomous**: AI agents handle all 7 pipeline stages with minimal human intervention
 - **12 Specialized Agents**: Each with domain expertise and optimal AI model selection
-- **Self-Healing**: Automatic retry and debugging for validation failures
+- **Self-Healing**: Automatic retry and validation for failures
 - **Simulation-Based Optimization**: Monte Carlo analysis for optimal task sequencing
-- **Bounded Autonomy**: Human engagement only for final merge approval and unrecoverable failures
+- **Environment-Based Autonomy**: Fully autonomous in dev, human approval for prod deployments
 - **Quality First**: 80%+ test coverage, security scanning, and comprehensive code review
 
 ---
@@ -69,7 +69,7 @@ Human approves and merges
 
 4. **Self-Healing Validation**
    - Validation failures trigger automatic retry (up to 3 attempts)
-   - Debugger agent investigates and fixes issues
+   - Validator agent analyzes failures and applies fixes
    - Only escalates to human after retries exhausted
 
 5. **Staging & Human Review**
@@ -721,7 +721,7 @@ project_management:
 **Validation Failures**
 - **Symptom**: Stage 6 fails repeatedly
 - **Solution**: Check validation logs, review test failures, verify acceptance criteria met
-- **Auto-healing**: Debugger agent automatically investigates after first failure
+- **Auto-healing**: Validator agent automatically investigates and applies fixes after failures
 
 **Artifact Not Generated**
 - **Symptom**: Stage waits indefinitely for artifact

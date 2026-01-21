@@ -123,7 +123,7 @@ The **Planner** agent (GPT-5.2) will:
 **Output**: `.somas/projects/project-{issue-number}/artifacts/initial_plan.md`
 
 #### Stage 2: Specification (15-30 minutes)
-The **Specifier** agent (GPT-5.2) will:
+The **Specifier** agent (Claude Sonnet 4.5) will:
 - Create complete SPEC.md document
 - Define functional and non-functional requirements
 - Document user stories with acceptance criteria
@@ -133,7 +133,7 @@ The **Specifier** agent (GPT-5.2) will:
 **Note**: This stage is now autonomous (no human approval needed)
 
 #### Stage 3: Simulation (10-15 minutes)
-The **Simulator** agent (GPT-5.2) will:
+The **Simulator** agent (Claude Sonnet 4.5) will:
 - Run Monte Carlo simulations
 - Identify optimal task execution sequence
 - Determine critical path
@@ -151,33 +151,32 @@ The **Architect** agent (Claude Opus 4.5) will:
 **Output**: `ARCHITECTURE.md`, `api_specs.yml`, `data_models.yml`
 
 #### Stage 5: Implementation (2-4 hours for this calculator)
-Multiple agents work together:
-- **Implementer** (GPT-5.2-Codex): Generates code
-- **Tester** (Claude Sonnet 4.5): Creates test suites
-- **Security** (GPT-5.2): Reviews for vulnerabilities
-- **Optimizer** (Claude Sonnet 4.5): Optimizes performance
-- **Documenter** (Gemini 3 Pro): Creates documentation
+The **Implementer** agent (Claude Sonnet 4.5) will:
+- Generate production-ready code
+- Create comprehensive test suites
+- Perform security scanning
+- Document code and APIs
 
-**Output**: Source code, tests, docs in `implementation/` directory
+**Output**: Source code, tests, docs in project directory
 
 #### Stage 6: Validation (30-90 minutes)
-Multiple agents verify quality (with auto-retry on failure):
-- **Tester**: Runs all tests, verifies coverage
-- **Reviewer**: Performs code quality review
-- **Security**: Executes security scan
-- **Debugger** (if needed): Investigates and fixes failures
+The **Validator** agent verifies quality (with auto-retry on failure):
+- Runs all tests, verifies coverage
+- Performs code quality review
+- Executes security scan
+- Applies fixes and re-validates if needed
 
 **Auto-retry**: Up to 3 attempts before human escalation
 **Output**: `validation_report.json`, test results
 
-#### Stage 7: Staging (Waits for human)
+#### Stage 7: Staging (Auto or Human Approval)
 Final stage creates the PR:
-- **Merger** (Claude Opus 4.5): Prepares merge
-- **Documenter**: Finalizes deployment docs
+- **Deployer** (Claude Opus 4.5): Prepares merge and deployment
 - Creates pull request automatically
-- **Human approval required** - This is the ONLY stage requiring your involvement
+- **Dev environment**: Auto-merges after all checks pass
+- **Prod environment**: Human approval required
 
-**Output**: Pull request with all artifacts ready for review
+**Output**: Pull request with all artifacts ready for review/merge
 
 ---
 
