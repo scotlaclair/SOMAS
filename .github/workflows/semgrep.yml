@@ -1,0 +1,79 @@
+# Semgrep Security Scanning
+# @copilot-context: Static analysis security scanning for SOMAS
+# Semgrep is used as a free alternative to CodeQL for private repos
+# Runs on all pushes and pull requests to detect security vulnerabilities
+#
+# Benefits:
+# - Free for private repositories
+# - Supports Python, JavaScript, Go, and more
+# - Community rules for common vulnerabilities
+# - Custom rules can be added in .semgrep/ directory
+#
+# @copilot-review: Verify rule configuration matches security requirements
+
+name: Semgrep Security Scan
+
+on:
+  push:
+    branches: ["main", "develop", "copilot/*", "somas/*"]
+  pull_request:
+    branches: ["main", "develop"]
+  schedule:
+    # Run daily security scans
+    - cron: '0 0 * * *'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  semgrep:
+    name: Scan for Security Issues
+    runs-on: ubuntu-latest
+    
+    # Skip if commit message contains [skip semgrep]
+    if: "!contains(github.event.head_commit.message, '[skip semgrep]')"
+    
+    container:
+      image: returntocorp/semgrep
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Semgrep security scan
+        run: |
+          semgrep scan \
+            --config="p/security-audit" \
+            --config="p/secrets" \
+            --config="p/owasp-top-ten" \
+            --config="p/command-injection" \
+            --sarif \
+            --output=semgrep.sarif \
+            --error \
+            --verbose
+        continue-on-error: true
+        
+      - name: Upload SARIF results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+        
+      - name: Check for critical vulnerabilities
+        run: |
+          # Parse SARIF and fail if critical issues found
+          if [ -f semgrep.sarif ]; then
+            CRITICAL_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' semgrep.sarif)
+            echo "Critical vulnerabilities found: $CRITICAL_COUNT"
+            
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "❌ Critical security vulnerabilities detected!"
+              echo "Please review the Security tab for details."
+              exit 1
+            else
+              echo "✅ No critical vulnerabilities found"
+            fi
+          fi

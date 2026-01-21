@@ -1,0 +1,99 @@
+# Pull Request Security Checks
+# @copilot-context: Security validation for pull requests
+# Runs dependency review to catch vulnerable dependencies before merge
+# Also performs basic PR validation checks
+#
+# @copilot-review: Ensure security thresholds align with project requirements
+
+name: PR Security & Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: ["main", "develop"]
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  dependency-review:
+    name: Review Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail on high or critical vulnerabilities
+          fail-on-severity: high
+          
+          # Also warn on moderate vulnerabilities
+          warn-on-severity: moderate
+          
+          # Deny specific licenses if needed
+          # deny-licenses: GPL-3.0, AGPL-3.0
+          
+          # Comment results on PR
+          comment-summary-in-pr: always
+          
+          # Show vulnerability details
+          vulnerability-check: true
+          
+      - name: Summary
+        if: always()
+        run: |
+          echo "### 🔒 Dependency Security Review Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All dependencies have been scanned for known vulnerabilities." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See the dependency review results above." >> $GITHUB_STEP_SUMMARY
+
+  pr-validation:
+    name: Validate PR Structure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Validate PR Title
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          
+          # Check if PR title is descriptive (at least 10 characters)
+          if [ ${#PR_TITLE} -lt 10 ]; then
+            echo "❌ PR title is too short. Please provide a descriptive title."
+            exit 1
+          fi
+          
+          echo "✅ PR title validation passed"
+      
+      - name: Check for SOMAS artifacts
+        run: |
+          # Check if this is a SOMAS-generated PR
+          if [[ "${{ github.head_ref }}" == somas/* ]]; then
+            echo "🤖 This is a SOMAS-generated PR"
+            
+            # Validate that required SOMAS artifacts exist
+            if [ -d ".somas/projects" ]; then
+              echo "✅ SOMAS project structure found"
+            else
+              echo "⚠️  No SOMAS project structure found"
+            fi
+          fi
+      
+      - name: PR Summary
+        if: always()
+        run: |
+          echo "### 📋 PR Validation Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.head_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Base:** \`${{ github.base_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** @${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY

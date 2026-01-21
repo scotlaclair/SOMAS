@@ -119,6 +119,47 @@ limits:
   # GitHub Actions limits
   workflow_runtime_mins: 300
   checkpoint_enabled: true
+  
+# Checkpoint and Recovery Configuration
+# @copilot-context: Enhanced checkpointing for long-running autonomous pipelines
+# Enables resuming failed pipelines from the last successful checkpoint
+# Uses GitHub Artifacts for state persistence
+
+checkpointing:
+  enabled: true
+  storage: "github_artifacts"
+  frequency: "per_stage"
+  
+  # Checkpoint content
+  save_state:
+    - "project_metadata"
+    - "stage_outputs"
+    - "execution_context"
+    - "agent_decisions"
+    - "quality_metrics"
+  
+  # Retention
+  retention:
+    completed_pipelines_days: 30
+    failed_pipelines_days: 90
+    artifact_compression: true
+  
+  # Recovery behavior
+  recovery:
+    auto_resume: true
+    max_resume_attempts: 3
+    resume_strategy: "from_last_checkpoint"
+    
+    # Validate state before resuming
+    validate_checkpoint:
+      enabled: true
+      fail_on_corruption: true
+      
+    # Retry failed stages
+    retry_failed_stage:
+      enabled: true
+      max_retries: 2
+      backoff_minutes: 5
 
 # Agent Configuration
 # @copilot-delegate: Agent configurations define AI provider mappings
@@ -427,8 +468,15 @@ analytics:
     schedule: "weekly"
     
   dashboards:
-    enabled: false  # Enable when visualization is implemented
-    update_frequency: "hourly"
+    enabled: true
+    provider: "github_actions_summary"
+    update_frequency: "per_stage"
+    include_metrics:
+      - "pipeline_progress"
+      - "stage_duration"
+      - "task_completion_rate"
+      - "quality_scores"
+      - "error_rates"
 
 learning:
   enabled: true
