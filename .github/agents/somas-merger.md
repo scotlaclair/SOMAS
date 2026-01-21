@@ -1,3 +1,8 @@
+---
+name: somas-merger
+description: Merge Coordinator for SOMAS pipeline - manages code integration and merge conflict resolution
+---
+
 # SOMAS Merger Agent Profile
 
 **Agent Name:** SOMAS Merger  

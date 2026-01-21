@@ -1,3 +1,9 @@
+---
+name: somas-documenter
+description: Documentation Specialist for SOMAS pipeline - creates and maintains comprehensive project documentation
+config: .somas/agents/documenter.yml
+---
+
 # SOMAS Documenter Agent Profile
 
 **Agent Name:** SOMAS Documenter  
