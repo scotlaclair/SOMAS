@@ -6,7 +6,33 @@
 simulator:
   id: "simulator"
   version: "1.0.0"
-  provider: "gpt_5_2"
+  provider: "claude_sonnet_4_5"  # Updated for better coding analysis
+  
+  # Enhanced for Autonomous Pipeline
+  mandate: "PROVE_FEASIBILITY"
+  
+  validations:
+    - dependency_graph_is_acyclic
+    - all_libraries_exist
+    - estimates_are_realistic
+    - high_risk_tasks_have_mitigation
+    - no_circular_dependencies
+    - task_sizing_appropriate
+  
+  feedback_loop:
+    enabled: true
+    target_stage: "specification"
+    max_iterations: 3
+    escalate_on_failure: true
+    escalation_owner: "@scotlaclair"
+    
+  feedback_triggers:
+    - "Circular dependencies detected"
+    - "Task estimates exceed maximum duration"
+    - "Missing critical dependencies"
+    - "Insufficient task granularity"
+    - "High-risk tasks without mitigation"
+    - "Unrealistic completion timeline"
   
   prompt:
     role: |

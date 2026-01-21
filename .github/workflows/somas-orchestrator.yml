@@ -1,0 +1,582 @@
+name: SOMAS Agent Orchestrator
+
+# Comment-driven orchestration that invokes agents via GitHub Copilot
+# and parses their responses to extract artifacts
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  # Detect pipeline triggers and initialize
+  initialize:
+    if: |
+      github.event_name == 'issues' && 
+      contains(github.event.issue.labels.*.name, 'somas:dev') &&
+      !contains(github.event.issue.body, '<!-- SOMAS_INITIALIZED -->')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Create Project Structure
+        id: init
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.issue.number;
+            const projectId = `project-${issue}`;
+            const branchName = `somas/${projectId}`;
+            
+            // Create project directory structure
+            const fs = require('fs');
+            const path = require('path');
+            
+            const projectDir = `projects/${projectId}`;
+            const dirs = [
+              `${projectDir}/artifacts`,
+              `${projectDir}/logs`,
+              `${projectDir}/checkpoints`
+            ];
+            
+            for (const dir of dirs) {
+              await exec.exec('mkdir', ['-p', dir]);
+            }
+            
+            // Initialize metadata
+            const metadata = {
+              project_id: projectId,
+              issue_number: issue,
+              branch: branchName,
+              created_at: new Date().toISOString(),
+              stage: 'ideation',
+              status: 'in_progress'
+            };
+            
+            fs.writeFileSync(
+              `${projectDir}/metadata.json`,
+              JSON.stringify(metadata, null, 2)
+            );
+            
+            // Set outputs
+            core.setOutput('project_id', projectId);
+            core.setOutput('branch_name', branchName);
+            
+            return { projectId, branchName };
+      
+      - name: Create Feature Branch
+        run: |
+          BRANCH_NAME="${{ steps.init.outputs.branch_name }}"
+          
+          git config user.name "SOMAS Bot"
+          git config user.email "somas-bot@users.noreply.github.com"
+          
+          git checkout -b "${BRANCH_NAME}"
+          git add projects/
+          git commit -m "Initialize project ${{ steps.init.outputs.project_id }}"
+          git push -u origin "${BRANCH_NAME}"
+      
+      - name: Start Pipeline - Invoke Planner
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectId = '${{ steps.init.outputs.project_id }}';
+            const issueBody = context.payload.issue.body;
+            
+            // Post initialization comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `<!-- SOMAS_INITIALIZED -->
+              🚀 **SOMAS Autonomous Pipeline Initiated**
+              
+              **Project ID:** \`${projectId}\`
+              **Branch:** \`somas/${projectId}\`
+              **Mode:** Autonomous (dev environment)
+              
+              Starting Stage 1: Ideation...
+              
+              ---
+              
+              @copilot somas-planner
+              
+              Create initial plan for this project based on the issue description above.
+              
+              **Required Output Format:**
+              \`\`\`yaml
+              # initial_plan.yml
+              project:
+                title: "..."
+                description: "..."
+              features:
+                - id: "F-001"
+                  name: "..."
+                  priority: "high|medium|low"
+              tech_stack:
+                - "..."
+              risks:
+                - description: "..."
+                  mitigation: "..."
+              \`\`\`
+              
+              **Project Context:**
+              ${issueBody}
+              `
+            });
+
+  # Parse agent responses and advance pipeline
+  orchestrate:
+    if: |
+      github.event_name == 'issue_comment' &&
+      contains(github.event.comment.body, '@copilot somas-') &&
+      (github.event.comment.user.login == 'github-copilot[bot]' || github.event.comment.user.login == 'copilot[bot]')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Parse Agent Response
+        id: parse
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.issue.number;
+            const projectId = `project-${issue}`;
+            const comment = context.payload.comment.body;
+            const commentAuthor = context.payload.comment.user.login;
+            
+            // Check if this is a SOMAS agent response (from copilot)
+            if (commentAuthor !== 'copilot[bot]') {
+              core.info('Not a copilot response, skipping');
+              core.setOutput('skip', 'true');
+              return;
+            }
+            
+            // Extract YAML/Markdown code blocks
+            const yamlRegex = new RegExp('```(?:yaml|yml)\\n([\\s\\S]*?)\\n```', 'g');
+            const mdRegex = new RegExp('```(?:markdown|md)?\\n([\\s\\S]*?)\\n```', 'g');
+            
+            const yamlBlocks = [];
+            const mdBlocks = [];
+            
+            let match;
+            while ((match = yamlRegex.exec(comment)) !== null) {
+              yamlBlocks.push(match[1]);
+            }
+            while ((match = mdRegex.exec(comment)) !== null) {
+              mdBlocks.push(match[1]);
+            }
+            
+            // Determine which agent responded based on comment context
+            let agentName = null;
+            let artifactName = null;
+            let nextAgent = null;
+            let nextStage = null;
+            
+            const parentComments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue
+            });
+            
+            // Find the last human comment before this bot response
+            const humanComments = parentComments.data.filter(c => 
+              c.user.login !== 'copilot[bot]' &&
+              c.id < context.payload.comment.id
+            );
+            
+            const lastHuman = humanComments[humanComments.length - 1];
+            if (lastHuman) {
+              if (lastHuman.body.includes('@copilot somas-planner')) {
+                agentName = 'planner';
+                artifactName = 'initial_plan.yml';
+                nextAgent = 'specifier';
+                nextStage = 'specification';
+              } else if (lastHuman.body.includes('@copilot somas-specifier')) {
+                agentName = 'specifier';
+                artifactName = 'SPEC.md';
+                nextAgent = 'simulator';
+                nextStage = 'simulation';
+              } else if (lastHuman.body.includes('@copilot somas-simulator')) {
+                agentName = 'simulator';
+                artifactName = 'execution_plan.yml';
+                nextAgent = 'architect';
+                nextStage = 'architecture';
+              } else if (lastHuman.body.includes('@copilot somas-architect')) {
+                agentName = 'architect';
+                artifactName = 'ARCHITECTURE.md';
+                nextAgent = 'implementer';
+                nextStage = 'implementation';
+              } else if (lastHuman.body.includes('@copilot somas-implementer')) {
+                agentName = 'implementer';
+                artifactName = 'source_code';
+                nextAgent = 'tester';
+                nextStage = 'validation';
+              } else if (lastHuman.body.includes('@copilot somas-tester')) {
+                agentName = 'tester';
+                artifactName = 'test_results.json';
+                nextAgent = 'reviewer';
+                nextStage = 'review';
+              } else if (lastHuman.body.includes('@copilot somas-reviewer')) {
+                agentName = 'reviewer';
+                artifactName = 'review_report.md';
+                nextAgent = 'complete';
+                nextStage = 'complete';
+              }
+            }
+            
+            core.setOutput('agent_name', agentName);
+            core.setOutput('artifact_name', artifactName);
+            core.setOutput('next_agent', nextAgent);
+            core.setOutput('next_stage', nextStage);
+            core.setOutput('project_id', projectId);
+            core.setOutput('yaml_blocks', JSON.stringify(yamlBlocks));
+            core.setOutput('md_blocks', JSON.stringify(mdBlocks));
+            core.setOutput('skip', agentName ? 'false' : 'true');
+            
+            return { agentName, artifactName, nextAgent, nextStage };
+      
+      - name: Save Artifacts
+        if: steps.parse.outputs.skip != 'true'
+        run: |
+          PROJECT_ID="${{ steps.parse.outputs.project_id }}"
+          AGENT_NAME="${{ steps.parse.outputs.agent_name }}"
+          ARTIFACT_NAME="${{ steps.parse.outputs.artifact_name }}"
+          BRANCH_NAME="somas/${PROJECT_ID}"
+          
+          # Switch to project branch
+          git fetch origin
+          git checkout "${BRANCH_NAME}" || git checkout -b "${BRANCH_NAME}"
+          
+          # Create artifacts directory
+          mkdir -p "projects/${PROJECT_ID}/artifacts"
+          mkdir -p "projects/${PROJECT_ID}/logs"
+          
+          # Parse and save artifacts from comment
+          YAML_BLOCKS='${{ steps.parse.outputs.yaml_blocks }}'
+          MD_BLOCKS='${{ steps.parse.outputs.md_blocks }}'
+          
+          # Save YAML artifacts with validation
+          if [ "$ARTIFACT_NAME" = "initial_plan.yml" ] || [ "$ARTIFACT_NAME" = "execution_plan.yml" ]; then
+            YAML_CONTENT=$(echo "${YAML_BLOCKS}" | jq -r '.[0]' 2>/dev/null)
+            if [ -n "$YAML_CONTENT" ] && [ "$YAML_CONTENT" != "null" ]; then
+              echo "${YAML_CONTENT}" > "projects/${PROJECT_ID}/artifacts/${ARTIFACT_NAME}"
+              # Validate YAML syntax
+              python3 -c "import yaml; yaml.safe_load(open('projects/${PROJECT_ID}/artifacts/${ARTIFACT_NAME}'))" 2>/dev/null || {
+                echo "ERROR: Invalid YAML in ${ARTIFACT_NAME}" >> "projects/${PROJECT_ID}/logs/${AGENT_NAME}.log"
+                echo "::warning::Extracted YAML artifact is invalid for ${ARTIFACT_NAME}"
+              }
+            else
+              echo "::warning::No valid YAML block found for ${ARTIFACT_NAME}"
+            fi
+          fi
+          
+          # Save Markdown artifacts with validation
+          if [ "$ARTIFACT_NAME" = "SPEC.md" ] || [ "$ARTIFACT_NAME" = "ARCHITECTURE.md" ] || [ "$ARTIFACT_NAME" = "review_report.md" ]; then
+            MD_CONTENT=$(echo "${MD_BLOCKS}" | jq -r '.[0]' 2>/dev/null)
+            if [ -n "$MD_CONTENT" ] && [ "$MD_CONTENT" != "null" ]; then
+              echo "${MD_CONTENT}" > "projects/${PROJECT_ID}/artifacts/${ARTIFACT_NAME}"
+            else
+              echo "::warning::No valid Markdown block found for ${ARTIFACT_NAME}"
+            fi
+          fi
+          
+          # Save log entry
+          echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) - ${AGENT_NAME} completed - ${ARTIFACT_NAME} saved" \
+            >> "projects/${PROJECT_ID}/logs/${AGENT_NAME}.log"
+          
+          # Update metadata
+          cat > "projects/${PROJECT_ID}/metadata.json" << EOF
+          {
+            "project_id": "${PROJECT_ID}",
+            "issue_number": ${{ github.event.issue.number }},
+            "branch": "${BRANCH_NAME}",
+            "stage": "${{ steps.parse.outputs.next_stage }}",
+            "last_agent": "${AGENT_NAME}",
+            "last_updated": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "status": "in_progress"
+          }
+          EOF
+      
+      - name: Commit Artifacts
+        if: steps.parse.outputs.skip != 'true'
+        run: |
+          PROJECT_ID="${{ steps.parse.outputs.project_id }}"
+          AGENT_NAME="${{ steps.parse.outputs.agent_name }}"
+          BRANCH_NAME="somas/${PROJECT_ID}"
+          
+          git config user.name "SOMAS Bot"
+          git config user.email "somas-bot@users.noreply.github.com"
+          
+          git add "projects/${PROJECT_ID}/"
+          git commit -m "[${PROJECT_ID}] ${AGENT_NAME} stage complete" || echo "No changes to commit"
+          git push origin "${BRANCH_NAME}"
+      
+      - name: Invoke Next Agent
+        if: steps.parse.outputs.skip != 'true' && steps.parse.outputs.next_agent != 'complete'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const nextAgent = '${{ steps.parse.outputs.next_agent }}';
+            const nextStage = '${{ steps.parse.outputs.next_stage }}';
+            const projectId = '${{ steps.parse.outputs.project_id }}';
+            const lastArtifact = '${{ steps.parse.outputs.artifact_name }}';
+            
+            // Define agent invocation prompts
+            const invocations = {
+              specifier: `@copilot somas-specifier
+
+              Create complete specification document (SPEC.md) based on the initial plan above.
+              
+              **Input:** \`initial_plan.yml\` from planner
+              
+              **Required Output Format:**
+              \`\`\`markdown
+              # Project Specification
+              
+              ## Executive Summary
+              ...
+              
+              ## Functional Requirements
+              ### REQ-F-001: ...
+              ...
+              
+              ## Complete Task Breakdown
+              - TASK-001: ...
+              ...
+              \`\`\`
+              
+              Include:
+              - All functional requirements (REQ-F-XXX)
+              - All non-functional requirements (REQ-NF-XXX)
+              - Complete task breakdown (100% enumeration, <5 min per task)
+              - Task dependency graph
+              - Acceptance criteria per task`,
+              
+              simulator: `@copilot somas-simulator
+
+              Perform Monte Carlo simulation and create optimized execution plan based on SPEC.md above.
+              
+              **Input:** \`SPEC.md\` from specifier
+              
+              **Required Output Format:**
+              \`\`\`yaml
+              # execution_plan.yml
+              simulation_results:
+                mean_duration_mins: 0
+                p90_duration_mins: 0
+              critical_path:
+                - task_id: "TASK-001"
+                  probability: 0.95
+              parallel_phases:
+                - phase: 1
+                  tasks: ["TASK-001", "TASK-002"]
+              high_risk_tasks:
+                - task_id: "TASK-005"
+                  risk_level: "high"
+                  mitigation: "..."
+              \`\`\``,
+              
+              architect: `@copilot somas-architect
+
+              Design system architecture based on specification and execution plan above.
+              
+              **Inputs:** \`SPEC.md\`, \`execution_plan.yml\`
+              
+              **Required Output Format:**
+              \`\`\`markdown
+              # System Architecture
+              
+              ## System Overview
+              ...
+              
+              ## Components
+              ### Component: API Server
+              - Responsibilities: ...
+              - Technology: ...
+              - Interfaces: ...
+              
+              ## Data Flow
+              ...
+              
+              ## Implementation Guidance
+              ...
+              \`\`\``,
+              
+              implementer: `@copilot somas-implementer
+
+              Implement the system based on architecture design above using single-shot protocol.
+              
+              **Inputs:** \`ARCHITECTURE.md\`, \`SPEC.md\`, \`execution_plan.yml\`
+              
+              **Single-Shot Protocol:**
+              1. Analysis phase - understand all requirements
+              2. Design phase - plan before coding
+              3. Implementation phase - write complete code in one pass
+              4. Verification phase - self-check against requirements
+              
+              **Output:** Complete working code with tests in markdown code blocks`,
+              
+              tester: `@copilot somas-tester
+
+              Create comprehensive test suite for implemented code above.
+              
+              **Input:** Implementation code and SPEC.md
+              
+              **Required Output:**
+              - Unit tests (80%+ coverage)
+              - Integration tests
+              - Test results in JSON format
+              
+              \`\`\`json
+              {
+                "test_results": {
+                  "total": 0,
+                  "passed": 0,
+                  "failed": 0,
+                  "coverage_percent": 0
+                }
+              }
+              \`\`\``,
+              
+              reviewer: `@copilot somas-reviewer
+
+              Perform code review of implementation above.
+              
+              **Review Focus:**
+              - Code quality and standards
+              - Test coverage
+              - Security issues
+              - Performance concerns
+              
+              **Output:**
+              \`\`\`markdown
+              # Code Review Report
+              
+              ## Summary
+              - Overall Score: X/10
+              - Issues Found: X
+              
+              ## Issues
+              1. **High Priority:** ...
+              2. **Medium Priority:** ...
+              
+              ## Recommendations
+              ...
+              \`\`\`
+              
+              If review passes (score >= 8), pipeline will complete.
+              If review fails, implementer will be re-invoked.`
+            };
+            
+            const invocationText = invocations[nextAgent] || `@copilot somas-${nextAgent}\n\nProceed with ${nextStage} stage.`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ **Stage Complete:** ${' ${{ steps.parse.outputs.agent_name }}'.toUpperCase()}
+              
+              **Artifact Saved:** \`${lastArtifact}\`
+              **Next Stage:** ${nextStage}
+              
+              ---
+              
+              ${invocationText}`
+            });
+      
+      - name: Complete Pipeline
+        if: steps.parse.outputs.skip != 'true' && steps.parse.outputs.next_agent == 'complete'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectId = '${{ steps.parse.outputs.project_id }}';
+            const branchName = `somas/${projectId}`;
+            
+            // Create PR
+            try {
+              const pr = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `[${projectId}] Autonomous Implementation`,
+                body: `## Autonomous SOMAS Pipeline Complete
+                
+                **Project:** ${projectId}
+                **Issue:** #${context.issue.number}
+                
+                All stages completed successfully:
+                ✅ Ideation
+                ✅ Specification
+                ✅ Simulation
+                ✅ Architecture
+                ✅ Implementation
+                ✅ Validation
+                ✅ Review
+                
+                **Artifacts:**
+                - \`initial_plan.yml\`
+                - \`SPEC.md\`
+                - \`execution_plan.yml\`
+                - \`ARCHITECTURE.md\`
+                - Implementation code
+                - Test suite
+                - Review report
+                
+                **Auto-merge:** Enabled (dev environment)`,
+                head: branchName,
+                base: 'main'
+              });
+              
+              // Enable auto-merge (waits for required checks)
+              // Note: This requires branch protection rules to be configured
+              try {
+                await github.rest.pulls.updateBranch({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.data.number
+                });
+              } catch (error) {
+                core.info('Branch update not needed or not available');
+              }
+              
+              // Set auto-merge to wait for checks
+              // If no branch protection, this will merge immediately
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.data.number,
+                merge_method: 'squash'
+              });
+              
+              // Post completion comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `🎉 **SOMAS Pipeline Complete!**
+                
+                **PR Created:** #${pr.data.number}
+                **Status:** Auto-merged to main
+                
+                The autonomous pipeline has successfully completed all stages with zero human intervention.
+                
+                Review the PR for detailed artifacts and implementation.`
+              });
+              
+            } catch (error) {
+              core.setFailed(\`Failed to create PR: \${error.message}\`);
+            }

@@ -21,7 +21,7 @@ pipeline:
       order: 2
       enabled: true
       agent: "specifier"
-      human_gate: true
+      human_gate: false  # Changed: Autonomous in dev
       timeout_hours: 24
       
     - id: "simulation"
@@ -30,6 +30,8 @@ pipeline:
       agent: "simulator"
       human_gate: false
       timeout_hours: 2
+      feedback_loop_enabled: true  # New: Can send back to specification
+      max_feedback_iterations: 3
       
     - id: "architecture"
       order: 4
@@ -44,6 +46,7 @@ pipeline:
       agent: "coder"
       human_gate: false
       timeout_hours: 48
+      execution_mode: "single_shot"  # New: Single-shot implementation
       
     - id: "validation"
       order: 6
@@ -56,8 +59,59 @@ pipeline:
       order: 7
       enabled: true
       agent: "deployer"
-      human_gate: true
+      human_gate: false  # Changed: Autonomous in dev
       timeout_hours: 24
+      auto_merge_to_dev: true  # New: Auto-merge in dev environment
+
+# Environment Configuration
+# @copilot-context: Defines behavior for dev vs prod environments
+
+environments:
+  dev:
+    branch_pattern: "somas/*"
+    auto_proceed: true          # Autonomous execution, no human gates
+    human_gates: []             # Zero human intervention in dev
+    auto_merge: true            # Auto-merge to dev branch on success
+    
+  prod:
+    branch_pattern: "main"
+    human_gates: ["production_deployment"]
+    require_approval_from: ["@scotlaclair"]
+    auto_merge: false           # Manual merge to production
+
+# Execution Configuration
+# @copilot-context: Single-project proof-of-concept mode
+
+execution:
+  mode: "single_project_sequential"
+  concurrent_projects: 1        # Proof of concept - one project at a time
+  
+  focus:
+    - quality_over_cost         # Cost is fixed at $10/month subscription
+    - comprehensive_logging     # Prove the concept works
+    - metric_collection         # Show value
+  
+  optimization_goals:
+    primary: "minimize_human_time"
+    secondary: "maximize_quality"
+    tertiary: "maximize_autonomy"
+
+# Limits Configuration
+# @copilot-context: Simplified for single-project mode
+
+limits:
+  # No API rate limiting needed (single project, unlimited subscription)
+  api_calls: none
+  
+  # Standard iteration limits
+  iterations:
+    per_stage: 3
+    per_feedback_loop: 2
+    per_project: 8
+  
+  # GitHub Actions limits
+  workflow_runtime_mins: 300
+  checkpoint_enabled: true
 
 # Agent Configuration
 # @copilot-delegate: Agent configurations define AI provider mappings
@@ -183,68 +237,87 @@ agents:
   agent_configs:
     planner:
       provider: "gpt_5_2"
+      fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/planner.yml"
       description: "Requirements analysis with general intelligence"
       
     specifier:
-      provider: "gpt_5_2"
+      provider: "claude_sonnet_4_5"  # Changed from gpt_5_2 for SWE-bench #1 coding
+      fallback: "claude_opus_4_5"
       config_file: ".somas/agents/specifier.yml"
-      description: "Specification with general intelligence"
+      description: "Specification with coding-optimized intelligence"
       
     simulator:
-      provider: "gpt_5_2"
+      provider: "claude_sonnet_4_5"  # Changed from gpt_5_2 for better coding analysis
+      fallback: "grok_code_fast_1"
       config_file: ".somas/agents/simulator.yml"
-      description: "Simulation planning with general intelligence"
+      description: "Simulation planning with coding intelligence"
       
     architect:
       provider: "claude_opus_4_5"
+      fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/architect.yml"
       description: "System design with deepest reasoning"
       
     implementer:
-      provider: "gpt_5_2_codex"
+      provider: "claude_sonnet_4_5"  # Changed from gpt_5_2_codex for SWE-bench #1
+      fallback: "grok_code_fast_1"
       config_file: ".somas/agents/implementer.yml"
-      description: "Code generation with SOTA coding agent"
+      description: "Code generation with #1 coding model"
       
     coder:
-      provider: "gpt_5_2_codex"
+      provider: "claude_sonnet_4_5"  # Changed from gpt_5_2_codex for consistency
+      fallback: "grok_code_fast_1"
       config_file: ".somas/agents/coder.yml"
-      description: "Code generation with SOTA coding agent"
+      description: "Code generation with #1 coding model"
       
     reviewer:
       provider: "claude_sonnet_4_5"
+      fallback: "claude_opus_4_5"
       config_file: ".somas/agents/reviewer.yml"
       description: "Code review with balanced power"
       
     security:
       provider: "gpt_5_2"
+      fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/security.yml"
       description: "Security analysis with adversarial creativity"
       
     tester:
       provider: "claude_sonnet_4_5"
+      fallback: "grok_code_fast_1"
       config_file: ".somas/agents/tester.yml"
       description: "Testing with balanced power"
       
     documenter:
       provider: "gemini_3_pro"
+      fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/documenter.yml"
       description: "Documentation with massive context window"
       
     orchestrator:
       provider: "grok_code_fast_1"
+      fallback: "claude_haiku_4_5"
       config_file: ".somas/agents/orchestrator.yml"
       description: "Pipeline coordination with low latency"
       
     validator:
       provider: "claude_sonnet_4_5"
+      fallback: "grok_code_fast_1"
       config_file: ".somas/agents/validator.yml"
       description: "Validation with balanced power"
       
     deployer:
       provider: "claude_opus_4_5"
+      fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/deployer.yml"
       description: "Deployment planning with deep reasoning"
+      
+    advisor:
+      provider: "claude_opus_4_5"  # For APO task complexity analysis
+      fallback: "claude_sonnet_4_5"
+      config_file: ".somas/agents/advisor.yml"
+      description: "Strategic analysis and recommendations"
 
 # Optimization Configuration
 
@@ -609,11 +682,27 @@ apo:
     enabled: true
     config_path: ".somas/apo/task-analyzer.yml"
     
+    # Use APO for moderate+ complexity only
+    minimum_complexity_for_apo: 2.0
+    
     complexity_thresholds:
-      simple: 1.5
-      moderate: 2.5
-      complex: 3.5
-      novel: 4.5
+      simple: 2.0
+      moderate: 3.5
+      complex: 5.0
+    
+    # Auto-routing based on complexity
+    auto_routing:
+      enabled: true
+      rules:
+        - complexity: "> 3.5"
+          model: "claude_opus_4_5"
+          chain: "draft_critique_refine"
+        - complexity: "2.0-3.5"
+          model: "claude_sonnet_4_5"
+          chain: "sequential"
+        - complexity: "< 2.0"
+          model: "grok_code_fast_1"
+          chain: "sequential"
     
     domain_detection:
       confidence_threshold: 0.7  # Minimum confidence for automatic classification

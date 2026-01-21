@@ -1,0 +1,270 @@
+# Approved Libraries for SOMAS Projects
+# @copilot-context: Library-first development - prefer battle-tested libraries over custom code
+# This configuration ensures consistent, high-quality implementations across all projects
+
+version: "1.0.0"
+
+# Library-First Philosophy
+philosophy: |
+  Prefer battle-tested libraries over custom code to:
+  - Reduce bugs and security vulnerabilities
+  - Speed up development (AI agents are better with known libraries)
+  - Maintain consistency across projects
+  - Leverage community testing and documentation
+
+# Custom Code Rules
+custom_code_rules:
+  - "Use approved library if it exists for this use case"
+  - "Only write custom code if NO suitable library exists"
+  - "If writing custom code, create reusable utility library"
+  - "Document why no existing library was suitable"
+  - "Submit custom utilities for review and future approval"
+
+# Python Ecosystem
+
+python:
+  # Web Frameworks
+  web_framework:
+    primary: "fastapi"
+    version: ">=0.109.0"
+    alternatives: ["flask", "django"]
+    rationale: "Modern async support, automatic API docs, excellent type hints"
+    
+  # HTTP Clients
+  http_client:
+    primary: "httpx"
+    version: ">=0.26.0"
+    alternatives: ["requests"]
+    rationale: "Async support, HTTP/2, familiar requests-like API"
+    
+  # ORM & Database
+  orm:
+    primary: "sqlalchemy"
+    version: ">=2.0.0"
+    alternatives: ["tortoise-orm", "peewee"]
+    rationale: "Industry standard, excellent async support in 2.0+"
+    
+  database_driver:
+    postgres: "asyncpg"
+    mysql: "aiomysql"
+    sqlite: "aiosqlite"
+    
+  # Data Validation
+  validation:
+    primary: "pydantic"
+    version: ">=2.5.0"
+    alternatives: ["marshmallow"]
+    rationale: "Fast, type-safe, integrates with FastAPI"
+    
+  # Testing
+  testing:
+    primary: "pytest"
+    version: ">=7.4.0"
+    plugins:
+      - "pytest-asyncio"  # Async test support
+      - "pytest-cov"      # Coverage reporting
+      - "pytest-mock"     # Mocking utilities
+    alternatives: ["unittest"]
+    rationale: "Powerful fixtures, extensive plugin ecosystem"
+    
+  # Async Runtime
+  async:
+    primary: "asyncio"
+    version: "built-in"
+    alternatives: ["trio", "anyio"]
+    rationale: "Standard library, universal support"
+    
+  # CLI Tools
+  cli:
+    primary: "click"
+    version: ">=8.1.0"
+    alternatives: ["typer", "argparse"]
+    rationale: "Declarative, composable, excellent documentation"
+    
+  # Configuration Management
+  config:
+    primary: "pydantic-settings"
+    version: ">=2.1.0"
+    alternatives: ["python-dotenv", "configparser"]
+    rationale: "Type-safe, environment variable support, validation"
+    
+  # Logging
+  logging:
+    primary: "structlog"
+    version: ">=23.1.0"
+    alternatives: ["loguru", "logging"]
+    rationale: "Structured logging, excellent for debugging and monitoring"
+    
+  # Date/Time
+  datetime:
+    primary: "pendulum"
+    version: ">=3.0.0"
+    alternatives: ["arrow", "datetime"]
+    rationale: "Better timezone handling than standard library"
+    
+  # JSON/Serialization
+  json:
+    primary: "orjson"
+    version: ">=3.9.0"
+    alternatives: ["ujson", "json"]
+    rationale: "Fastest Python JSON library, native datetime support"
+    
+  # Task Queue
+  task_queue:
+    primary: "celery"
+    version: ">=5.3.0"
+    alternatives: ["rq", "dramatiq"]
+    rationale: "Battle-tested, Redis/RabbitMQ support, monitoring"
+    
+  # Caching
+  caching:
+    primary: "redis"
+    version: ">=5.0.0"
+    alternatives: ["memcached"]
+    rationale: "Fast, versatile, pub/sub support"
+    
+  cache_client:
+    primary: "redis-py"
+    version: ">=5.0.0"
+    alternatives: []
+    rationale: "Official Redis client, async support"
+
+# JavaScript/TypeScript Ecosystem
+
+javascript:
+  # Backend Framework
+  backend_framework:
+    primary: "express"
+    version: ">=4.18.0"
+    alternatives: ["fastify", "koa"]
+    rationale: "Most mature, extensive middleware ecosystem"
+    
+  # Frontend Framework
+  frontend_framework:
+    primary: "react"
+    version: ">=18.2.0"
+    alternatives: ["vue", "svelte"]
+    rationale: "Largest ecosystem, best AI agent support"
+    
+  # HTTP Client
+  http_client:
+    primary: "axios"
+    version: ">=1.6.0"
+    alternatives: ["fetch", "node-fetch"]
+    rationale: "Consistent API, interceptors, automatic transforms"
+    
+  # Validation
+  validation:
+    primary: "zod"
+    version: ">=3.22.0"
+    alternatives: ["joi", "yup"]
+    rationale: "TypeScript-first, excellent type inference"
+    
+  # Testing
+  testing:
+    primary: "vitest"
+    version: ">=1.0.0"
+    alternatives: ["jest", "mocha"]
+    rationale: "Fast, modern, native ESM support"
+    
+  # Build Tool
+  build_tool:
+    primary: "vite"
+    version: ">=5.0.0"
+    alternatives: ["webpack", "rollup"]
+    rationale: "Fast dev server, excellent DX, production-ready"
+    
+  # ORM
+  orm:
+    primary: "prisma"
+    version: ">=5.7.0"
+    alternatives: ["typeorm", "sequelize"]
+    rationale: "Type-safe, excellent migrations, modern DX"
+    
+  # State Management
+  state_management:
+    primary: "zustand"
+    version: ">=4.4.0"
+    alternatives: ["redux", "jotai"]
+    rationale: "Simple, unopinionated, great TypeScript support"
+
+# Security Libraries
+
+security:
+  python:
+    crypto: "cryptography"
+    jwt: "pyjwt"
+    password_hashing: "argon2-cffi"
+    
+  javascript:
+    crypto: "built-in"
+    jwt: "jsonwebtoken"
+    password_hashing: "bcrypt"
+    
+  rationale: "Well-audited, actively maintained, cryptographically sound"
+
+# When to Write Custom Code
+
+write_custom_when:
+  - situation: "Library doesn't exist for this specific use case"
+    action: "Write minimal custom code, wrap in utility module"
+    
+  - situation: "Library is unmaintained or has critical security issues"
+    action: "Fork and patch, or reimplement if small"
+    
+  - situation: "Library is overkill for simple need"
+    action: "Write focused implementation, consider upstreaming"
+    
+  - situation: "Library doesn't integrate with approved stack"
+    action: "Write adapter layer or choose compatible alternative"
+    
+  - situation: "Performance critical and library is bottleneck"
+    action: "Profile first, optimize if proven necessary"
+
+# Library Selection Criteria
+
+selection_criteria:
+  must_have:
+    - "Active maintenance (updated within 6 months)"
+    - "Good documentation"
+    - "Stable API"
+    - "Production-ready (>=1.0.0 or widely used)"
+    - "Compatible with language version"
+    
+  nice_to_have:
+    - "Type safety / static typing support"
+    - "Async/concurrent support"
+    - "Test coverage > 80%"
+    - "Large community"
+    - "Funding/sponsorship"
+    
+  avoid:
+    - "No updates in > 1 year"
+    - "Known security vulnerabilities"
+    - "Poor or no documentation"
+    - "Frequent breaking changes"
+    - "Incompatible license"
+
+# AI Agent Guidance
+
+ai_agent_notes: |
+  When implementing features:
+  
+  1. **Check this file FIRST** before writing custom code
+  2. **Use the primary library** unless there's a specific reason
+  3. **Document** if you choose an alternative or write custom code
+  4. **Propose additions** if you find a great library not listed
+  5. **Follow the philosophy**: Battle-tested > Custom
+  
+  Example decision process:
+  - Need: User authentication
+  - Check: approved_libraries.yml → Python → validation: pydantic
+  - Action: Use pydantic for request validation
+  - Result: Fast, type-safe, well-tested solution
+
+# Changelog
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-01-21"
+    changes: "Initial approved libraries list for autonomous pipeline"

@@ -1,0 +1,28 @@
+name: SOMAS Autonomous Dev Pipeline (Legacy)
+
+# DEPRECATED: This workflow has been replaced by somas-orchestrator.yml
+# which implements comment-driven agent orchestration.
+# 
+# This file is kept for reference only.
+# 
+# For the working autonomous pipeline, see:
+# .github/workflows/somas-orchestrator.yml
+
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: 'This workflow is deprecated - use somas-orchestrator.yml'
+        required: false
+
+jobs:
+  deprecated-notice:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show Deprecation Notice
+        run: |
+          echo "⚠️  This workflow is deprecated."
+          echo "Please use .github/workflows/somas-orchestrator.yml instead."
+          echo ""
+          echo "The new orchestrator implements comment-driven agent execution"
+          echo "via GitHub Copilot and parses responses to extract artifacts."
