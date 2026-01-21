@@ -1,0 +1,103 @@
+name: 🔄 SOMAS Change Request
+description: Request a change to an existing in-progress SOMAS project
+title: "[CHANGE] "
+labels: ["somas:change"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔄 SOMAS Change Request
+        
+        Use this template to request changes to an existing SOMAS project that is already in progress.
+        The triage agent will analyze your request and route it to the appropriate stage without
+        disrupting the autonomous pipeline.
+        
+        ### When to Use This Template
+        
+        - **Scope changes** - Adding or removing features from an in-progress project
+        - **Requirement modifications** - Clarifying or changing existing requirements
+        - **Constraint updates** - Modifying technical or business constraints
+        - **Priority adjustments** - Re-prioritizing features or tasks
+        
+        ### What Happens Next
+        
+        1. The triage agent (@copilot somas-triage) analyzes your request
+        2. Determines if the change requires spec update, architecture change, or implementation fix
+        3. Routes to the appropriate agent (planner, architect, implementer)
+        4. Updates are injected at the right stage without full pipeline restart
+
+  - type: input
+    id: project_id
+    attributes:
+      label: Related Project ID
+      description: Which project does this change affect? (e.g., project-123)
+      placeholder: "project-123"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: change_type
+    attributes:
+      label: Change Type
+      description: What type of change are you requesting?
+      options:
+        - scope_addition
+        - scope_reduction
+        - requirement_modification
+        - constraint_change
+    validations:
+      required: true
+
+  - type: textarea
+    id: change_description
+    attributes:
+      label: Change Description
+      description: Describe the change you want to make in detail
+      placeholder: |
+        Example: Add API rate limiting feature to prevent abuse.
+        
+        The system should limit requests to 1000 per hour per API key.
+        Requests exceeding the limit should return HTTP 429.
+    validations:
+      required: true
+
+  - type: textarea
+    id: justification
+    attributes:
+      label: Justification
+      description: Why is this change necessary or beneficial?
+      placeholder: |
+        Example: Without rate limiting, the API is vulnerable to abuse
+        and could be overwhelmed by a single user, affecting all users.
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact_assessment
+    attributes:
+      label: Impact Assessment (Optional)
+      description: Your estimate of how this change affects the project
+      placeholder: |
+        Estimated impact:
+        - Adds 1-2 new components
+        - Requires spec update
+        - Increases implementation time by ~20%
+        - Affects: API layer, authentication module
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## What happens next?
+        
+        1. **Triage**: @copilot somas-triage will analyze this change request
+        2. **Classification**: The agent determines routing based on:
+           - Does it change SPEC.md requirements? → Route to PLANNER
+           - Does it change architecture/design? → Route to ARCHITECT
+           - Is it an implementation fix only? → Route to IMPLEMENTER
+        3. **Impact Analysis**: The assigned agent analyzes impact on existing work
+        4. **Change Injection**: Updates are applied at the appropriate stage
+        5. **Validation**: Changes are tested and validated
+        
+        You'll be notified when the change has been processed and integrated.

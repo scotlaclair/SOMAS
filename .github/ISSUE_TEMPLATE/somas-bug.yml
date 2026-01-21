@@ -1,0 +1,151 @@
+name: 🐛 SOMAS Bug Report
+description: Report a bug in a SOMAS project or the SOMAS system itself
+title: "[BUG] "
+labels: ["somas:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 SOMAS Bug Report
+        
+        Use this template to report bugs found in SOMAS projects or the SOMAS
+        pipeline itself. The triage agent will classify and route to the
+        appropriate agent for fixing.
+        
+        ### Bug Types
+        
+        - **Implementation** - Bug in generated code
+        - **Test Failure** - Failing tests or test issues
+        - **Specification Gap** - Missing or incorrect requirements in SPEC.md
+        - **Documentation** - Documentation errors or omissions
+        
+        ### Routing Logic
+        
+        - **Implementation bug** → Routed to debugger/implementer
+        - **Test failure** → Routed to tester agent
+        - **Specification gap** → Routed back to planner
+        - **Documentation** → Routed to documenter
+
+  - type: input
+    id: project_id
+    attributes:
+      label: Related Project ID
+      description: Which project has this bug? (e.g., project-123)
+      placeholder: "project-123"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: bug_type
+    attributes:
+      label: Bug Type
+      description: What type of bug is this?
+      options:
+        - implementation
+        - test_failure
+        - specification_gap
+        - documentation
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Describe the bug clearly and concisely
+      placeholder: |
+        Example: The API rate limiting feature returns HTTP 500 instead of
+        HTTP 429 when the rate limit is exceeded.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: If applicable, provide steps to reproduce the bug
+      placeholder: |
+        1. Send 1001 requests to /api/endpoint within 1 hour
+        2. Observe the response status code
+        3. Expected: HTTP 429, Actual: HTTP 500
+      value: |
+        1. 
+        2. 
+        3. 
+
+  - type: textarea
+    id: expected_vs_actual
+    attributes:
+      label: Expected vs Actual Behavior
+      description: What did you expect to happen, and what actually happened?
+      placeholder: |
+        **Expected**: 
+        - HTTP 429 status code
+        - JSON response with error message and retry-after header
+        - Request should be logged
+        
+        **Actual**:
+        - HTTP 500 status code
+        - Generic error message
+        - No retry-after header
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (Optional)
+      description: Relevant environment details
+      placeholder: |
+        - Python version: 3.10
+        - Framework: FastAPI 0.104.0
+        - OS: Ubuntu 22.04
+        - Deployment: Docker container
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - critical (system unusable)
+        - high (major functionality broken)
+        - medium (functionality degraded)
+        - low (minor issue)
+      default: medium
+    validations:
+      required: true
+
+  - type: textarea
+    id: error_logs
+    attributes:
+      label: Error Logs/Stack Trace (Optional)
+      description: Include any relevant error messages or stack traces
+      placeholder: |
+        ```
+        Traceback (most recent call last):
+          File "api/rate_limiter.py", line 45, in check_rate_limit
+            current_count = redis.get(key)
+        KeyError: 'rate_limit:user:123'
+        ```
+      render: shell
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## What happens next?
+        
+        1. **Triage**: @copilot somas-triage analyzes the bug report
+        2. **Classification**: Determines bug type and severity
+        3. **Routing Decision**:
+           - **Implementation bug**: → @copilot somas-debugger investigates and fixes
+           - **Test failure**: → @copilot somas-tester fixes tests
+           - **Specification gap**: → @copilot somas-planner updates SPEC.md
+           - **Documentation**: → @copilot somas-documenter updates docs
+        4. **Fix Implementation**: Appropriate agent creates fix
+        5. **Validation**: Fix is tested and validated
+        6. **Integration**: Fix is committed to project branch
+        
+        You'll be notified when the bug is fixed and the fix is ready for review.
