@@ -1,4 +1,4 @@
-# SOMAS Lite
+# SOMAS
 
 **Self-Sovereign Orchestrated Multi-Agent System**
 
