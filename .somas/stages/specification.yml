@@ -34,4 +34,4 @@ specification:
     - "No ambiguous language (TBD, maybe, etc.)"
     - "Open questions resolved or escalated"
     
-  human_gate: true
+  human_gate: false  # Autonomous - no human approval required

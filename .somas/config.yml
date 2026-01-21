@@ -16,6 +16,8 @@ pipeline:
       enabled: true
       agent: "planner"
       human_gate: false
+      auto_proceed: true
+      timeout_hours: 2
       
     - id: "specification"
       order: 2
@@ -29,6 +31,7 @@ pipeline:
       enabled: true
       agent: "simulator"
       human_gate: false
+      auto_proceed: true
       timeout_hours: 2
       feedback_loop_enabled: true  # New: Can send back to specification
       max_feedback_iterations: 3
@@ -38,6 +41,7 @@ pipeline:
       enabled: true
       agent: "architect"
       human_gate: false
+      auto_proceed: true
       timeout_hours: 12
       
     - id: "implementation"
@@ -45,6 +49,7 @@ pipeline:
       enabled: true
       agent: "coder"
       human_gate: false
+      auto_proceed: true
       timeout_hours: 48
       execution_mode: "single_shot"  # New: Single-shot implementation
       
@@ -53,7 +58,9 @@ pipeline:
       enabled: true
       agent: "validator"
       human_gate: false
+      auto_proceed: true
       timeout_hours: 12
+      max_retries: 3  # Auto-retry validation failures up to 3 times
       
     - id: "staging"
       order: 7

@@ -1,6 +1,6 @@
-# Getting Started with SOMAS Lite
+# Getting Started with SOMAS
 
-This guide will walk you through creating your first project with SOMAS Lite.
+This guide will walk you through creating your first project with SOMAS, the autonomous AI development pipeline.
 
 ---
 
@@ -65,7 +65,7 @@ Let's create a command-line calculator as our first SOMAS project.
 ### Step 2: Start the Pipeline
 
 1. **Add the Trigger Label**
-   - On your newly created issue, add the label: `somas:start`
+   - On your newly created issue, add the label: `somas-project`
    - You can add labels from the right sidebar
 
 2. **Watch the Magic Begin**
@@ -77,27 +77,29 @@ Let's create a command-line calculator as our first SOMAS project.
 
 ### Step 3: Monitor Progress
 
-The pipeline will progress through 5 stages. You can monitor progress in:
+The pipeline will progress through 7 stages autonomously. You can monitor progress in:
 
 #### The Issue
-Updates will be posted as comments:
+Updates will be posted as comments by agents as they work:
 ```
 🎯 Stage 1: Ideation
-Agent: Planner (OpenAI GPT-4)
+Agent: @somas-planner
 Status: In Progress
 Analyzing requirements and creating project plan...
 ```
 
 #### The Pull Request
-The PR description will show stage progress:
+The PR will be created automatically in Stage 7 (Staging) with:
 ```
 ### Pipeline Stages
 
 - [x] Ideation - Requirements analysis and planning
+- [x] Specification - Complete specification document
+- [x] Simulation - Monte Carlo optimization
 - [x] Architecture - System design and component definition
-- [ ] Implementation - Code generation and testing
-- [ ] Validation - Quality assurance and security review
-- [ ] Staging - Documentation and final review
+- [x] Implementation - Code generation and testing
+- [x] Validation - Quality assurance and security review
+- [ ] Staging - PR creation and merge preparation (Human approval required)
 ```
 
 #### GitHub Actions
@@ -109,56 +111,73 @@ The PR description will show stage progress:
 
 ### Step 4: Watch the Agents Work
 
-#### Stage 1: Ideation (1-2 minutes)
-The **Planner** agent will:
+The pipeline runs autonomously through all 7 stages:
+
+#### Stage 1: Ideation (5-10 minutes)
+The **Planner** agent (GPT-5.2) will:
 - Analyze your requirements
 - Define the calculator's scope
 - Break down into tasks (parser, calculator logic, CLI interface, tests)
 - Create a project roadmap
 
-**Output**: `.somas/output/plan.md`
+**Output**: `.somas/projects/project-{issue-number}/artifacts/initial_plan.md`
 
-#### Stage 2: Architecture (2-3 minutes)
-The **Architect** agent will:
-- Design the CLI structure
-- Define components (Parser, Calculator, CLI Handler)
-- Specify data flow
-- Choose argparse or click for CLI framework
-- Document design decisions
+#### Stage 2: Specification (15-30 minutes)
+The **Specifier** agent (GPT-5.2) will:
+- Create complete SPEC.md document
+- Define functional and non-functional requirements
+- Document user stories with acceptance criteria
+- Specify API contracts
 
-**Output**: `.somas/output/architecture.md`
+**Output**: `SPEC.md`, `requirements.yml`
+**Note**: This stage is now autonomous (no human approval needed)
 
-#### Stage 3: Implementation (5-10 minutes)
-The **Implementer** and **Tester** agents will:
-- Create project structure
-- Implement calculator logic
-- Add CLI argument parsing
-- Implement error handling
-- Write comprehensive tests
-- Achieve 80%+ coverage
+#### Stage 3: Simulation (10-15 minutes)
+The **Simulator** agent (GPT-5.2) will:
+- Run Monte Carlo simulations
+- Identify optimal task execution sequence
+- Determine critical path
+- Maximize parallelization
 
-**Output**: Source code files, test files
+**Output**: `execution_plan.yml`
 
-#### Stage 4: Validation (3-5 minutes)
-The **Tester**, **Reviewer**, and **Security** agents will:
-- Run all tests
-- Verify coverage
-- Review code quality
-- Scan for vulnerabilities
-- Fix any issues found
+#### Stage 4: Architecture (30-60 minutes)
+The **Architect** agent (Claude Opus 4.5) will:
+- Design system architecture
+- Define components and interactions
+- Create data models and API specs
+- Document architectural decisions
 
-**Output**: Test reports, review reports
+**Output**: `ARCHITECTURE.md`, `api_specs.yml`, `data_models.yml`
 
-#### Stage 5: Staging (2-3 minutes)
-The **Documenter** and **Reviewer** agents will:
-- Create comprehensive README
-- Document CLI usage
-- Provide examples
-- Write installation instructions
+#### Stage 5: Implementation (2-4 hours for this calculator)
+Multiple agents work together:
+- **Implementer** (GPT-5.2-Codex): Generates code
+- **Tester** (Claude Sonnet 4.5): Creates test suites
+- **Security** (GPT-5.2): Reviews for vulnerabilities
+- **Optimizer** (Claude Sonnet 4.5): Optimizes performance
+- **Documenter** (Gemini 3 Pro): Creates documentation
 
-**Output**: README.md, documentation
+**Output**: Source code, tests, docs in `implementation/` directory
 
-**⚠️ This stage requires human approval!**
+#### Stage 6: Validation (30-90 minutes)
+Multiple agents verify quality (with auto-retry on failure):
+- **Tester**: Runs all tests, verifies coverage
+- **Reviewer**: Performs code quality review
+- **Security**: Executes security scan
+- **Debugger** (if needed): Investigates and fixes failures
+
+**Auto-retry**: Up to 3 attempts before human escalation
+**Output**: `validation_report.json`, test results
+
+#### Stage 7: Staging (Waits for human)
+Final stage creates the PR:
+- **Merger** (Claude Opus 4.5): Prepares merge
+- **Documenter**: Finalizes deployment docs
+- Creates pull request automatically
+- **Human approval required** - This is the ONLY stage requiring your involvement
+
+**Output**: Pull request with all artifacts ready for review
 
 ---
 
@@ -401,7 +420,7 @@ Edge cases to handle:
 **Symptoms**: No branch or PR created after adding label
 
 **Solutions**:
-1. Verify the label is exactly `somas:start` (case-sensitive)
+1. Verify the label is exactly `somas-project` (case-sensitive)
 2. Check if GitHub Actions is enabled in the repository
 3. Wait a few minutes (sometimes there's a delay)
 4. Check the Actions tab for workflow errors

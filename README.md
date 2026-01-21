@@ -2,7 +2,7 @@
 
 **Self-Sovereign Orchestrated Multi-Agent System**
 
-An autonomous development pipeline that transforms project ideas into production-ready code using AI agents powered by the 2026 Frontier Tier models: GPT-5.2-Codex, Claude Opus 4.5, Claude Sonnet 4.5, GPT-5.2, Gemini 3 Pro, and Grok Code Fast 1.
+An autonomous AI development pipeline that transforms project ideas into production-ready software through orchestrated AI agents powered by 2026 Frontier Tier models.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![SOMAS Version](https://img.shields.io/badge/SOMAS-v1.0.0-green.svg)](.somas/config.yml)
@@ -11,45 +11,58 @@ An autonomous development pipeline that transforms project ideas into production
 
 ## 🚀 What is SOMAS?
 
-SOMAS Lite is an autonomous AI-powered development pipeline that takes your project ideas from concept to production-ready code with minimal human intervention. Simply describe your project in a GitHub issue, and SOMAS orchestrates a team of specialized AI agents to plan, design, implement, test, and document your solution.
+SOMAS is an AI-first Software Development Life Cycle (SDLC) that orchestrates specialized AI agents to autonomously build production-ready software. Simply describe your project in a GitHub issue, and SOMAS handles the entire development lifecycle with minimal human intervention.
 
 ### Key Features
 
-- 🤖 **Autonomous Development**: AI agents handle the entire development lifecycle
-- 🎯 **Multi-Agent Coordination**: Specialized agents for planning, architecture, coding, testing, and more
-- 🔄 **Iterative Refinement**: Agents collaborate and refine until quality gates are met
-- ✅ **Quality Assurance**: Built-in testing, code review, and security analysis
-- 📝 **Comprehensive Documentation**: Auto-generated docs, API references, and guides
+- 🤖 **Fully Autonomous**: AI agents handle the complete development lifecycle
+- 🎯 **12 Specialized Agents**: Each with domain expertise and optimal AI models
+- 🔄 **Self-Healing**: Automatic retry and debugging for failures
+- ✅ **Quality Assurance**: 80%+ test coverage, security scanning, code review
+- 📊 **Simulation-Based Optimization**: Monte Carlo analysis for optimal task sequencing
+- 📝 **Complete Documentation**: Auto-generated specs, architecture docs, and API references
 - 🔒 **Security First**: Automated vulnerability scanning and secure coding practices
-- 🌐 **Multi-Provider**: Leverages GPT-5.2-Codex, Claude Opus/Sonnet 4.5, GPT-5.2, Gemini 3 Pro, and Grok for optimal results
+- 🌐 **2026 Frontier Models**: GPT-5.2-Codex, Claude Opus 4.5, Gemini 3 Pro, and more
 
 ---
 
 ## 🏗️ Architecture
 
-SOMAS operates through a **5-stage pipeline**, each with specialized AI agents:
+SOMAS operates through a **7-stage autonomous pipeline**:
 
 ```
-┌─────────────┐    ┌──────────────┐    ┌─────────────────┐    ┌────────────┐    ┌─────────┐
-│  Ideation   │ -> │ Architecture │ -> │ Implementation  │ -> │ Validation │ -> │ Staging │
-│  (Planner)  │    │ (Architect)  │    │(Implementer+    │    │ (Tester+   │    │(Doc+    │
-│             │    │              │    │    Tester)      │    │ Reviewer+  │    │Reviewer)│
-│             │    │              │    │                 │    │ Security)  │    │         │
-└─────────────┘    └──────────────┘    └─────────────────┘    └────────────┘    └─────────┘
+┌──────────┐   ┌──────────────┐   ┌────────────┐   ┌──────────────┐
+│ Ideation │ → │Specification │ → │ Simulation │ → │ Architecture │
+│(Planner) │   │ (Specifier)  │   │(Simulator) │   │ (Architect)  │
+└──────────┘   └──────────────┘   └────────────┘   └──────────────┘
+                                                            ↓
+┌──────────┐   ┌────────────┐   ┌────────────────────────┐
+│ Staging  │ ← │ Validation │ ← │   Implementation       │
+│(Merger)  │   │ (Tester+   │   │ (Implementer+Tester+   │
+│          │   │  Reviewer+ │   │  Security+Optimizer)   │
+│          │   │  Security) │   │                        │
+└──────────┘   └────────────┘   └────────────────────────┘
 ```
 
-### Specialized Agents
+### 12 Specialized AI Agents
 
-| Agent | Provider | Role |
-|-------|----------|------|
-| **Orchestrator** | Grok Code Fast 1 | Coordinates pipeline, manages state, handles failures |
-| **Planner** | GPT-5.2 | Analyzes requirements, creates roadmap |
-| **Architect** | Claude Opus 4.5 | Designs system architecture, defines components |
-| **Implementer** | GPT-5.2-Codex | Generates production-ready code |
-| **Tester** | Claude Sonnet 4.5 | Creates comprehensive test suites (80%+ coverage) |
-| **Reviewer** | Claude Sonnet 4.5 | Performs code quality and architecture reviews |
-| **Security** | GPT-5.2 | Scans for vulnerabilities, validates secure coding |
-| **Documenter** | Gemini 3 Pro | Creates documentation, guides, and examples |
+SOMAS leverages the best 2026 Frontier Tier models for each task:
+
+| Agent | Model | Role |
+|-------|-------|------|
+| **Orchestrator** | Grok Code Fast 1 | Pipeline coordination and state management |
+| **Planner** | GPT-5.2 | Requirements analysis and roadmap creation |
+| **Specifier** | GPT-5.2 | Complete specification generation |
+| **Simulator** | GPT-5.2 | Monte Carlo simulation for task optimization |
+| **Architect** | Claude Opus 4.5 | System architecture and design |
+| **Implementer** | GPT-5.2-Codex | Production-ready code generation |
+| **Tester** | Claude Sonnet 4.5 | Comprehensive test suites (80%+ coverage) |
+| **Reviewer** | Claude Sonnet 4.5 | Code quality and architecture reviews |
+| **Security** | GPT-5.2 | Security vulnerability scanning |
+| **Optimizer** | Claude Sonnet 4.5 | Performance optimization |
+| **Debugger** | Claude Haiku 4.5 | Bug investigation and fixes |
+| **Documenter** | Gemini 3 Pro | Documentation and API references |
+| **Merger** | Claude Opus 4.5 | Merge preparation and conflict resolution |
 
 ---
 
@@ -58,260 +71,287 @@ SOMAS operates through a **5-stage pipeline**, each with specialized AI agents:
 ### 1. Create a Project Request
 
 1. Go to [Issues](../../issues/new/choose)
-2. Select "🤖 SOMAS Project Request"
-3. Fill in your project idea and requirements
+2. Select "🤖 SOMAS Project Request" template
+3. Describe your project idea and requirements
 4. Submit the issue
 
 ### 2. Start the Pipeline
 
-Add the `somas:start` label to your issue. SOMAS will:
-- Create a feature branch (`somas/{issue-number}`)
-- Create a draft pull request
+Add the `somas-project` label to your issue. SOMAS will automatically:
+- Create a feature branch
+- Initialize the 7-stage pipeline
 - Begin autonomous development
 
 ### 3. Monitor Progress
 
 Watch the pipeline progress through stages:
-- 🎯 **Ideation**: Requirements analysis and planning
-- 🏗️ **Architecture**: System design and component definition
-- ⚙️ **Implementation**: Code generation and testing
-- ✅ **Validation**: Quality assurance and security review
-- 📝 **Staging**: Documentation and final review
+- 🎯 **Ideation** - Requirements analysis and planning
+- 📋 **Specification** - Complete specification document
+- 🔬 **Simulation** - Monte Carlo optimization of task sequence
+- 🏗️ **Architecture** - System design and component definition
+- ⚙️ **Implementation** - Code generation with tests
+- ✅ **Validation** - Quality assurance and security review (auto-retry on failure)
+- 📝 **Staging** - PR creation and merge preparation
 
 ### 4. Review and Approve
 
-When the staging stage completes:
-- You'll be notified (@scotlaclair) for review
+When staging completes:
+- You'll be notified (@scotlaclair) for final review
 - Review the generated code in the PR
 - Approve and merge when ready
+
+**Human engagement required ONLY for:**
+- Final merge approval
+- Failures after max retries exhausted
 
 ---
 
 ## 📋 Pipeline Stages
 
 ### Stage 1: Ideation
-**Agent:** Planner (GPT-5.2)
+**Agent:** Planner (GPT-5.2)  
+**Autonomous:** Yes
+
 - Extracts and analyzes requirements
-- Defines project scope
-- Creates implementation roadmap
-- Identifies dependencies and constraints
+- Defines project scope and constraints
+- Creates high-level implementation roadmap
+- Identifies dependencies and risks
 
-### Stage 2: Architecture
-**Agent:** Architect (Claude Opus 4.5)
+### Stage 2: Specification
+**Agent:** Specifier (GPT-5.2)  
+**Autonomous:** Yes *(No human gate)*
+
+- Generates complete SPEC.md document
+- Defines functional and non-functional requirements
+- Documents API contracts and data models
+- Creates user stories with acceptance criteria
+- Resolves ambiguities and open questions
+
+### Stage 3: Simulation
+**Agent:** Simulator (GPT-5.2)  
+**Autonomous:** Yes
+
+- Runs Monte Carlo simulations (1000 iterations)
+- Identifies optimal task execution sequence
+- Determines critical path
+- Estimates timeline and resource needs
+- Maximizes parallelization opportunities
+
+### Stage 4: Architecture
+**Agent:** Architect (Claude Opus 4.5)  
+**Autonomous:** Yes
+
 - Designs system architecture
-- Defines components and interactions
-- Creates data models
-- Documents architectural decisions (ADRs)
+- Defines components and interfaces
+- Creates data flow diagrams
+- Documents technology choices and ADRs
+- Designs API specifications
 
-### Stage 3: Implementation
-**Agents:** Implementer + Tester (GPT-5.2-Codex + Claude Sonnet 4.5)
+### Stage 5: Implementation
+**Agents:** Implementer, Tester, Security, Optimizer  
+**Models:** GPT-5.2-Codex, Claude Sonnet 4.5, GPT-5.2  
+**Autonomous:** Yes
+
 - Generates production-ready code
-- Implements comprehensive error handling
-- Creates unit and integration tests
-- Achieves 80%+ test coverage
+- Creates comprehensive test suites (80%+ coverage)
+- Performs security vulnerability scanning
+- Optimizes performance bottlenecks
+- Documents code and APIs
 
-### Stage 4: Validation
-**Agents:** Tester + Reviewer + Security (Claude Sonnet 4.5 + GPT-5.2)
-- Runs complete test suite
+### Stage 6: Validation
+**Agents:** Tester, Reviewer, Security, Debugger  
+**Models:** Claude Sonnet 4.5, GPT-5.2, Claude Haiku 4.5  
+**Autonomous:** Yes (with auto-retry)
+
+- Runs all tests and verifies coverage
 - Performs code quality review
-- Conducts security vulnerability scan
-- Validates best practices compliance
+- Executes security vulnerability scan
+- Auto-retries on failure (max 3 attempts)
+- Invokes Debugger agent to fix issues
+- Notifies human only after retries exhausted
 
-### Stage 5: Staging
-**Agents:** Documenter + Reviewer (Gemini 3 Pro + Claude Sonnet 4.5)
-**Requires Human Approval**
-- Creates comprehensive documentation
-- Generates API references
-- Writes usage examples
-- Prepares for release
+### Stage 7: Staging
+**Agents:** Merger, Documenter  
+**Models:** Claude Opus 4.5, Gemini 3 Pro  
+**Autonomous:** No (requires human approval)
 
----
-
-## 🔧 Configuration
-
-SOMAS is configured via `.somas/config.yml`:
-
-```yaml
-system:
-  name: "SOMAS Lite"
-  version: "1.0.0"
-
-pipeline:
-  trigger:
-    method: "github_issue"
-    label: "somas:start"
-
-quality:
-  test_coverage_minimum: 80
-  linting_required: true
-
-limits:
-  iterations:
-    per_task: 5
-    per_step: 10
-    per_stage: 25
-    per_pipeline: 100
-```
-
-See [`.somas/config.yml`](.somas/config.yml) for full configuration options.
+- Creates pull request with all artifacts
+- Generates deployment documentation
+- Resolves merge conflicts
+- Requests human review and approval
+- **ONLY stage requiring human interaction**
 
 ---
 
-## 🤖 Agent Configuration
+## 🔄 Autonomy & Self-Healing
 
-Each agent has a dedicated configuration file in `.somas/agents/`:
+### Automatic Retry Logic
 
-- **orchestrator.yml**: Pipeline coordination and state management
-- **planner.yml**: Requirements analysis and planning
-- **architect.yml**: System design and architecture
-- **implementer.yml**: Code generation
-- **tester.yml**: Test suite creation
-- **reviewer.yml**: Code quality review
-- **security.yml**: Security analysis
-- **documenter.yml**: Documentation generation
+When validation failures occur:
+1. **Attempt 1-3**: Debugger agent investigates and fixes issues
+2. **Each retry**: Full validation suite runs again
+3. **After retry 3**: Human notified for intervention
 
-These configurations define agent roles, responsibilities, tasks, and quality standards.
+### Bounded Autonomy
 
----
+SOMAS operates autonomously with clear boundaries:
+- ✅ **Autonomous**: All 6 stages (Ideation → Validation)
+- ⏸️ **Human Gate**: Only at Staging (final merge approval)
+- 🚨 **Human Escalation**: Only when max retries exhausted
 
-## 📚 Documentation
+### Progress Notifications
 
-- **[Full Documentation](docs/somas/README.md)**: Complete SOMAS guide
-- **[Getting Started](docs/somas/getting-started.md)**: Your first SOMAS project
-- **[Agent Configurations](.somas/agents/)**: Detailed agent specifications
-- **[Templates](.somas/templates/)**: Plan and architecture templates
-- **[Design Patterns](.somas/patterns/)**: Common patterns and best practices
+Pipeline progress is reported via:
+- Issue comments with stage completion status
+- PR description updates with checklist
+- Notifications on failures requiring intervention
 
 ---
 
-## 🎨 Project Types Supported
+## 📊 Quality Gates
 
-- **APIs**: REST/GraphQL services
-- **CLI Tools**: Command-line applications
-- **Libraries**: Reusable packages and modules
-- **Web Apps**: Frontend applications
-- **Scripts**: Automation and utility scripts
+Each stage has quality gates that must pass:
+
+**Specification:**
+- All requirements have unique IDs
+- All requirements are testable
+- No ambiguous language (TBD, maybe, etc.)
+- All open questions resolved
+
+**Implementation:**
+- All tests passing
+- Code coverage > 80%
+- No critical security vulnerabilities
+- Documentation complete
+
+**Validation:**
+- All acceptance criteria met
+- Performance requirements satisfied
+- Security scan passed
+- Integration tests passing
 
 ---
 
 ## 🔒 Security
 
-SOMAS includes comprehensive security features:
-- Automated vulnerability scanning
-- Input validation verification
-- Secure coding practice enforcement
-- Dependency security checks
-- Security agent review
+SOMAS implements security best practices:
 
-All generated code follows security best practices and is scanned for common vulnerabilities.
-
----
-
-## 🚦 Quality Gates
-
-SOMAS enforces quality standards at each stage:
-- ✅ All requirements implemented
-- ✅ 80%+ test coverage
-- ✅ All tests passing
-- ✅ Code review approved
-- ✅ No critical security issues
-- ✅ Documentation complete
-- ✅ Architecture compliance verified
+- **Input Validation**: Project IDs validated to prevent path traversal
+- **Injection Prevention**: Safe JSON encoding prevents shell injection
+- **Security Scanning**: Automated vulnerability scanning in every pipeline
+- **Secure Defaults**: Division-by-zero protection and error handling
+- **Agent Review**: Dedicated Security agent reviews all code
 
 ---
 
-## 🤝 Human-in-the-Loop
+## ⚙️ Configuration
 
-While SOMAS is autonomous, it requires human approval at key points:
-- **Staging Gate**: Final review before deployment
-- **Quality Issues**: When quality gates fail after retries
-- **Security Concerns**: Critical vulnerabilities detected
-- **Iteration Limits**: When max iterations exceeded
+### Main Configuration
 
-You'll be notified (@scotlaclair) when intervention is needed.
+See [`.somas/config.yml`](.somas/config.yml) for complete configuration including:
+- Pipeline stage definitions
+- AI agent provider mappings
+- Quality gate requirements
+- Optimization settings
+- Security configurations
 
----
+### Agent Configurations
 
-## 📊 Iteration Limits
+Each agent has a detailed configuration file in [`.somas/agents/`](.somas/agents/):
+- Role and responsibilities
+- Prompt templates
+- Output format specifications
+- Quality checks
 
-To prevent infinite loops, SOMAS enforces iteration limits:
-- Per task: 5 iterations
-- Per step: 10 iterations
-- Per stage: 25 iterations
-- Per pipeline: 100 iterations
+### Stage Definitions
 
-When limits are reached, human intervention is requested.
-
----
-
-## 🛠️ Technology
-
-SOMAS leverages the 2026 Frontier Tier AI models:
-- **GPT-5.2-Codex**: SOTA coding agent for implementation and refactors
-- **Claude Opus 4.5**: Deepest reasoning for architecture and system design
-- **Claude Sonnet 4.5**: Balanced power for code review and testing
-- **GPT-5.2**: General high intelligence for requirements and security
-- **Gemini 3 Pro**: Massive context windows for comprehensive documentation
-- **Grok Code Fast 1**: Lowest latency for orchestration and routing
-
-This multi-provider approach ensures optimal results by using each AI's specialized strengths.
+Stage-specific configurations in [`.somas/stages/`](.somas/stages/):
+- Input/output artifacts
+- Agent assignments
+- Quality gates
+- Timeout settings
 
 ---
 
-## 📝 Example Workflow
+## 📚 Documentation
 
-1. **Submit Issue**: "Create a CLI tool for analyzing GitHub repos"
-2. **Add Label**: `somas:start`
-3. **Pipeline Executes**:
-   - Planner creates project roadmap
-   - Architect designs the CLI structure
-   - Implementer writes Python code with argparse
-   - Tester creates comprehensive test suite
-   - Reviewer validates code quality
-   - Security scans for vulnerabilities
-   - Documenter creates README and usage guide
-4. **Review PR**: Check generated code and tests
-5. **Approve**: Merge when satisfied
-6. **Deploy**: Use the generated CLI tool!
+- **[System Documentation](docs/somas/README.md)** - Complete SOMAS architecture
+- **[Optimization Guide](docs/somas/optimization-guide.md)** - Advanced optimization techniques
+- **[Copilot Integration](docs/somas/COPILOT_GUIDE.md)** - GitHub Copilot usage guide
+- **[Troubleshooting](docs/somas/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Migration Guide](docs/somas/MIGRATION_GUIDE.md)** - Configuration migration guide
 
 ---
 
-## 🌟 Benefits
+## 💡 Example Use Cases
 
-- **Speed**: From idea to code in minutes/hours, not days
-- **Quality**: Consistent high-quality code with tests and docs
-- **Best Practices**: Follows established patterns and standards
-- **Security**: Built-in security analysis and validation
-- **Documentation**: Comprehensive docs generated automatically
-- **Learning**: Review AI-generated code to learn patterns
+### Web Application
+```
+Issue: "Build a task management app with React frontend and Node.js backend"
+Result: Full-stack application with tests, docs, and deployment config
+```
+
+### CLI Tool
+```
+Issue: "Create a Python CLI tool for file organization"
+Result: Python package with argparse CLI, tests, and PyPI setup
+```
+
+### API Service
+```
+Issue: "Build a REST API for user authentication with JWT"
+Result: API with endpoints, tests, security scanning, and OpenAPI spec
+```
 
 ---
 
-## 📖 Learn More
+## 🎓 Advanced Features
 
-- **[Getting Started Guide](docs/somas/getting-started.md)**: Step-by-step first project
-- **[Full Documentation](docs/somas/README.md)**: Complete reference
-- **[Agent Configurations](.somas/agents/)**: Understanding the agents
-- **[Design Patterns](.somas/patterns/)**: Common patterns used
+### Monte Carlo Simulation
+
+SOMAS uses Monte Carlo analysis to:
+- Simulate 1000+ possible execution scenarios
+- Identify the optimal task sequence
+- Predict timeline with 90% confidence
+- Maximize parallel task execution
+
+### GitHub Project Integration
+
+Automatic GitHub Project board creation:
+- Visual progress tracking
+- Task decomposition with sub-issues
+- Real-time status updates
+- Historical metrics and analytics
+
+### Continuous Learning
+
+SOMAS learns from each run:
+- Duration estimation improvement
+- Pattern extraction from successful runs
+- Risk threshold adjustment
+- Decomposition rule refinement
 
 ---
 
 ## 🤔 FAQ
 
+**Q: How long does a project take?**  
+A: Varies by complexity. Simple tools: 30-60 minutes. Complex systems: 2-8 hours.
+
 **Q: Can I modify the generated code?**  
-A: Absolutely! The generated code is a starting point. Review and refine as needed.
+A: Absolutely! Review and refine as needed before merging.
 
 **Q: What languages are supported?**  
-A: SOMAS can generate code in any major language. Specify your preference in the issue.
-
-**Q: How long does it take?**  
-A: Varies by project complexity. Simple tools: minutes. Complex systems: hours.
+A: Any major language. Specify preference in your project description.
 
 **Q: Can I customize agent behavior?**  
 A: Yes! Edit `.somas/agents/*.yml` to customize prompts and requirements.
 
-**Q: What if I don't like the generated code?**  
-A: Add comments on the PR with requested changes, or manually refine the code.
+**Q: What if validation fails repeatedly?**  
+A: After 3 automatic retry attempts, you'll be notified to investigate manually.
+
+**Q: Does SOMAS work with private repositories?**  
+A: Yes, as long as GitHub Actions and required API keys are configured.
 
 ---
 
@@ -323,193 +363,19 @@ MIT License - See [LICENSE](LICENSE) for details
 
 ## 🙏 Acknowledgments
 
-SOMAS Lite is powered by the 2026 Frontier Tier AI models:
-- GPT-5.2-Codex (OpenAI)
-- Claude Opus 4.5 & Claude Sonnet 4.5 (Anthropic)
-- Gemini 3 Pro (Google)
-- Grok Code Fast 1 (xAI)
-- GPT-5.2 (OpenAI)
+SOMAS is powered by the 2026 Frontier Tier AI models:
+- **GPT-5.2-Codex** (OpenAI) - SOTA coding agent
+- **Claude Opus 4.5** (Anthropic) - Deepest reasoning
+- **Claude Sonnet 4.5** (Anthropic) - Balanced power
+- **GPT-5.2** (OpenAI) - General intelligence
+- **Gemini 3 Pro** (Google) - Multimodal & long context
+- **Grok Code Fast 1** (xAI) - Low latency orchestration
 
 ---
 
-**Ready to build something amazing?**  
-[Create your first SOMAS project →](../../issues/new/choose)
-# SOMAS
-**Self-Sovereign Orchestrated Multi-Agent System - Autonomous AI Development Pipeline**
+## 👤 Owner
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![SOMAS Version](https://img.shields.io/badge/SOMAS-v1.0.0-green.svg)](.somas/config.yml)
-
----
-
-## Overview
-
-SOMAS is an AI-first Software Development Life Cycle (SDLC) that transforms project ideas into production-ready software through orchestrated AI agents. The system currently supports **two operational modes**:
-
-### SOMAS Extended (Current - 7-Stage Pipeline)
-An enhanced pipeline featuring complete specification and simulation-based optimization:
-- **7-Stage Pipeline** with specification and simulation optimization  
-- **Monte Carlo Analysis** for optimal task sequencing
-- **GitHub Project Integration** for visual progress tracking
-- **Specification Gates** for requirement clarification
-- **Continuous Learning** from historical data
-
-### SOMAS Lite (5-Stage Pipeline)  
-The original autonomous pipeline with comprehensive agent documentation:
-- **5-Stage Pipeline** (Ideation → Architecture → Implementation → Validation → Staging)
-- **8 Specialized AI Agents** with detailed configurations
-- **Multi-Provider AI** (GitHub Copilot, Gemini, OpenAI GPT-4)
-- **Comprehensive Documentation** for each agent and stage
-- **Quality Gates** (80% test coverage, security scanning, code review)
-
----
-
-## Quick Start
-
-### Using SOMAS Extended (7-Stage)
-
-1. Create an issue with your project idea
-2. Add the `somas-project` label
-3. The pipeline will automatically:
-   - Generate a specification (with human approval gate)
-   - Run simulations to optimize task ordering
-   - Execute through all 7 stages
-   - Track progress in GitHub Projects
-
-### Using SOMAS Lite (5-Stage)
-
-1. Create an issue using the SOMAS Project Request template
-2. Add the `somas:start` label  
-3. The pipeline will autonomously:
-   - Plan, design, implement, validate, and document
-   - Create a PR with all generated code
-   - Request human approval at the staging gate
-
----
-
-### AI Agent Configuration
-
-SOMAS uses multiple AI agents for different stages:
-
-| Agent | Provider | Stage | Purpose |
-|-------|----------|-------|---------|
-| Copilot | GitHub Copilot | Implementation | Code generation and testing |
-| Codex | GPT-4 | Multiple | Specification, simulation, architecture |
-| Gemini | Gemini Pro | Validation | Independent testing and verification |
-
-**For GitHub Copilot Users:**
-- Review **[Copilot Integration Guide](docs/somas/COPILOT_GUIDE.md)** for detailed instructions
-- Copilot instructions are in `.github/copilot-instructions.md`
-- Agent delegation template in `.somas/templates/ai_delegation.md`
-- Use `@copilot` meta-comments for PR targeting and code review guidance
-
-## Documentation
-
-### SOMAS Extended
-- [Main Documentation](docs/somas/README.md)
-- [Optimization Guide](docs/somas/optimization-guide.md)
-
-### SOMAS Lite
-- [Getting Started](docs/somas/getting-started.md)  
-- [Agent Configurations](.somas/agents/)
-
-For complete documentation on both modes, architecture details, and configuration options, see the full documentation in the `docs/` directory.
-
----
-
-## Choosing Between Extended and Lite
-
-### Use SOMAS Extended When:
-- You need detailed specifications before implementation
-- You want optimal task ordering through simulation
-- You need GitHub Project integration for tracking
-
-### Use SOMAS Lite When:
-- You want faster, more autonomous execution
-- You have well-defined requirements already
-- You prefer comprehensive agent documentation
-
----
-
-## License
-
-MIT License - See [LICENSE](LICENSE) for details
-- **[SOMAS Documentation](docs/somas/README.md)** - Complete system documentation
-- **[Optimization Guide](docs/somas/optimization-guide.md)** - Advanced optimization techniques
-- **[Configuration Reference](.somas/config.yml)** - Full configuration options
-- **[Analytics Schema](.somas/analytics/schema.yml)** - Metrics and data structure
-
-## Directory Structure
-
-```
-.somas/
-├── config.yml                    # Main configuration
-├── stages/                       # Stage definitions
-│   ├── specification.yml         # Specification stage
-│   ├── simulation.yml            # Simulation stage
-│   └── ...
-├── agents/                       # AI agent configurations
-│   ├── specifier.yml             # Specification agent
-│   ├── simulator.yml             # Simulation agent
-│   └── ...
-├── templates/                    # Document templates
-│   ├── SPEC.md                   # Specification template
-│   ├── execution_plan.yml        # Execution plan template
-│   └── ...
-└── analytics/                    # Analytics and learning
-    ├── schema.yml                # Data schema
-    └── runs/                     # Historical run data
-
-.github/
-├── workflows/
-│   ├── somas-pipeline.yml        # Main 7-stage pipeline
-│   └── somas-project-sync.yml    # GitHub Project integration
-└── project-template.yml          # Project board template
-
-docs/somas/
-├── README.md                     # System documentation
-├── optimization-guide.md         # Optimization techniques
-├── MIGRATION_GUIDE.md            # Migration guide for configuration updates
-└── TROUBLESHOOTING.md            # Common issues and solutions
-```
-
-## Documentation
-
-- **[System Documentation](docs/somas/README.md)** - Complete SOMAS overview and architecture
-- **[Copilot Integration Guide](docs/somas/COPILOT_GUIDE.md)** - GitHub Copilot usage and AI agent delegation
-- **[Migration Guide](docs/somas/MIGRATION_GUIDE.md)** - Guide for migrating configurations and understanding changes
-- **[Troubleshooting Guide](docs/somas/TROUBLESHOOTING.md)** - Solutions to common issues and debugging tips
-- **[Optimization Guide](docs/somas/optimization-guide.md)** - Advanced optimization techniques
-
-## Key Benefits
-
-✅ **Faster Development** - 40-60% reduction in timeline through optimization  
-✅ **Higher Quality** - Complete specifications prevent requirement issues  
-✅ **Better Visibility** - GitHub Projects integration shows real-time progress  
-✅ **Risk Management** - Early identification of high-risk tasks with mitigations  
-✅ **Continuous Improvement** - Analytics and learning improve every run  
-✅ **Human Control** - Approval gates at critical decision points  
-✅ **Security Hardened** - Input validation, injection prevention, and secure defaults
-
-## Security
-
-SOMAS has been hardened with multiple security improvements:
-
-- **Input Validation** - Project IDs validated to prevent path traversal attacks
-- **Injection Prevention** - Safe JSON encoding prevents shell injection
-- **Secure Defaults** - Division-by-zero protection and error handling
-- **Dependency Management** - Proper installation and version management
-- **Regular Scans** - CodeQL security scanning integrated into development
-
-For security concerns, please open a security advisory rather than a public issue.
-
-## Owner
-
-**@scotlaclair** - All notifications and approvals
-
-## License
-
-This project is under active development. License information will be added in a future release.
+**@scotlaclair** - Notifications and approvals
 
 ---
 
