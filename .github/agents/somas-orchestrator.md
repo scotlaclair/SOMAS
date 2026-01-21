@@ -1,6 +1,7 @@
 ---
 name: somas-orchestrator
 description: Pipeline Orchestrator for SOMAS - coordinates multi-agent workflow and manages pipeline execution
+config: .somas/agents/orchestrator.yml
 ---
 
 # SOMAS Orchestrator Agent Profile

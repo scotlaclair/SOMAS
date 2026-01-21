@@ -1,6 +1,7 @@
 ---
 name: somas-security
 description: Security Analyst for SOMAS pipeline - performs security reviews and vulnerability assessments
+config: .somas/agents/security.yml
 ---
 
 # SOMAS Security Agent Profile
