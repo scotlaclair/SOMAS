@@ -22,7 +22,7 @@ SOMAS is an AI-first Software Development Life Cycle (SDLC) that orchestrates sp
 - 📊 **Simulation-Based Optimization**: Monte Carlo analysis for optimal task sequencing
 - 📝 **Complete Documentation**: Auto-generated specs, architecture docs, and API references
 - 🔒 **Security First**: Automated vulnerability scanning and secure coding practices
-- 🌐 **2026 Frontier Models**: GPT-5.2-Codex, Claude Opus 4.5, Gemini 3 Pro, and more
+- 🌐 **2026 Frontier Models**: Claude Opus 4.5, Claude Sonnet 4.5, GPT-5.2, Gemini 3 Pro, and more
 
 ---
 
@@ -360,10 +360,9 @@ MIT License - See [LICENSE](LICENSE) for details
 ## 🙏 Acknowledgments
 
 SOMAS is powered by the 2026 Frontier Tier AI models:
-- **GPT-5.2-Codex** (OpenAI) - SOTA coding agent
-- **Claude Opus 4.5** (Anthropic) - Deepest reasoning
-- **Claude Sonnet 4.5** (Anthropic) - Balanced power
-- **GPT-5.2** (OpenAI) - General intelligence
+- **Claude Opus 4.5** (Anthropic) - Deepest reasoning for architecture
+- **Claude Sonnet 4.5** (Anthropic) - #1 SWE-bench model for coding
+- **GPT-5.2** (OpenAI) - General intelligence and security
 - **Gemini 3 Pro** (Google) - Multimodal & long context
 - **Grok Code Fast 1** (xAI) - Low latency orchestration
 
