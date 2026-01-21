@@ -87,7 +87,7 @@ body:
         - Medium (Important, flexible timeline)
         - High (Important, time-sensitive)
         - Critical (Urgent, blocking other work)
-      default: 1
+      default: "Medium (Important, flexible timeline)"
     validations:
       required: true
 

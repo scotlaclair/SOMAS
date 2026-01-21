@@ -67,8 +67,14 @@ jobs:
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
           
+          # Ensure PR title is not empty
+          if [ -z "$PR_TITLE" ]; then
+            echo "❌ PR title is empty. Please provide a descriptive title."
+            exit 1
+          fi
+          
           # Check if PR title is descriptive (at least 10 characters)
-          if [ ${#PR_TITLE} -lt 10 ]; then
+          if [ "${#PR_TITLE}" -lt 10 ]; then
             echo "❌ PR title is too short. Please provide a descriptive title."
             exit 1
           fi

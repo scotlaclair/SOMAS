@@ -243,9 +243,9 @@ Cost per Month      $0                  $0 (no change!)
 └─────────────────────────────────────────────────────────────────────┘
 
 Total Time Invested:     ~3 hours
-Files Created:           6 new files
+Files Created:           8 new files
 Files Modified:          2 files  
-Lines Added:             ~855 lines
+Lines Added:             ~1280 lines
 Breaking Changes:        0
 Cost Added:              $0/month
 Security Improvement:    HIGH

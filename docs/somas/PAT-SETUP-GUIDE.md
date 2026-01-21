@@ -31,7 +31,9 @@ With a PAT, SOMAS gains full autonomous capability to:
 
 ### 2. Configure Token Settings
 
-**Token Name:** `SOMAS-Autonomous`
+**Token Name (GitHub display only, can be any descriptive label):** `SOMAS-Autonomous`
+
+This token name is just for your reference in GitHub and does **not** need to match the repository secret name. Later, when you add this token as a GitHub secret, be sure to name the secret **exactly** `SOMAS_PAT`.
 
 **Repository access:** Select "Only select repositories"
 - Choose: `scotlaclair/SOMAS`
@@ -68,20 +70,22 @@ Repository Permissions:
    - **Value:** Paste the token you copied
 5. Click **"Add secret"**
 
-### 5. Update Workflows
+### 5. Update Workflows (Future Enhancement)
 
-The SOMAS workflows will automatically use `SOMAS_PAT` when it's available. No code changes needed.
+The SOMAS workflows are currently designed to work with both `GITHUB_TOKEN` and `SOMAS_PAT`. While the workflows in this repository haven't been updated yet to use the `SOMAS_PAT || GITHUB_TOKEN` pattern, setting up the PAT now prepares the system for future autonomous workflow triggering capabilities.
 
-Workflows check for the token with this pattern:
+**Future workflow pattern:**
 ```yaml
 - uses: actions/checkout@v4
   with:
     token: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
 ```
 
-This ensures:
-- Uses `SOMAS_PAT` when available (autonomous mode)
-- Falls back to `GITHUB_TOKEN` if not configured (limited mode)
+This pattern ensures:
+- Uses `SOMAS_PAT` when available (autonomous mode with workflow triggering)
+- Falls back to `GITHUB_TOKEN` if not configured (standard mode)
+
+**Note:** Workflow updates to utilize PAT for cascading workflow execution will be implemented in a future enhancement. Setting up the PAT now ensures it's ready when those updates are made.
 
 ## Verification
 
@@ -175,7 +179,7 @@ You should see:
 | User attribution | ❌ Bot only | ✅ Your username |
 | Protected operations | ❌ Limited | ✅ Full access |
 | Setup time | 0 min (automatic) | 15 min (manual) |
-| Security | ✅ Automatic | ⚠️ Manual management |
+| Security | ✅ Automatic | ✅ Scoped permissions; ⚠️ Manual rotation |
 | Expiration | Never | Yes (configurable) |
 
 **Recommendation:** Set up `SOMAS_PAT` for true autonomous operation, but maintain good security practices.

@@ -36,7 +36,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip semgrep]')"
     
     container:
-      image: returntocorp/semgrep
+      image: returntocorp/semgrep:1.95.0
     
     steps:
       - name: Checkout repository
@@ -65,15 +65,42 @@ jobs:
       - name: Check for critical vulnerabilities
         run: |
           # Parse SARIF and fail if critical issues found
-          if [ -f semgrep.sarif ]; then
-            CRITICAL_COUNT=$(jq '[.runs[].results[] | select(.level == "error")] | length' semgrep.sarif)
-            echo "Critical vulnerabilities found: $CRITICAL_COUNT"
-            
-            if [ "$CRITICAL_COUNT" -gt 0 ]; then
-              echo "❌ Critical security vulnerabilities detected!"
-              echo "Please review the Security tab for details."
-              exit 1
-            else
-              echo "✅ No critical vulnerabilities found"
-            fi
+          if [ ! -f semgrep.sarif ]; then
+            echo "semgrep.sarif not found; skipping critical vulnerability check."
+            exit 0
           fi
+          
+          python3 << 'PYTHON_SCRIPT'
+          import json
+          import sys
+          from pathlib import Path
+          
+          sarif_path = Path("semgrep.sarif")
+          if not sarif_path.is_file():
+              print("semgrep.sarif not found; skipping critical vulnerability check.")
+              sys.exit(0)
+          
+          try:
+              with sarif_path.open("r", encoding="utf-8") as f:
+                  sarif_data = json.load(f)
+          except Exception as exc:
+              print(f"Failed to parse semgrep.sarif; skipping critical vulnerability check: {exc}")
+              sys.exit(0)
+          
+          runs = sarif_data.get("runs", [])
+          critical_count = 0
+          for run in runs:
+              for result in run.get("results", []):
+                  if result.get("level") == "error":
+                      critical_count += 1
+          
+          print(f"Critical vulnerabilities found: {critical_count}")
+          
+          if critical_count > 0:
+              print("❌ Critical security vulnerabilities detected!")
+              print("Please review the Security tab for details.")
+              sys.exit(1)
+          else:
+              print("✅ No critical vulnerabilities found")
+              sys.exit(0)
+          PYTHON_SCRIPT

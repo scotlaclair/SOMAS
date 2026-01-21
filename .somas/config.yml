@@ -118,7 +118,6 @@ limits:
   
   # GitHub Actions limits
   workflow_runtime_mins: 300
-  checkpoint_enabled: true
   
 # Checkpoint and Recovery Configuration
 # @copilot-context: Enhanced checkpointing for long-running autonomous pipelines
