@@ -23,7 +23,7 @@ jobs:
        contains(github.event.issue.labels.*.name, 'somas:enhance') ||
        contains(github.event.issue.labels.*.name, 'somas:question') ||
        contains(github.event.issue.labels.*.name, 'somas:bug')) &&
-      !contains(github.event.issue.body, '<!-- SOMAS_TRIAGED -->')
+      !contains(github.event.issue.labels.*.name, 'somas:triaged')
     runs-on: ubuntu-latest
     
     steps:
@@ -53,6 +53,17 @@ jobs:
             
             return { issue, requestType };
       
+      - name: Add Triaged Label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['somas:triaged']
+            });
+      
       - name: Invoke Triage Agent
         uses: actions/github-script@v7
         with:
@@ -67,8 +78,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `<!-- SOMAS_TRIAGED -->
-              🔍 **SOMAS Triage Agent Initiated**
+              body: `🔍 **SOMAS Triage Agent Initiated**
               
               **Issue:** #${issueNumber}
               **Type:** ${requestType}

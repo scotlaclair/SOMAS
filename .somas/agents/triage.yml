@@ -125,7 +125,7 @@ quality_checks:
 confidence_thresholds:
   high_confidence: 0.9  # Proceed automatically
   medium_confidence: 0.8  # Proceed with logging
-  low_confidence: 0.8  # Escalate to human
+  low_confidence: 0.8  # Escalate to human below this
   escalate_below: 0.8  # Must escalate
 
 instructions: |

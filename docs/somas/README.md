@@ -274,7 +274,7 @@ Human approves and merges
 
 ### 13 Specialized Agents
 
-SOMAS uses 13 specialized AI agents, each powered by the optimal 2026 Frontier Tier model for their task:
+SOMAS uses 13 specialized AI agents, each powered by the optimal AI model for their task:
 
 | Agent | Model | Stage(s) | Responsibilities |
 |-------|-------|----------|------------------|
