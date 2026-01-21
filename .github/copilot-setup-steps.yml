@@ -1,0 +1,27 @@
+# Configures the development environment for Copilot coding agent
+# This helps the agent understand how to set up, build, and test the project
+
+steps:
+  # Install Python dependencies used by SOMAS workflows
+  - name: Install Python packages
+    run: |
+      pip install pyyaml
+
+  # Install YAML tools for configuration validation
+  - name: Install yq
+    run: |
+      sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+      sudo chmod +x /usr/local/bin/yq
+
+  # Validate all SOMAS configuration files
+  - name: Validate SOMAS configuration
+    run: |
+      echo "Validating YAML files..."
+      yq eval '.' .somas/config.yml > /dev/null
+      for f in .somas/agents/*.yml; do
+        yq eval '.' "$f" > /dev/null
+      done
+      for f in .somas/stages/*.yml; do
+        yq eval '.' "$f" > /dev/null
+      done
+      echo "All YAML files valid ✅"
