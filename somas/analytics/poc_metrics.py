@@ -10,7 +10,7 @@ Measures time savings, quality improvements, and autonomy percentage.
 import logging
 from typing import Dict, Any, Optional
 from datetime import datetime
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 

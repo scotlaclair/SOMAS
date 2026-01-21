@@ -128,6 +128,31 @@ class APOTaskAnalyzer:
         # Otherwise, use heuristic-based analysis
         return self._analyze_heuristic(task_description, context)
     
+    def _analyze_with_advisor(
+        self,
+        task_description: str,
+        context: Dict[str, Any],
+        advisor_agent: Any
+    ) -> ComplexityAnalysis:
+        """
+        Perform complexity analysis using advisor agent
+        
+        Note: This is a placeholder for POC. Production would call actual advisor.
+        Falls back to heuristic analysis if advisor fails.
+        
+        Args:
+            task_description: Task to analyze
+            context: Additional context
+            advisor_agent: Advisor agent instance (placeholder in POC)
+            
+        Returns:
+            ComplexityAnalysis from advisor or heuristic fallback
+        """
+        # TODO: Implement actual advisor agent integration
+        # For POC, fall back to heuristic analysis
+        logger.info("Advisor agent integration not yet implemented, using heuristics")
+        return self._analyze_heuristic(task_description, context)
+    
     def _analyze_heuristic(
         self,
         task_description: str,
@@ -176,25 +201,44 @@ class APOTaskAnalyzer:
         )
     
     def _score_ambiguity(self, task_description: str) -> float:
-        """Score ambiguity based on language patterns"""
+        """
+        Score ambiguity based on language patterns
+        
+        Note: Simple keyword matching for POC. Production would use NLP analysis.
+        Known limitation: Can match keywords in unrelated contexts (e.g., "new" in "renew").
+        """
         ambiguous_words = ['maybe', 'probably', 'might', 'could', 'should', 'etc', 'and so on']
         count = sum(1 for word in ambiguous_words if word in task_description.lower())
         return min(5.0, 1.0 + (count * 0.5))
     
     def _score_novelty(self, task_description: str, context: Dict[str, Any]) -> float:
-        """Score novelty based on technology and patterns"""
+        """
+        Score novelty based on technology and patterns
+        
+        Note: Simple keyword matching for POC. Production would use contextual analysis.
+        Known limitation: Matches partial words (e.g., "new" in "renew subscription").
+        """
         novel_indicators = ['new', 'novel', 'first time', 'unprecedented', 'experimental']
         count = sum(1 for word in novel_indicators if word in task_description.lower())
         return min(5.0, 2.0 + count)
     
     def _score_dependencies(self, task_description: str, context: Dict[str, Any]) -> float:
-        """Score dependencies based on external mentions"""
+        """
+        Score dependencies based on external mentions
+        
+        Note: Simple keyword matching for POC. Production would parse actual dependencies.
+        """
         dependency_indicators = ['api', 'service', 'external', 'integration', 'third-party']
         count = sum(1 for word in dependency_indicators if word in task_description.lower())
         return min(5.0, 1.0 + (count * 0.8))
     
     def _score_risk(self, task_description: str, context: Dict[str, Any]) -> float:
-        """Score risk based on impact indicators"""
+        """
+        Score risk based on impact indicators
+        
+        Note: Simple keyword matching for POC. Production would use risk modeling.
+        Known limitation: Matches keywords in comments (e.g., "# security: this is safe").
+        """
         high_risk_indicators = ['security', 'authentication', 'payment', 'data loss', 'critical']
         count = sum(1 for word in high_risk_indicators if word in task_description.lower())
         
@@ -205,7 +249,11 @@ class APOTaskAnalyzer:
         return min(5.0, 1.0 + (count * 0.7))
     
     def _score_technical_depth(self, task_description: str, context: Dict[str, Any]) -> float:
-        """Score technical depth based on specialized terms"""
+        """
+        Score technical depth based on specialized terms
+        
+        Note: Simple keyword matching for POC. Production would assess actual complexity.
+        """
         specialized_terms = ['algorithm', 'optimization', 'cryptography', 'ml', 'ai', 'distributed']
         count = sum(1 for word in specialized_terms if word in task_description.lower())
         return min(5.0, 2.0 + (count * 0.6))

@@ -139,7 +139,8 @@ jobs:
   orchestrate:
     if: |
       github.event_name == 'issue_comment' &&
-      contains(github.event.comment.body, '@copilot somas-')
+      contains(github.event.comment.body, '@copilot somas-') &&
+      (github.event.comment.user.login == 'github-copilot[bot]' || github.event.comment.user.login == 'copilot[bot]')
     runs-on: ubuntu-latest
     
     steps:
@@ -166,8 +167,8 @@ jobs:
             }
             
             // Extract YAML/Markdown code blocks
-            const yamlRegex = /```(?:yaml|yml)\n([\s\S]*?)\n```/g;
-            const mdRegex = /```(?:markdown|md)?\n([\s\S]*?)\n```/g;
+            const yamlRegex = new RegExp('```(?:yaml|yml)\\n([\\s\\S]*?)\\n```', 'g');
+            const mdRegex = new RegExp('```(?:markdown|md)?\\n([\\s\\S]*?)\\n```', 'g');
             
             const yamlBlocks = [];
             const mdBlocks = [];
@@ -269,14 +270,29 @@ jobs:
           YAML_BLOCKS='${{ steps.parse.outputs.yaml_blocks }}'
           MD_BLOCKS='${{ steps.parse.outputs.md_blocks }}'
           
-          # Save YAML artifacts
+          # Save YAML artifacts with validation
           if [ "$ARTIFACT_NAME" = "initial_plan.yml" ] || [ "$ARTIFACT_NAME" = "execution_plan.yml" ]; then
-            echo "${YAML_BLOCKS}" | jq -r '.[0]' > "projects/${PROJECT_ID}/artifacts/${ARTIFACT_NAME}" 2>/dev/null || true
+            YAML_CONTENT=$(echo "${YAML_BLOCKS}" | jq -r '.[0]' 2>/dev/null)
+            if [ -n "$YAML_CONTENT" ] && [ "$YAML_CONTENT" != "null" ]; then
+              echo "${YAML_CONTENT}" > "projects/${PROJECT_ID}/artifacts/${ARTIFACT_NAME}"
+              # Validate YAML syntax
+              python3 -c "import yaml; yaml.safe_load(open('projects/${PROJECT_ID}/artifacts/${ARTIFACT_NAME}'))" 2>/dev/null || {
+                echo "ERROR: Invalid YAML in ${ARTIFACT_NAME}" >> "projects/${PROJECT_ID}/logs/${AGENT_NAME}.log"
+                echo "::warning::Extracted YAML artifact is invalid for ${ARTIFACT_NAME}"
+              }
+            else
+              echo "::warning::No valid YAML block found for ${ARTIFACT_NAME}"
+            fi
           fi
           
-          # Save Markdown artifacts
+          # Save Markdown artifacts with validation
           if [ "$ARTIFACT_NAME" = "SPEC.md" ] || [ "$ARTIFACT_NAME" = "ARCHITECTURE.md" ] || [ "$ARTIFACT_NAME" = "review_report.md" ]; then
-            echo "${MD_BLOCKS}" | jq -r '.[0]' > "projects/${PROJECT_ID}/artifacts/${ARTIFACT_NAME}" 2>/dev/null || true
+            MD_CONTENT=$(echo "${MD_BLOCKS}" | jq -r '.[0]' 2>/dev/null)
+            if [ -n "$MD_CONTENT" ] && [ "$MD_CONTENT" != "null" ]; then
+              echo "${MD_CONTENT}" > "projects/${PROJECT_ID}/artifacts/${ARTIFACT_NAME}"
+            else
+              echo "::warning::No valid Markdown block found for ${ARTIFACT_NAME}"
+            fi
           fi
           
           # Save log entry
@@ -525,7 +541,20 @@ jobs:
                 base: 'main'
               });
               
-              // Enable auto-merge
+              // Enable auto-merge (waits for required checks)
+              // Note: This requires branch protection rules to be configured
+              try {
+                await github.rest.pulls.updateBranch({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.data.number
+                });
+              } catch (error) {
+                core.info('Branch update not needed or not available');
+              }
+              
+              // Set auto-merge to wait for checks
+              // If no branch protection, this will merge immediately
               await github.rest.pulls.merge({
                 owner: context.repo.owner,
                 repo: context.repo.repo,

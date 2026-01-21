@@ -238,21 +238,47 @@ class SimulationValidator:
     
     @staticmethod
     def _has_circular_dependencies(task_graph: Dict[str, Any]) -> bool:
-        """Check for circular dependencies using DFS"""
-        # Simplified implementation - production would use proper graph algorithms
-        # This is a placeholder for the actual implementation
+        """
+        Check for circular dependencies using DFS
+        
+        Note: This is a simplified placeholder implementation for POC.
+        Production implementation would use proper graph algorithms with DFS/BFS.
+        
+        Returns:
+            bool: Always False in placeholder (no validation performed)
+        """
+        # TODO: Implement proper cycle detection algorithm
+        # For POC, we assume well-formed task graphs
         return False
     
     @staticmethod
     def _find_orphaned_tasks(task_graph: Dict[str, Any]) -> List[str]:
-        """Find tasks with no path to root or leaf"""
-        # Placeholder implementation
+        """
+        Find tasks with no path to root or leaf
+        
+        Note: This is a placeholder implementation for POC.
+        Production would traverse graph to find disconnected tasks.
+        
+        Returns:
+            List[str]: Always empty in placeholder (no validation performed)
+        """
+        # TODO: Implement graph traversal to find orphaned nodes
+        # For POC, we assume all tasks are connected
         return []
     
     @staticmethod
     def _find_unrealistic_estimates(task_graph: Dict[str, Any]) -> List[str]:
-        """Find tasks with unrealistic duration estimates"""
-        # Placeholder implementation
+        """
+        Find tasks with unrealistic duration estimates
+        
+        Note: This is a placeholder implementation for POC.
+        Production would analyze estimates against historical data.
+        
+        Returns:
+            List[str]: Always empty in placeholder (no validation performed)
+        """
+        # TODO: Implement estimate validation against benchmarks
+        # For POC, we accept all estimates
         return []
 
 
@@ -260,14 +286,18 @@ def load_artifact(project_id: str, artifact_name: str) -> Dict[str, Any]:
     """
     Load artifact from project directory
     
+    Note: This is a placeholder implementation for POC.
+    Production would read actual files from projects/{project_id}/artifacts/
+    
     Args:
         project_id: Project identifier
         artifact_name: Name of artifact file
         
     Returns:
-        Artifact contents as dictionary
+        Artifact contents as dictionary (empty dict in placeholder)
     """
-    # Placeholder - actual implementation would read from filesystem
+    # TODO: Implement actual file reading
+    # import yaml or json, read from filesystem
     logger.info(f"Loading artifact {artifact_name} for project {project_id}")
     return {}
 
@@ -276,10 +306,14 @@ def save_artifact(project_id: str, artifact_name: str, content: Dict[str, Any]) 
     """
     Save artifact to project directory
     
+    Note: This is a placeholder implementation for POC.
+    Production would write actual files to projects/{project_id}/artifacts/
+    
     Args:
         project_id: Project identifier
         artifact_name: Name of artifact file
         content: Artifact contents
     """
-    # Placeholder - actual implementation would write to filesystem
+    # TODO: Implement actual file writing
+    # import yaml or json, write to filesystem
     logger.info(f"Saving artifact {artifact_name} for project {project_id}")

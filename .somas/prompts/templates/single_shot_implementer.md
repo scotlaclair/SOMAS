@@ -233,16 +233,30 @@ This is your ONLY chance to get it right. There are no retries in single-shot mo
 User authentication module.
 
 Handles user login, session management, and authorization.
+
+SECURITY NOTE: This example demonstrates proper security patterns.
+Production implementations must use dedicated password hashing libraries.
 """
 
 import logging
-import hashlib
 import secrets
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
 
 from pydantic import BaseModel, validator
 from fastapi import HTTPException
+
+# CRITICAL: Use a proper password hashing library in production
+# Examples: argon2-cffi, bcrypt, passlib
+try:
+    from argon2 import PasswordHasher
+    ph = PasswordHasher()
+    HASH_AVAILABLE = True
+except ImportError:
+    HASH_AVAILABLE = False
+    # Fallback message for example only
+    import warnings
+    warnings.warn("argon2-cffi not installed. Install for production use.")
 
 logger = logging.getLogger(__name__)
 
@@ -304,11 +318,12 @@ class AuthenticationService:
             # Validate input (Pydantic does this automatically)
             logger.info(f"Authentication attempt for user: {request.username}")
             
-            # Hash password (in production, compare with stored hash)
-            password_hash = hashlib.sha256(request.password.encode()).hexdigest()
+            # SECURITY: In production, retrieve stored hash from database
+            # and use a proper password hashing library (argon2, bcrypt, scrypt)
+            # DO NOT use fast hashes like SHA-256 for passwords!
             
-            # Verify credentials (placeholder - would query database)
-            user = self._verify_credentials(request.username, password_hash)
+            # Verify credentials (in production: database lookup)
+            user = self._verify_credentials(request.username, request.password)
             if not user:
                 logger.warning(f"Failed login attempt: {request.username}")
                 raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -325,11 +340,53 @@ class AuthenticationService:
             logger.error(f"Authentication error: {str(e)}")
             raise HTTPException(status_code=500, detail="Authentication failed")
     
-    def _verify_credentials(self, username: str, password_hash: str) -> Optional[Dict[str, Any]]:
-        """Verify user credentials (placeholder)"""
-        # In production, this would query the database
-        # For now, accept any username with correct password format
-        return {"id": "user-123", "username": username}
+    def _verify_credentials(self, username: str, password: str) -> Optional[Dict[str, Any]]:
+        """
+        Verify user credentials against stored password hash.
+        
+        SECURITY: This is a demonstration example only!
+        Production implementations MUST:
+        1. Query database for user by username
+        2. Retrieve stored password hash for that user
+        3. Use argon2.verify(), bcrypt.checkpw(), or equivalent
+        4. Use constant-time comparison
+        5. Return user data ONLY if password matches
+        
+        Args:
+            username: Username to verify
+            password: Plain-text password from user
+            
+        Returns:
+            User dict if credentials valid, None otherwise
+        """
+        # Example user (DEMONSTRATION ONLY - not for production)
+        # In production: user = database.query_user(username)
+        example_user = {
+            'id': 'user-123',
+            'username': 'demo_user',
+            # This hash represents "SecurePassword123!" hashed with Argon2
+            'password_hash': '$argon2id$v=19$m=65536,t=3,p=4$...'  # Example format only
+        }
+        
+        # Production implementation would be:
+        # if username != example_user['username']:
+        #     return None
+        # 
+        # if HASH_AVAILABLE:
+        #     try:
+        #         ph.verify(example_user['password_hash'], password)
+        #         return {'id': example_user['id'], 'username': username}
+        #     except:
+        #         return None
+        # else:
+        #     raise RuntimeError("Password hashing library required")
+        
+        # For demonstration: Accept any username with password "demo_password"
+        # REMOVE THIS IN PRODUCTION!
+        if password == "demo_password":
+            return {"id": "user-123", "username": username}
+        
+        return None
     
     def _create_session(self, user_id: str, username: str) -> AuthSession:
         """Create new authentication session"""
