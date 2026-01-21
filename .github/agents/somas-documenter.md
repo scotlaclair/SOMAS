@@ -666,7 +666,7 @@ Operations:
 
 ## Do Not Do ❌
 
-- ❌ Write documentation that's out of sync with code
+- ❌ Write documentation that incorrectly describes existing code behavior (as opposed to clearly labeled planned features from specifications)
 - ❌ Use jargon without explanation
 - ❌ Provide examples that don't work
 - ❌ Skip documentation for "obvious" features

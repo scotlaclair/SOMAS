@@ -10,8 +10,81 @@ steps:
   # Install YAML tools for configuration validation
   - name: Install yq
     run: |
-      sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-      sudo chmod +x /usr/local/bin/yq
+      set -e
+
+      if command -v yq >/dev/null 2>&1; then
+        echo "yq already installed at $(command -v yq)"
+        exit 0
+      fi
+
+      OS="$(uname -s || echo unknown)"
+      echo "Detected OS: $OS"
+
+      # Helper: run a command with sudo if available and necessary
+      run_maybe_sudo() {
+        if command -v sudo >/dev/null 2>&1 && [ "$(id -u)" -ne 0 ]; then
+          sudo "$@"
+        else
+          "$@"
+        fi
+      }
+
+      install_dir="/usr/local/bin"
+      alt_install_dir="$HOME/.local/bin"
+
+      case "$OS" in
+        Linux*)
+          echo "Installing yq for Linux..."
+          url="https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64"
+          if run_maybe_sudo mkdir -p "$install_dir" 2>/dev/null; then
+            run_maybe_sudo wget -qO "$install_dir/yq" "$url"
+            run_maybe_sudo chmod +x "$install_dir/yq"
+            echo "yq installed to $install_dir/yq"
+          else
+            mkdir -p "$alt_install_dir"
+            wget -qO "$alt_install_dir/yq" "$url"
+            chmod +x "$alt_install_dir/yq"
+            echo "yq installed to $alt_install_dir/yq"
+            echo "Ensure $alt_install_dir is in your PATH."
+          fi
+          ;;
+        Darwin*)
+          echo "Installing yq for macOS..."
+          if command -v brew >/dev/null 2>&1; then
+            brew install yq
+          else
+            echo "Homebrew not found, falling back to binary install."
+            url="https://github.com/mikefarah/yq/releases/latest/download/yq_darwin_amd64"
+            if run_maybe_sudo mkdir -p "$install_dir" 2>/dev/null; then
+              run_maybe_sudo wget -qO "$install_dir/yq" "$url"
+              run_maybe_sudo chmod +x "$install_dir/yq"
+              echo "yq installed to $install_dir/yq"
+            else
+              mkdir -p "$alt_install_dir"
+              wget -qO "$alt_install_dir/yq" "$url"
+              chmod +x "$alt_install_dir/yq"
+              echo "yq installed to $alt_install_dir/yq"
+              echo "Ensure $alt_install_dir is in your PATH."
+            fi
+          fi
+          ;;
+        MINGW*|MSYS*|CYGWIN*)
+          echo "Windows environment detected."
+          echo "Please install yq manually, for example:"
+          echo "  choco install yq"
+          echo "or:"
+          echo "  scoop install yq"
+          echo "After installation, ensure 'yq' is available in PATH."
+          exit 1
+          ;;
+        *)
+          echo "Unsupported or unknown OS: $OS"
+          echo "Please install yq manually from https://github.com/mikefarah/yq/"
+          exit 1
+          ;;
+      esac
+
+      echo "yq installation step completed."
 
   # Validate all SOMAS configuration files
   - name: Validate SOMAS configuration
