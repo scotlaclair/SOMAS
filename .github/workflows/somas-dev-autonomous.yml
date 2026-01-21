@@ -1,210 +1,28 @@
-name: SOMAS Autonomous Dev Pipeline
+name: SOMAS Autonomous Dev Pipeline (Legacy)
 
-# Autonomous execution in dev environment
-# Triggered by issues with somas:dev label
+# DEPRECATED: This workflow has been replaced by somas-orchestrator.yml
+# which implements comment-driven agent orchestration.
+# 
+# This file is kept for reference only.
+# 
+# For the working autonomous pipeline, see:
+# .github/workflows/somas-orchestrator.yml
 
 on:
-  issues:
-    types: [opened, labeled]
-  issue_comment:
-    types: [created]
-
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  workflow_dispatch:
+    inputs:
+      note:
+        description: 'This workflow is deprecated - use somas-orchestrator.yml'
+        required: false
 
 jobs:
-  autonomous-dev:
-    # Only run for issues with somas:dev label
-    if: contains(github.event.issue.labels.*.name, 'somas:dev')
+  deprecated-notice:
     runs-on: ubuntu-latest
-    timeout-minutes: 300  # 5 hours max
-    
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-      
-      - name: Install Dependencies
+      - name: Show Deprecation Notice
         run: |
-          pip install --upgrade pip
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          fi
-      
-      - name: Create Branch for Project
-        id: branch
-        run: |
-          PROJECT_ID="project-${{ github.event.issue.number }}"
-          BRANCH_NAME="somas/${PROJECT_ID}"
-          echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
-          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
-          
-          git config user.name "SOMAS Bot"
-          git config user.email "somas-bot@users.noreply.github.com"
-          
-          # Create branch if it doesn't exist
-          git checkout -b "${BRANCH_NAME}" 2>/dev/null || git checkout "${BRANCH_NAME}"
-          git push -u origin "${BRANCH_NAME}"
-      
-      - name: Execute Full Pipeline
-        id: pipeline
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          PROJECT_ID: ${{ steps.branch.outputs.project_id }}
-        run: |
-          echo "::notice::Starting autonomous dev pipeline for ${PROJECT_ID}"
-          
-          # Execute SOMAS pipeline
-          # In production, this would call the actual pipeline runner
-          python3 << 'PYTHON_SCRIPT'
-          import os
-          import sys
-          
-          issue_number = os.environ['ISSUE_NUMBER']
-          project_id = os.environ['PROJECT_ID']
-          
-          print(f"Executing pipeline for issue #{issue_number}, project {project_id}")
-          
-          # Placeholder for actual pipeline execution
-          # In production: from somas.core.runner import execute_autonomous_pipeline
-          # result = execute_autonomous_pipeline(project_id, issue_number)
-          
-          print("Pipeline execution complete")
-          print("status=success" >> os.environ['GITHUB_OUTPUT'])
-          PYTHON_SCRIPT
-      
-      - name: Create Pull Request
-        if: steps.pipeline.outputs.status == 'success'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PROJECT_ID="${{ steps.branch.outputs.project_id }}"
-          BRANCH_NAME="${{ steps.branch.outputs.branch_name }}"
-          
-          # Create PR if it doesn't exist
-          gh pr create \
-            --title "[$PROJECT_ID] Autonomous implementation" \
-            --body "Autonomous SOMAS pipeline execution for issue #${{ github.event.issue.number }}" \
-            --base main \
-            --head "${BRANCH_NAME}" \
-            || echo "PR already exists"
-      
-      - name: Auto-merge to Dev
-        if: steps.pipeline.outputs.status == 'success'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # In dev environment, auto-merge is enabled
-          BRANCH_NAME="${{ steps.branch.outputs.branch_name }}"
-          
-          # Enable auto-merge on the PR
-          PR_NUMBER=$(gh pr list --head "${BRANCH_NAME}" --json number --jq '.[0].number')
-          
-          if [ -n "$PR_NUMBER" ]; then
-            # Set auto-merge
-            gh pr merge "${PR_NUMBER}" --auto --squash
-            echo "::notice::Auto-merge enabled for PR #${PR_NUMBER}"
-          fi
-      
-      - name: Post Success Comment
-        if: steps.pipeline.outputs.status == 'success'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `✅ **Autonomous Pipeline Complete**
-              
-              Project: \`${{ steps.branch.outputs.project_id }}\`
-              Branch: \`${{ steps.branch.outputs.branch_name }}\`
-              
-              The pipeline has completed successfully and auto-merge is enabled.
-              
-              **Next Steps:**
-              - Review the PR for quality
-              - Check metrics in project artifacts
-              - Approve for production promotion (if needed)
-              
-              **Metrics:**
-              - Autonomous Execution: ✅
-              - Human Intervention: None required in dev
-              - Time: ${{ job.container.run_time }} minutes
-              `
-            })
-      
-      - name: Post Failure Comment
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `❌ **Autonomous Pipeline Failed**
-              
-              Project: \`${{ steps.branch.outputs.project_id }}\`
-              
-              The pipeline encountered an error during execution.
-              
-              **Action Required:**
-              - Check workflow logs for details
-              - Review error messages
-              - Manual intervention may be needed
-              
-              cc: @${{ github.event.issue.user.login }} @scotlaclair
-              `
-            })
-      
-      - name: Create Checkpoint
-        if: always()
-        run: |
-          # Save pipeline state for resumption if needed
-          PROJECT_ID="${{ steps.branch.outputs.project_id }}"
-          mkdir -p "projects/${PROJECT_ID}/checkpoints"
-          
-          echo "Pipeline checkpoint created at $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            > "projects/${PROJECT_ID}/checkpoints/$(date +%s).txt"
-          
-          git add "projects/${PROJECT_ID}/checkpoints" || true
-          git commit -m "Add checkpoint for ${PROJECT_ID}" || true
-          git push || true
-
-  # Separate job for production promotion
-  production-promotion:
-    # Only run when specifically requested
-    if: |
-      contains(github.event.issue.labels.*.name, 'somas:prod') &&
-      contains(github.event.comment.body, '/promote-to-prod')
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Request Human Approval
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `🔒 **Production Promotion Request**
-              
-              Human approval required for production deployment.
-              
-              cc: @scotlaclair
-              
-              Please review and approve via PR review.
-              `
-            })
+          echo "⚠️  This workflow is deprecated."
+          echo "Please use .github/workflows/somas-orchestrator.yml instead."
+          echo ""
+          echo "The new orchestrator implements comment-driven agent execution"
+          echo "via GitHub Copilot and parses responses to extract artifacts."
