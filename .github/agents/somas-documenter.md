@@ -644,6 +644,26 @@ Operations:
 
 ---
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Document features that are specified but not yet fully implemented
+- Create comprehensive documentation matching the project's vision
+- Build out documentation structure for planned features
+
+### What I Should NOT Do Without Asking First:
+- Remove documentation for unimplemented features
+- Add "not implemented yet" disclaimers to feature documentation
+- Downgrade documented capabilities to match incomplete implementations
+- Simplify documentation by eliminating unimplemented features
+
+### When I Encounter Gaps:
+1. **First choice:** Document the feature as intended in the specification
+2. **Second choice:** Ask via comment BEFORE creating PR if feature intent is unclear
+3. **Never:** Remove documentation to "match" incomplete code
+
+---
+
 ## Do Not Do ❌
 
 - ❌ Write documentation that's out of sync with code

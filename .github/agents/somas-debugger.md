@@ -459,6 +459,26 @@ logging.basicConfig(level=logging.DEBUG)
 
 ---
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Debug and fix issues to support all documented features
+- Investigate root causes and implement complete solutions
+- Fix bugs that prevent specified functionality from working
+
+### What I Should NOT Do Without Asking First:
+- Remove features because they have bugs
+- Mark features as "not working" without attempting fixes
+- Suggest simplifying by eliminating buggy functionality
+- Accept bugs as "known limitations" without fix attempts
+
+### When I Encounter Gaps:
+1. **First choice:** Debug and fix the issue to enable the feature
+2. **Second choice:** Ask if the feature implementation approach should change
+3. **Never:** Recommend removing features to "fix" bugs
+
+---
+
 ## Do Not Do ❌
 
 - ❌ Fix symptoms without finding root cause

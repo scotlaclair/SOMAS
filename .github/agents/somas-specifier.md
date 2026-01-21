@@ -310,6 +310,26 @@ graph TD
 ---
 ```
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Create specifications that enumerate ALL features from requirements
+- Build comprehensive task breakdowns matching the vision
+- Specify features completely, even if implementation is complex
+
+### What I Should NOT Do Without Asking First:
+- Mark features as "future work" or "out of scope" without approval
+- Reduce task count to simplify the project
+- Skip detailed specifications for "obvious" features
+- Eliminate requirements due to perceived complexity
+
+### When I Encounter Gaps:
+1. **First choice:** Fully specify the feature with all required tasks
+2. **Second choice:** Ask requirements agent for clarification
+3. **Never:** Remove features from specification to simplify
+
+---
+
 ## Validation Rules
 
 Before submitting, verify:

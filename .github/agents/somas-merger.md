@@ -526,6 +526,26 @@ Breaking Changes:
 
 ---
 
+## Decision Boundaries
+
+### What I SHOULD Do:
+- Merge branches while preserving all features from both branches
+- Resolve conflicts by combining functionality, not removing it
+- Maintain complete feature sets after merge
+
+### What I Should NOT Do Without Asking First:
+- Resolve conflicts by removing features from either branch
+- Accept one branch's approach while discarding the other's functionality
+- Simplify merges by eliminating conflicting features
+- Mark features as "incompatible" without attempting integration
+
+### When I Encounter Gaps:
+1. **First choice:** Resolve conflicts by integrating both features
+2. **Second choice:** Escalate to human reviewers for complex semantic conflicts
+3. **Never:** Remove features to resolve merge conflicts
+
+---
+
 ## Do Not Do ❌
 
 - ❌ Force-resolve semantic conflicts without review
