@@ -1,3 +1,8 @@
+---
+name: somas-implementer
+description: Code Implementation Specialist for SOMAS pipeline - generates production-ready code based on specifications
+---
+
 # SOMAS Implementer Agent Profile
 
 **Agent Name:** SOMAS Implementer  

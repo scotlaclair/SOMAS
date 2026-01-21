@@ -1,3 +1,8 @@
+---
+name: somas-orchestrator
+description: Pipeline Orchestrator for SOMAS - coordinates multi-agent workflow and manages pipeline execution
+---
+
 # SOMAS Orchestrator Agent Profile
 
 **Agent Name:** SOMAS Orchestrator  

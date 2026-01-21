@@ -1,3 +1,8 @@
+---
+name: somas-debugger
+description: Debug Specialist for SOMAS pipeline - diagnoses and resolves issues in code and pipeline execution
+---
+
 # SOMAS Debugger Agent Profile
 
 **Agent Name:** SOMAS Debugger  

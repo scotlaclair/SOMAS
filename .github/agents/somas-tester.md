@@ -1,3 +1,8 @@
+---
+name: somas-tester
+description: Test Engineer for SOMAS pipeline - creates comprehensive test suites and validates implementation
+---
+
 # SOMAS Tester Agent Profile
 
 **Agent Name:** SOMAS Tester  

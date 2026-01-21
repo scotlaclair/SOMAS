@@ -1,3 +1,8 @@
+---
+name: somas-security
+description: Security Analyst for SOMAS pipeline - performs security reviews and vulnerability assessments
+---
+
 # SOMAS Security Agent Profile
 
 **Agent Name:** SOMAS Security  

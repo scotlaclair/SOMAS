@@ -1,3 +1,8 @@
+---
+name: somas-reviewer
+description: Code Reviewer & Quality Analyst for SOMAS pipeline - reviews code quality, best practices adherence, and architecture compliance
+---
+
 # SOMAS Reviewer Agent Profile
 
 **Agent Name:** SOMAS Reviewer  

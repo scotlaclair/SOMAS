@@ -1,3 +1,8 @@
+---
+name: somas-advisor
+description: Strategic Advisor for SOMAS pipeline - provides guidance on complex decisions and cross-cutting concerns
+---
+
 # SOMAS Advisor Agent Profile
 
 **Agent Name:** SOMAS Advisor  
