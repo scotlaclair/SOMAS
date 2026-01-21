@@ -48,7 +48,7 @@ Does it change architecture/design?
   NO ↓
 
 Is it a bug or implementation fix?
-  YES → Route to DEBUGGER/IMPLEMENTER
+  YES → Route to IMPLEMENTER
   NO ↓
 
 Is it documentation only?
@@ -129,7 +129,7 @@ Route by question type - never trigger pipeline:
 Classify by root cause:
 
 **Implementation Bug:**
-- Code doesn't match spec → **IMPLEMENTER** or **DEBUGGER**
+- Code doesn't match spec → **IMPLEMENTER**
 - Logic error in implementation → **IMPLEMENTER**
 - **Criteria:** SPEC.md is correct, code is wrong
 
@@ -346,7 +346,7 @@ triage_result:
   classification: enhancement
   confidence: 0.90
   routing:
-    agent: defer_to_backlog
+    agent: backlog
     reason: "Medium priority optimization - nice-to-have but not urgent"
   linked_project: null
   spec_impact: false

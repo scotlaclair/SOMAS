@@ -106,7 +106,7 @@ jobs:
                 classification: <change|enhancement|question|bug>
                 confidence: <0.0-1.0>
                 routing:
-                  agent: <planner|architect|implementer|debugger|tester|advisor|documenter|human>
+                  agent: <planner|architect|implementer|tester|advisor|documenter|human>
                   reason: "<specific reason based on criteria>"
                 linked_project: <project-XXX or null>
                 spec_impact: <true|false>

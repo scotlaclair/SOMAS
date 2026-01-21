@@ -84,8 +84,8 @@ routing_rules:
   # Enhancement Routing
   enhancement:
     if_critical_or_high: "planner"
-    if_medium_or_low: "defer_to_backlog"
-    if_future: "defer_to_backlog"
+    if_medium_or_low: "backlog"
+    if_future: "backlog"
     
   # Question Routing
   question:
@@ -96,7 +96,7 @@ routing_rules:
     
   # Bug Routing
   bug:
-    if_implementation: "debugger"
+    if_implementation: "implementer"
     if_test_failure: "tester"
     if_specification_gap: "planner"
     if_documentation: "documenter"
@@ -125,8 +125,7 @@ quality_checks:
 confidence_thresholds:
   high_confidence: 0.9  # Proceed automatically
   medium_confidence: 0.8  # Proceed with logging
-  low_confidence: 0.8  # Escalate to human below this
-  escalate_below: 0.8  # Must escalate
+  escalate_below: 0.8  # Escalate to human when confidence is below this
 
 instructions: |
   You are the Triage agent for SOMAS, responsible for classifying and routing
@@ -270,7 +269,7 @@ output_template: |
     classification: <change|enhancement|question|bug>
     confidence: <0.0-1.0>
     routing:
-      agent: <planner|architect|implementer|debugger|tester|advisor|documenter|human>
+      agent: <planner|architect|implementer|tester|advisor|documenter|human>
       reason: "<specific reason based on criteria>"
     linked_project: <project-XXX or null>
     spec_impact: <true|false>

@@ -21,7 +21,7 @@ body:
         
         ### Routing Logic
         
-        - **Implementation bug** → Routed to debugger/implementer
+        - **Implementation bug** → Routed to implementer
         - **Test failure** → Routed to tester agent
         - **Specification gap** → Routed back to planner
         - **Documentation** → Routed to documenter
@@ -140,7 +140,7 @@ body:
         1. **Triage**: @copilot somas-triage analyzes the bug report
         2. **Classification**: Determines bug type and severity
         3. **Routing Decision**:
-           - **Implementation bug**: → @copilot somas-debugger investigates and fixes
+           - **Implementation bug**: → @copilot somas-implementer investigates and fixes
            - **Test failure**: → @copilot somas-tester fixes tests
            - **Specification gap**: → @copilot somas-planner updates SPEC.md
            - **Documentation**: → @copilot somas-documenter updates docs
