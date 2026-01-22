@@ -22,7 +22,6 @@ on:
 permissions:
   contents: write
   issues: write
-  projects: write
   pull-requests: write
 
 jobs:
@@ -38,6 +37,7 @@ jobs:
         if: github.event.inputs.action == 'create' || github.event.action == 'create'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.SOMAS_PAT }}
           script: |
             const projectId = '${{ github.event.inputs.project_id }}' || context.payload.client_payload.project_id;
             
@@ -123,6 +123,7 @@ jobs:
         if: steps.parse-plan.outputs.plan_exists == 'true'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.SOMAS_PAT }}
           script: |
             const fs = require('fs');
             const yaml = require('js-yaml');
@@ -196,6 +197,7 @@ jobs:
         if: github.event.inputs.action == 'update' || github.event.action == 'update'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.SOMAS_PAT }}
           script: |
             const projectId = '${{ github.event.inputs.project_id }}';
             const stage = context.payload.client_payload?.stage || 'unknown';
@@ -233,6 +235,7 @@ jobs:
         if: github.event.inputs.action == 'close' || github.event.action == 'close'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.SOMAS_PAT }}
           script: |
             const fs = require('fs');
             const projectId = '${{ github.event.inputs.project_id }}';
