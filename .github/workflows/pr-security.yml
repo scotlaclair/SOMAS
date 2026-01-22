@@ -77,9 +77,9 @@ jobs:
           fetch-depth: 0
       
       - name: Validate PR Title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          
           # Ensure PR title is not empty
           if [ -z "$PR_TITLE" ]; then
             echo "❌ PR title is empty. Please provide a descriptive title."
@@ -95,9 +95,11 @@ jobs:
           echo "✅ PR title validation passed"
       
       - name: Check for SOMAS artifacts
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
           # Check if this is a SOMAS-generated PR
-          if [[ "${{ github.head_ref }}" == somas/* ]]; then
+          if [[ "$HEAD_REF" == somas/* ]]; then
             echo "🤖 This is a SOMAS-generated PR"
             
             # Validate that required SOMAS artifacts exist
@@ -110,9 +112,13 @@ jobs:
       
       - name: PR Summary
         if: always()
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
           echo "### 📋 PR Validation Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** \`${{ github.head_ref }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Base:** \`${{ github.base_ref }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Author:** @${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`$HEAD_REF\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Base:** \`$BASE_REF\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** @$PR_AUTHOR" >> $GITHUB_STEP_SUMMARY
