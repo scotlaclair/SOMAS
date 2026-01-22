@@ -48,12 +48,14 @@ jobs:
           
       - name: Summary
         if: always()
+        env:
+          REVIEW_OUTCOME: ${{ steps.dependency_review.outcome }}
         run: |
-          if [ "${{ steps.dependency_review.outcome }}" == "success" ]; then
+          if [ "$REVIEW_OUTCOME" == "success" ]; then
             echo "### ✅ Dependency Security Review Complete" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "All dependencies have been scanned for known vulnerabilities." >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ steps.dependency_review.outcome }}" == "failure" ]; then
+          elif [ "$REVIEW_OUTCOME" == "failure" ]; then
             echo "### ⚠️  Dependency Review Not Available" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Dependency review requires GitHub Advanced Security to be enabled." >> $GITHUB_STEP_SUMMARY
