@@ -50,6 +50,77 @@ This document summarizes the integration enhancements implemented for SOMAS base
 **Impact:** High  
 **Status:** ✅ Complete
 
+**File:**
+- `.github/workflows/semgrep.yml` (new)
+
+**Features:**
+- Static analysis with multiple rule sets:
+  - `p/security-audit` - General security auditing
+  - `p/secrets` - Secret detection
+  - `p/owasp-top-ten` - OWASP Top 10 vulnerabilities
+  - `p/command-injection` - Command injection detection
+- Daily automated scans via cron schedule
+- Critical vulnerability detection and reporting
+- Comprehensive findings display in workflow logs
+
+**Benefits:**
+- ✅ Free static analysis for private repos (CodeQL alternative)
+- ✅ Detects security vulnerabilities before merge
+- ✅ Supports Python, JavaScript, Go, and more
+- ✅ Custom rules can be added
+- ✅ Detailed findings in workflow logs
+
+**Important Note:**
+- SARIF upload to GitHub Security tab requires GitHub Advanced Security (paid for private repos)
+- Workflow continues to function and display findings in logs even without GHAS
+- Findings are still actionable through workflow logs
+- To enable full Security tab integration, enable Code Scanning in repository settings
+
+**Files:**
+- `.github/workflows/semgrep.yml` (new)
+
+**Triggers:**
+- Push to main, develop, copilot/*, somas/* branches
+- Pull requests to main, develop
+- Daily scheduled scans (midnight UTC)
+
+---
+
+### 3. Dependency Review Action
+**Category:** Security Enhancement  
+**Effort:** 15 minutes  
+**Impact:** Medium  
+**Status:** ✅ Complete
+
+**File:**
+- `.github/workflows/pr-security.yml` (new)
+
+**Features:**
+- Automated dependency vulnerability checking
+- PR validation checks
+
+**Important Note:**
+- Dependency review requires GitHub Advanced Security and Dependency Graph (paid for private repos)
+- Workflow gracefully handles unavailability with informative messages
+- Alternative: Use Dependabot alerts (free) for dependency vulnerability scanning
+
+**Benefits:**
+- ✅ Automated security review on every PR (when available)
+- ✅ Clear visibility of dependency changes
+- ✅ Graceful degradation when not available
+
+**Files:**
+- `.github/workflows/pr-security.yml` (new)
+
+**Triggers:**
+- Pull requests (opened, synchronize, reopened)
+- Targets main and develop branches
+
+---
+
+### 4. Analytics Dashboards (Enabled)
+**Status:** ✅ Complete
+
 **What Changed:**
 - Created `.github/workflows/semgrep.yml` workflow
 - Configured with multiple security rule sets:

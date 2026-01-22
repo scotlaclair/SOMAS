@@ -61,8 +61,17 @@ checkpointing:
 
 ### Security Scanning
 **Automatic:** Runs on every push to main, develop, copilot/*, somas/*
-**Manual:** Workflows run automatically, check Security tab for results
+**Manual:** Workflows run automatically, findings displayed in workflow logs
 **Skip scan:** Add `[skip semgrep]` to commit message
+
+**Note:** GitHub Advanced Security (GHAS) is required for:
+- SARIF upload to GitHub Security tab (Semgrep)
+- Dependency Review Action on PRs
+
+Without GHAS:
+- Semgrep findings are still displayed in workflow logs
+- Use Dependabot alerts (free) for dependency scanning
+- Workflows gracefully handle unavailability
 
 ### Issue Templates
 **Create new SOMAS project:**
