@@ -55,8 +55,6 @@ jobs:
             --config="p/command-injection" \
             --sarif \
             --output=semgrep.sarif \
-            --json \
-            --output=semgrep.json \
             --verbose
         continue-on-error: true
         
