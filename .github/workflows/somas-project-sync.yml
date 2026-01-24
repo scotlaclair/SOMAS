@@ -34,12 +34,12 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Create GitHub Project
-        if: github.event.inputs.action == 'create' || github.event.action == 'create'
+        if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'create') || (github.event_name == 'repository_dispatch' && github.event.client_payload.action == 'create')
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.SOMAS_PAT }}
           script: |
-            const projectId = '${{ github.event.inputs.project_id }}' || context.payload.client_payload.project_id;
+            const projectId = '${{ github.event.inputs.project_id || github.event.client_payload.project_id }}';
             
             // Validate project_id to prevent path traversal
             if (!projectId || !/^[a-zA-Z0-9_-]+$/.test(projectId)) {
@@ -194,12 +194,14 @@ jobs:
             }
       
       - name: Update Project Status
-        if: github.event.inputs.action == 'update' || github.event.action == 'update'
+        if: >
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'update') ||
+          (github.event_name == 'repository_dispatch' && github.event.client_payload.action == 'update')
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.SOMAS_PAT }}
           script: |
-            const projectId = '${{ github.event.inputs.project_id }}';
+            const projectId = '${{ github.event.inputs.project_id || github.event.client_payload.project_id }}';
             const stage = context.payload.client_payload?.stage || 'unknown';
             
             console.log(`Updating project ${projectId} to stage: ${stage}`);
@@ -232,13 +234,13 @@ jobs:
             console.log(`Updated ${issues.length} issues with stage label: ${stageLabel}`);
       
       - name: Close Project
-        if: github.event.inputs.action == 'close' || github.event.action == 'close'
+        if: (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'close') || (github.event_name == 'repository_dispatch' && github.event.client_payload.action == 'close')
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.SOMAS_PAT }}
           script: |
             const fs = require('fs');
-            const projectId = '${{ github.event.inputs.project_id }}';
+            const projectId = '${{ github.event.inputs.project_id || github.event.client_payload.project_id }}';
             
             // Load project metadata
             const metaPath = `.somas/projects/${projectId}/project_metadata.json`;
