@@ -1,0 +1,17 @@
+# Issue Template Configuration
+# Configures the issue creation experience for SOMAS
+
+blank_issues_enabled: false
+
+contact_links:
+  - name: 📚 SOMAS Documentation
+    url: https://github.com/scotlaclair/SOMAS/blob/main/docs/somas/README.md
+    about: Read the SOMAS documentation for guidance on using the autonomous pipeline
+  
+  - name: 💬 Ask a Question
+    url: https://github.com/scotlaclair/SOMAS/discussions
+    about: Ask questions and discuss ideas with the community
+  
+  - name: 🐛 Report a Bug
+    url: https://github.com/scotlaclair/SOMAS/issues/new?template=bug_report.md
+    about: Report bugs or issues with the SOMAS pipeline

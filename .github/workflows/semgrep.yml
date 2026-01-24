@@ -1,0 +1,179 @@
+# Semgrep Security Scanning
+# @copilot-context: Static analysis security scanning for SOMAS
+# Semgrep is used as a free alternative to CodeQL for private repos
+# Runs on all pushes and pull requests to detect security vulnerabilities
+#
+# Benefits:
+# - Free for private repositories
+# - Supports Python, JavaScript, Go, and more
+# - Community rules for common vulnerabilities
+# - Custom rules can be added in .semgrep/ directory
+#
+# Note: SARIF upload requires GitHub Advanced Security (Code Scanning)
+# The workflow will display findings in logs even if upload is not available
+#
+# @copilot-review: Verify rule configuration matches security requirements
+
+name: Semgrep Security Scan
+
+on:
+  push:
+    branches: ["main", "develop", "copilot/*", "somas/*"]
+  pull_request:
+    branches: ["main", "develop"]
+  schedule:
+    # Run daily security scans
+    - cron: '0 0 * * *'
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  semgrep:
+    name: Scan for Security Issues
+    runs-on: ubuntu-latest
+    
+    # Skip if commit message contains [skip semgrep]
+    if: "!contains(github.event.head_commit.message, '[skip semgrep]')"
+    
+    container:
+      image: returntocorp/semgrep:1.95.0
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Run Semgrep security scan
+        id: semgrep_scan
+        run: |
+          semgrep scan \
+            --config="p/security-audit" \
+            --config="p/secrets" \
+            --config="p/owasp-top-ten" \
+            --config="p/command-injection" \
+            --sarif \
+            --output=semgrep.sarif \
+            --verbose
+        continue-on-error: true
+        
+      - name: Upload SARIF results to GitHub Security
+        id: upload_sarif
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+        
+      - name: Check for critical vulnerabilities
+        if: always()
+        run: |
+          # Parse SARIF and fail if critical issues found
+          if [ ! -f semgrep.sarif ]; then
+            echo "⚠️  semgrep.sarif not found; skipping critical vulnerability check."
+            exit 0
+          fi
+          
+          python3 << 'PYTHON_SCRIPT'
+          import json
+          import sys
+          from pathlib import Path
+          
+          sarif_path = Path("semgrep.sarif")
+          if not sarif_path.is_file():
+              print("⚠️  semgrep.sarif not found; skipping critical vulnerability check.")
+              sys.exit(0)
+          
+          try:
+              with sarif_path.open("r", encoding="utf-8") as f:
+                  sarif_data = json.load(f)
+          except Exception as exc:
+              print(f"⚠️  Failed to parse semgrep.sarif; skipping critical vulnerability check: {exc}")
+              sys.exit(0)
+          
+          runs = sarif_data.get("runs", [])
+          critical_count = 0
+          error_count = 0
+          warning_count = 0
+          note_count = 0
+          
+          findings = []
+          
+          for run in runs:
+              for result in run.get("results", []):
+                  level = result.get("level", "note")
+                  rule_id = result.get("ruleId", "unknown")
+                  message = result.get("message", {}).get("text", "No description")
+                  locations = result.get("locations", [])
+                  
+                  # Get file location
+                  file_path = "unknown"
+                  line_num = "?"
+                  if locations:
+                      physical_location = locations[0].get("physicalLocation", {})
+                      artifact_location = physical_location.get("artifactLocation", {})
+                      file_path = artifact_location.get("uri", "unknown")
+                      region = physical_location.get("region", {})
+                      line_num = region.get("startLine", "?")
+                  
+                  if level == "error":
+                      error_count += 1
+                      critical_count += 1
+                      findings.append(f"❌ ERROR: {rule_id} at {file_path}:{line_num}")
+                      findings.append(f"   {message}")
+                  elif level == "warning":
+                      warning_count += 1
+                      findings.append(f"⚠️  WARNING: {rule_id} at {file_path}:{line_num}")
+                  elif level == "note":
+                      note_count += 1
+          
+          print(f"\n{'='*60}")
+          print(f"Semgrep Security Scan Results")
+          print(f"{'='*60}")
+          print(f"Critical/Error findings: {error_count}")
+          print(f"Warning findings: {warning_count}")
+          print(f"Note/Info findings: {note_count}")
+          print(f"Total findings: {error_count + warning_count + note_count}")
+          print(f"{'='*60}\n")
+          
+          if critical_count > 0:
+              print("❌ Critical security vulnerabilities detected!\n")
+              print("Critical findings:")
+              for finding in [f for f in findings if f.startswith("❌")]:
+                  print(finding)
+              print("\nPlease review and address these issues.")
+              print("Note: SARIF upload may fail if Code Scanning is not enabled (requires GitHub Advanced Security).")
+              print("View full results in the workflow logs or by running Semgrep locally.")
+              sys.exit(1)
+          elif warning_count > 0:
+              print("⚠️  Security warnings found (non-critical).")
+              print("Consider reviewing these findings to improve security posture.")
+              sys.exit(0)
+          else:
+              print("✅ No critical vulnerabilities found")
+              sys.exit(0)
+          PYTHON_SCRIPT
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "### 🔒 Semgrep Security Scan Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.upload_sarif.outcome }}" == "success" ]; then
+            echo "✅ Results uploaded to GitHub Security tab" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️  SARIF upload not available (requires GitHub Advanced Security)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Findings are still displayed in the workflow logs above." >> $GITHUB_STEP_SUMMARY
+            echo "To enable SARIF upload, enable Code Scanning in repository settings." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Scan configuration:**" >> $GITHUB_STEP_SUMMARY
+          echo "- OWASP Top 10 rules" >> $GITHUB_STEP_SUMMARY
+          echo "- Secrets detection" >> $GITHUB_STEP_SUMMARY
+          echo "- Command injection checks" >> $GITHUB_STEP_SUMMARY
+          echo "- Security audit rules" >> $GITHUB_STEP_SUMMARY

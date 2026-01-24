@@ -64,6 +64,33 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Project Complexity
+      description: Estimate the complexity of this project to help SOMAS optimize resource allocation
+      options:
+        - Simple (< 500 lines, single file)
+        - Moderate (500-2000 lines, few files)
+        - Complex (2000-5000 lines, multiple modules)
+        - Large (5000+ lines, complex architecture)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How urgent is this project?
+      options:
+        - Low (Nice to have, no deadline)
+        - Medium (Important, flexible timeline)
+        - High (Important, time-sensitive)
+        - Critical (Urgent, blocking other work)
+      default: "Medium (Important, flexible timeline)"
+    validations:
+      required: true
+
   - type: input
     id: programming_language
     attributes:
