@@ -48,7 +48,6 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
-  projects: write
 
 jobs:
   initialize-pipeline:
@@ -164,21 +163,25 @@ jobs:
             const projectId = process.env.PROJECT_ID;
             
             // Create issue comment to invoke agent
+            const body = [
+              '## 🎯 Stage 1: Ideation Started',
+              '',
+              '**Agent:** @somas-planner',
+              `**Project ID:** ${projectId}`,
+              `**Output:** \`.somas/projects/${projectId}/artifacts/initial_plan.md\``,
+              '',
+              'Please analyze the requirements in this issue and create an initial plan, extracting:',
+              '- Core requirements and objectives',
+              '- Project scope and constraints',
+              '- High-level implementation approach',
+              '- Key dependencies and risks'
+            ].join('\n');
+            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
-              body: `## 🎯 Stage 1: Ideation Started
-
-**Agent:** @somas-planner
-**Project ID:** ${projectId}
-**Output:** \`.somas/projects/${projectId}/artifacts/initial_plan.md\`
-
-Please analyze the requirements in this issue and create an initial plan, extracting:
-- Core requirements and objectives
-- Project scope and constraints  
-- High-level implementation approach
-- Key dependencies and risks`
+              body: body
             });
       
       - name: Wait for Artifact
@@ -233,35 +236,39 @@ Please analyze the requirements in this issue and create an initial plan, extrac
             const projectId = process.env.PROJECT_ID;
             
             // Create issue comment to invoke agent
+            const body = [
+              '## 📋 Stage 2: Specification Started',
+              '',
+              '**Agent:** @somas-specifier',
+              `**Project ID:** ${projectId}`,
+              `**Input:** \`.somas/projects/${projectId}/artifacts/initial_plan.md\``,
+              `**Output:** \`.somas/projects/${projectId}/artifacts/SPEC.md\``,
+              '',
+              'Create a complete specification document based on the initial plan and issue requirements.',
+              '',
+              'The specification must include:',
+              '- Executive Summary',
+              '- Functional Requirements (enumerated, testable)',
+              '- Non-Functional Requirements (measurable)',
+              '- User Stories with Acceptance Criteria',
+              '- Data Dictionary',
+              '- API Contracts (draft)',
+              '- Security Requirements',
+              '- Integration Requirements',
+              '- Glossary',
+              '',
+              '**Quality Gates:**',
+              '- All requirements have unique IDs',
+              '- All requirements are testable',
+              '- No ambiguous language',
+              '- All open questions resolved'
+            ].join('\n');
+            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
-              body: `## 📋 Stage 2: Specification Started
-
-**Agent:** @somas-specifier
-**Project ID:** ${projectId}
-**Input:** \`.somas/projects/${projectId}/artifacts/initial_plan.md\`
-**Output:** \`.somas/projects/${projectId}/artifacts/SPEC.md\`
-
-Create a complete specification document based on the initial plan and issue requirements.
-
-The specification must include:
-- Executive Summary
-- Functional Requirements (enumerated, testable)
-- Non-Functional Requirements (measurable)
-- User Stories with Acceptance Criteria
-- Data Dictionary
-- API Contracts (draft)
-- Security Requirements
-- Integration Requirements
-- Glossary
-
-**Quality Gates:**
-- All requirements have unique IDs
-- All requirements are testable
-- No ambiguous language
-- All open questions resolved`
+              body: body
             });
       
       - name: Wait for Artifact
@@ -333,21 +340,23 @@ The specification must include:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
-              body: `## 🔬 Stage 3: Simulation Started
-
-**Agent:** @somas-simulator
-**Project ID:** ${projectId}
-**Input:** \`.somas/projects/${projectId}/artifacts/SPEC.md\`
-**Output:** \`.somas/projects/${projectId}/artifacts/execution_plan.yml\`
-
-Run Monte Carlo simulation to optimize task execution sequence.
-
-Perform:
-- 1000 Monte Carlo iterations
-- Identify optimal task sequence
-- Determine critical path
-- Maximize parallelization opportunities
-- Estimate timeline with 90% confidence interval`
+              body: [
+                '## 🔬 Stage 3: Simulation Started',
+                '',
+                '**Agent:** @somas-simulator',
+                `**Project ID:** ${projectId}`,
+                `**Input:** \`.somas/projects/${projectId}/artifacts/SPEC.md\``,
+                `**Output:** \`.somas/projects/${projectId}/artifacts/execution_plan.yml\``,
+                '',
+                'Run Monte Carlo simulation to optimize task execution sequence.',
+                '',
+                'Perform:',
+                '- 1000 Monte Carlo iterations',
+                '- Identify optimal task sequence',
+                '- Determine critical path',
+                '- Maximize parallelization opportunities',
+                '- Estimate timeline with 90% confidence interval'
+              ].join('\n')
             });
       
       - name: Wait for Artifact
@@ -477,25 +486,27 @@ Perform:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
-              body: `## 🏗️ Stage 4: Architecture Started
-
-**Agent:** @somas-architect
-**Project ID:** ${projectId}
-**Inputs:** 
-- \`.somas/projects/${projectId}/artifacts/SPEC.md\`
-- \`.somas/projects/${projectId}/artifacts/execution_plan.yml\`
-
-**Outputs:** 
-- \`.somas/projects/${projectId}/artifacts/ARCHITECTURE.md\`
-- \`.somas/projects/${projectId}/artifacts/api_specs.yml\`
-- \`.somas/projects/${projectId}/artifacts/data_models.yml\`
-
-Design the system architecture based on specification and execution plan:
-- System components and their interactions
-- API specifications and contracts
-- Data models and schemas
-- Technology stack choices
-- Architecture Decision Records (ADRs)`
+              body: [
+                '## 🏗️ Stage 4: Architecture Started',
+                '',
+                '**Agent:** @somas-architect',
+                `**Project ID:** ${projectId}`,
+                '**Inputs:**',
+                `- \`.somas/projects/${projectId}/artifacts/SPEC.md\``,
+                `- \`.somas/projects/${projectId}/artifacts/execution_plan.yml\``,
+                '',
+                '**Outputs:**',
+                `- \`.somas/projects/${projectId}/artifacts/ARCHITECTURE.md\``,
+                `- \`.somas/projects/${projectId}/artifacts/api_specs.yml\``,
+                `- \`.somas/projects/${projectId}/artifacts/data_models.yml\``,
+                '',
+                'Design the system architecture based on specification and execution plan:',
+                '- System components and their interactions',
+                '- API specifications and contracts',
+                '- Data models and schemas',
+                '- Technology stack choices',
+                '- Architecture Decision Records (ADRs)'
+              ].join('\n')
             });
       
       - name: Wait for Artifact
@@ -807,21 +818,23 @@ Design the system architecture based on specification and execution plan:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `## ✅ Stage 6: Validation Attempt ${attempt}/${maxRetries}
-
-**Agents:**
-- **@somas-tester** - Validate implementation against SPEC.md and verify test coverage
-- **@somas-reviewer** - Perform comprehensive code quality review  
-- **@somas-security** - Run security vulnerability scan and validate secure coding practices
-
-**Project ID:** ${projectId}
-
-**Quality Gates:**
-- All tests passing
-- Code coverage > 80%
-- No critical security vulnerabilities
-- All acceptance criteria met
-- Performance requirements satisfied`
+                body: [
+                  `## ✅ Stage 6: Validation Attempt ${attempt}/${maxRetries}`,
+                  '',
+                  '**Agents:**',
+                  '- **@somas-tester** - Validate implementation against SPEC.md and verify test coverage',
+                  '- **@somas-reviewer** - Perform comprehensive code quality review',
+                  '- **@somas-security** - Run security vulnerability scan and validate secure coding practices',
+                  '',
+                  `**Project ID:** ${projectId}`,
+                  '',
+                  '**Quality Gates:**',
+                  '- All tests passing',
+                  '- Code coverage > 80%',
+                  '- No critical security vulnerabilities',
+                  '- All acceptance criteria met',
+                  '- Performance requirements satisfied'
+                ].join('\n')
               });
               
               // Wait for validation results (simplified - in real implementation would poll for artifact)
@@ -842,14 +855,16 @@ Design the system architecture based on specification and execution plan:
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: issueNumber,
-                  body: `## 🔧 Auto-Retry: Debugging Validation Failures
-
-**Agent:** @somas-debugger
-**Task:** Investigate validation failures and fix issues
-
-**Attempt:** ${attempt}/${maxRetries}
-**Project ID:** ${projectId}
-**Next:** Validation will re-run after fixes are applied`
+                  body: [
+                    '## 🔧 Auto-Retry: Debugging Validation Failures',
+                    '',
+                    '**Agent:** @somas-debugger',
+                    '**Task:** Investigate validation failures and fix issues',
+                    '',
+                    `**Attempt:** ${attempt}/${maxRetries}`,
+                    `**Project ID:** ${projectId}`,
+                    '**Next:** Validation will re-run after fixes are applied'
+                  ].join('\n')
                 });
                 
                 // Wait for debugger to fix issues
@@ -863,14 +878,16 @@ Design the system architecture based on specification and execution plan:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `## ⚠️ Validation Failed After ${maxRetries} Attempts
-
-**Notification:** @scotlaclair Human intervention required.
-
-**Project ID:** ${projectId}
-**Status:** Validation failures could not be automatically resolved
-
-Please review the validation reports and fix issues manually, then re-run the validation stage.`
+                body: [
+                  `## ⚠️ Validation Failed After ${maxRetries} Attempts`,
+                  '',
+                  '**Notification:** @scotlaclair Human intervention required.',
+                  '',
+                  `**Project ID:** ${projectId}`,
+                  '**Status:** Validation failures could not be automatically resolved',
+                  '',
+                  'Please review the validation reports and fix issues manually, then re-run the validation stage.'
+                ].join('\n')
               });
               
               core.setFailed(`Validation failed after ${maxRetries} attempts`);
@@ -879,12 +896,14 @@ Please review the validation reports and fix issues manually, then re-run the va
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `## ✅ Stage 6: Validation Passed
-
-All quality gates met on attempt ${attempt}/${maxRetries}
-
-**Project ID:** ${projectId}
-**Status:** Ready for staging`
+                body: [
+                  '## ✅ Stage 6: Validation Passed',
+                  '',
+                  `All quality gates met on attempt ${attempt}/${maxRetries}`,
+                  '',
+                  `**Project ID:** ${projectId}`,
+                  '**Status:** Ready for staging'
+                ].join('\n')
               });
             }
   
@@ -920,14 +939,16 @@ All quality gates met on attempt ${attempt}/${maxRetries}
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issueNumber,
-              body: `## 📝 Stage 7: Staging Started
-
-**Agents:**
-- **@somas-merger** - Prepare for merge and resolve any conflicts
-- **@somas-documenter** - Finalize deployment documentation
-
-**Project ID:** ${projectId}
-**Status:** Preparing pull request for human review`
+              body: [
+                '## 📝 Stage 7: Staging Started',
+                '',
+                '**Agents:**',
+                '- **@somas-merger** - Prepare for merge and resolve any conflicts',
+                '- **@somas-documenter** - Finalize deployment documentation',
+                '',
+                `**Project ID:** ${projectId}`,
+                '**Status:** Preparing pull request for human review'
+              ].join('\n')
             });
       
       - name: Create Draft PR
@@ -951,46 +972,48 @@ All quality gates met on attempt ${attempt}/${maxRetries}
                 title: `[SOMAS] ${issueTitle}`,
                 head: `somas/project-${issueNumber}`,
                 base: 'main',
-                body: `## 🤖 SOMAS Autonomous Development Complete
-                
-This PR was generated autonomously by SOMAS for issue #${issueNumber}.
-
-### 📊 Pipeline Summary
-**Project ID:** ${projectId}
-**Issue:** #${issueNumber}
-
-### 📋 Artifacts Generated
-- ✅ **SPEC.md** - Complete specification with all requirements
-- ✅ **ARCHITECTURE.md** - System design and component definitions
-- ✅ **execution_plan.yml** - Optimized task sequence from Monte Carlo simulation
-- ✅ **Source code** with comprehensive implementation
-- ✅ **Test suite** with 80%+ coverage
-- ✅ **Documentation** - API references and guides
-
-### ✅ Quality Gates Passed
-- ✅ All tests passing
-- ✅ Code coverage > 80%
-- ✅ Code review completed (automated)
-- ✅ Security scan clean - no critical vulnerabilities
-- ✅ Documentation complete
-- ✅ All acceptance criteria met
-
-### 🔍 Validation
-All 6 autonomous stages completed successfully:
-1. ✅ Ideation - Requirements analyzed and planned
-2. ✅ Specification - Complete SPEC.md generated
-3. ✅ Simulation - Optimal task sequence determined
-4. ✅ Architecture - System design completed
-5. ✅ Implementation - Code and tests generated
-6. ✅ Validation - Quality gates verified
-
-### 👤 Human Action Required
-**Review:** @scotlaclair Please review the generated artifacts and code, then approve and merge when ready.
-
-This is the **ONLY** stage requiring human intervention in the entire pipeline.
-
----
-*Generated by SOMAS v1.0.0 - Autonomous AI Development Pipeline*`,
+                body: [
+                  '## 🤖 SOMAS Autonomous Development Complete',
+                  '',
+                  `This PR was generated autonomously by SOMAS for issue #${issueNumber}.`,
+                  '',
+                  '### 📊 Pipeline Summary',
+                  `**Project ID:** ${projectId}`,
+                  `**Issue:** #${issueNumber}`,
+                  '',
+                  '### 📋 Artifacts Generated',
+                  '- ✅ **SPEC.md** - Complete specification with all requirements',
+                  '- ✅ **ARCHITECTURE.md** - System design and component definitions',
+                  '- ✅ **execution_plan.yml** - Optimized task sequence from Monte Carlo simulation',
+                  '- ✅ **Source code** with comprehensive implementation',
+                  '- ✅ **Test suite** with 80%+ coverage',
+                  '- ✅ **Documentation** - API references and guides',
+                  '',
+                  '### ✅ Quality Gates Passed',
+                  '- ✅ All tests passing',
+                  '- ✅ Code coverage > 80%',
+                  '- ✅ Code review completed (automated)',
+                  '- ✅ Security scan clean - no critical vulnerabilities',
+                  '- ✅ Documentation complete',
+                  '- ✅ All acceptance criteria met',
+                  '',
+                  '### 🔍 Validation',
+                  'All 6 autonomous stages completed successfully:',
+                  '1. ✅ Ideation - Requirements analyzed and planned',
+                  '2. ✅ Specification - Complete SPEC.md generated',
+                  '3. ✅ Simulation - Optimal task sequence determined',
+                  '4. ✅ Architecture - System design completed',
+                  '5. ✅ Implementation - Code and tests generated',
+                  '6. ✅ Validation - Quality gates verified',
+                  '',
+                  '### 👤 Human Action Required',
+                  '**Review:** @scotlaclair Please review the generated artifacts and code, then approve and merge when ready.',
+                  '',
+                  'This is the **ONLY** stage requiring human intervention in the entire pipeline.',
+                  '',
+                  '---',
+                  '*Generated by SOMAS v1.0.0 - Autonomous AI Development Pipeline*'
+                ].join('\n'),
                 draft: false
               });
               
@@ -1010,17 +1033,19 @@ This is the **ONLY** stage requiring human intervention in the entire pipeline.
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `## 🎉 SOMAS Pipeline Complete!
-
-Pull request created: #${pr.data.number}
-
-All 7 stages completed autonomously. The PR is ready for your review.
-
-**Next Steps:**
-1. Review the PR artifacts and code
-2. Approve and merge when ready
-
-**Notification:** @scotlaclair`
+                body: [
+                  '## 🎉 SOMAS Pipeline Complete!',
+                  '',
+                  `Pull request created: #${pr.data.number}`,
+                  '',
+                  'All 7 stages completed autonomously. The PR is ready for your review.',
+                  '',
+                  '**Next Steps:**',
+                  '1. Review the PR artifacts and code',
+                  '2. Approve and merge when ready',
+                  '',
+                  '**Notification:** @scotlaclair'
+                ].join('\n')
               });
               
             } catch (error) {
@@ -1031,11 +1056,13 @@ All 7 stages completed autonomously. The PR is ready for your review.
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `## ℹ️ PR Creation Pending
-
-The pipeline completed but PR creation is pending (branch may need to be created).
-
-**Notification:** @scotlaclair Please check the project artifacts at \`.somas/projects/${projectId}/\``
+                body: [
+                  '## ℹ️ PR Creation Pending',
+                  '',
+                  'The pipeline completed but PR creation is pending (branch may need to be created).',
+                  '',
+                  `**Notification:** @scotlaclair Please check the project artifacts at \`.somas/projects/${projectId}/\``
+                ].join('\n')
               });
             }
       
