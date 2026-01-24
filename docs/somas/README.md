@@ -12,13 +12,14 @@ Complete technical documentation for the autonomous AI development pipeline.
 2. [How SOMAS Works](#how-somas-works)
 3. [Pipeline Stages](#pipeline-stages)
 4. [Agent System](#agent-system)
-5. [Configuration](#configuration)
-6. [Autonomy & Self-Healing](#autonomy--self-healing)
-7. [Quality Assurance](#quality-assurance)
-8. [Security](#security)
-9. [Optimization](#optimization)
-10. [Advanced Usage](#advanced-usage)
-11. [Troubleshooting](#troubleshooting)
+5. [Triage System](#triage-system)
+6. [Configuration](#configuration)
+7. [Autonomy & Self-Healing](#autonomy--self-healing)
+8. [Quality Assurance](#quality-assurance)
+9. [Security](#security)
+10. [Optimization](#optimization)
+11. [Advanced Usage](#advanced-usage)
+12. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -271,12 +272,13 @@ Human approves and merges
 
 ## Agent System
 
-### 12 Specialized Agents
+### 13 Specialized Agents
 
-SOMAS uses 12 specialized AI agents, each powered by the optimal 2026 Frontier Tier model for their task:
+SOMAS uses 13 specialized AI agents, each powered by the optimal AI model for their task:
 
 | Agent | Model | Stage(s) | Responsibilities |
 |-------|-------|----------|------------------|
+| **Triage** | Grok Code Fast 1 | Entry Point | Request classification, routing, escalation |
 | **Orchestrator** | Grok Code Fast 1 | All | Pipeline coordination, state management, agent handoff |
 | **Planner** | GPT-5.2 | Ideation | Requirements analysis, roadmap creation |
 | **Specifier** | GPT-5.2 | Specification | Complete specification generation |
@@ -317,6 +319,241 @@ Agents respond by:
 2. Performing their specialized task
 3. Generating output artifacts
 4. Committing results to the repository
+
+---
+
+## Triage System
+
+### Overview
+
+The Triage System provides an external entry point for change requests, enhancements, questions, and bugs without disrupting the autonomous pipeline. Instead of requiring a full 7-stage pipeline restart for minor changes, the triage agent intelligently routes requests to the appropriate stage.
+
+### Why Triage?
+
+**Problems Solved:**
+- ❌ Previously: All changes required full pipeline restart
+- ❌ Previously: No way to inject changes into in-progress projects
+- ❌ Previously: Questions triggered unnecessary pipeline execution
+- ❌ Previously: Minor bugs required full validation cycle
+
+**With Triage:**
+- ✅ Changes injected at the right stage (planner, architect, or implementer)
+- ✅ Questions routed to advisor without pipeline execution
+- ✅ Bugs routed directly to debugger or tester
+- ✅ Enhancements prioritized and queued appropriately
+
+### Issue Templates
+
+Four specialized issue templates handle different request types:
+
+#### 1. Change Request (`somas-change.yml`)
+**Label:** `somas:change`
+
+Use when you need to modify an existing in-progress project:
+- Scope additions or reductions
+- Requirement modifications
+- Constraint changes
+- Priority adjustments
+
+**Example:** "Add user authentication to the API"
+
+#### 2. Enhancement Suggestion (`somas-enhance.yml`)
+**Label:** `somas:enhance`
+
+Use for new feature ideas or improvements:
+- Feature ideas
+- Performance improvements
+- Optimizations
+- Documentation enhancements
+
+**Prioritization:**
+- **Critical/High**: Routed to planner immediately
+- **Medium/Low**: Added to backlog
+- **Future**: Tagged for later consideration
+
+**Example:** "Add caching layer to improve API performance"
+
+#### 3. Question/Research (`somas-question.yml`)
+**Label:** `somas:question`
+
+Use for questions or research requests:
+- Technical questions
+- Process clarifications
+- Feasibility studies
+- Technology recommendations
+
+**Important:** Questions NEVER trigger pipeline execution. They are informational only.
+
+**Example:** "Should we use PostgreSQL or MongoDB for this project?"
+
+#### 4. Bug Report (`somas-bug.yml`)
+**Label:** `somas:bug`
+
+Use to report bugs in projects or SOMAS itself:
+- Implementation bugs
+- Test failures
+- Specification gaps
+- Documentation errors
+
+**Example:** "API returns HTTP 500 instead of 429 for rate limiting"
+
+### Triage Agent
+
+**Agent:** Triage (Grok Code Fast 1)  
+**Purpose:** Fast classification and routing of incoming requests  
+**Configuration:** `.somas/agents/triage.yml`  
+**Instructions:** `.github/agents/somas-triage.md`
+
+#### Deterministic Routing Criteria
+
+The triage agent uses **deterministic criteria** (not heuristics) to classify and route requests:
+
+**Route to PLANNER** when:
+- ✅ Adds new functional requirements
+- ✅ Removes or modifies existing requirements
+- ✅ Changes project scope by >10%
+- ✅ Introduces new dependencies
+- ✅ Modifies acceptance criteria
+
+**Route to ARCHITECT** when:
+- ✅ Changes component interactions without new requirements
+- ✅ Technology stack modification
+- ✅ API contract changes within existing scope
+- ✅ Database schema changes
+
+**Route to IMPLEMENTER** when:
+- ✅ Bug fix within existing spec
+- ✅ Performance optimization without spec change
+- ✅ Code refactoring
+- ✅ Minor implementation improvements
+
+**Route to ADVISOR** when:
+- ✅ Feasibility questions
+- ✅ Technology recommendations
+- ✅ Best practice inquiries
+- ✅ Research into alternatives
+
+**DEFER to Backlog** when:
+- ✅ Enhancement for future version
+- ✅ Nice-to-have with no urgency
+- ✅ Dependent on other pending changes
+
+**REJECT** when:
+- ✅ Out of project scope entirely
+- ✅ Duplicate of existing issue
+- ✅ Conflicts with core requirements
+- ✅ Should use different issue template
+
+#### Confidence-Based Escalation
+
+The triage agent calculates confidence for each classification:
+
+- **High Confidence (>0.9)**: Proceed automatically
+- **Medium Confidence (0.8-0.9)**: Proceed with logging
+- **Low Confidence (<0.8)**: **Escalate to human** (@scotlaclair)
+
+This ensures that ambiguous or complex cases get human review instead of being misrouted.
+
+### Triage Workflow
+
+```
+Issue Created with triage label →
+  ↓
+Triage Agent Analyzes Request →
+  ↓
+Classification & Confidence Calculation →
+  ↓
+Routing Decision (deterministic) →
+  ↓
+Route to Target Agent OR Escalate to Human
+```
+
+### Change Injection Flow
+
+When triage routes a change request to planner:
+
+1. **Impact Analysis**: Planner analyzes impact on existing SPEC.md
+2. **Change Proposal**: Planner creates proposal with:
+   - Affected requirements (by ID)
+   - New/modified requirements
+   - Estimated simulation impact
+3. **Approval**: Auto-approved for small changes, human review for large changes
+4. **Update**: SPEC.md updated with new revision
+5. **Re-simulation**: Simulation re-run if scope changed significantly
+6. **Continue**: Pipeline continues from appropriate stage
+
+### How to Submit Requests
+
+1. **Go to Issues** → Click "New Issue"
+2. **Select Template**:
+   - 🔄 SOMAS Change Request
+   - ✨ SOMAS Enhancement Suggestion
+   - ❓ SOMAS Question/Research
+   - 🐛 SOMAS Bug Report
+3. **Fill in Details**: Provide all required information
+4. **Submit**: Issue is auto-labeled and triage agent is invoked
+5. **Wait for Triage**: Agent responds with classification and routing decision
+6. **Track Progress**: Follow the routed agent's work in issue comments
+
+### Triage Output Format
+
+The triage agent always responds with structured output:
+
+```yaml
+triage_result:
+  issue_number: 125
+  classification: change
+  confidence: 0.95
+  routing:
+    agent: planner
+    reason: "Adds new functional requirement (authentication) affecting multiple components"
+  linked_project: project-123
+  spec_impact: true
+  estimated_effort: large
+  action: route
+  next_steps: |
+    1. Planner will analyze impact on existing SPEC.md
+    2. Create change proposal with affected requirements
+    3. Update SPEC.md with authentication requirements
+    4. Re-run simulation to optimize task order
+    5. Architecture will incorporate auth design
+```
+
+### Design Principles
+
+1. **Deterministic over Heuristic**: Clear rules, not fuzzy matching
+2. **Minimal Intervention**: Route to latest possible stage (don't restart entire pipeline)
+3. **Spec as Truth**: All requirement changes flow through spec
+4. **Audit Trail**: All triage decisions logged with justification
+5. **Fail Safe**: When uncertain, escalate to human (don't guess)
+
+### When to Use Each Template
+
+| Scenario | Template | Will Trigger Pipeline? |
+|----------|----------|------------------------|
+| Add feature to existing project | Change Request | Yes (from appropriate stage) |
+| Suggest new feature idea | Enhancement | Depends on priority |
+| Ask "How does X work?" | Question | No (informational only) |
+| Report implementation bug | Bug Report | Yes (debugger stage only) |
+| Change architecture approach | Change Request | Yes (from architect stage) |
+| Optimize performance | Enhancement (medium priority) | No (deferred to backlog) |
+| Research technology options | Question | No (advisor responds) |
+| Fix broken tests | Bug Report | Yes (tester stage only) |
+
+### Benefits
+
+**For Users:**
+- ✅ Don't need to understand pipeline stages
+- ✅ Changes handled efficiently
+- ✅ Questions answered without overhead
+- ✅ Clear feedback on what happens next
+
+**For SOMAS:**
+- ✅ Minimal pipeline disruption
+- ✅ Deterministic routing reduces errors
+- ✅ Human escalation for edge cases
+- ✅ Audit trail for all decisions
+- ✅ Prevents unnecessary full pipeline runs
 
 ---
 

@@ -1,0 +1,107 @@
+name: ❓ SOMAS Question/Research
+description: Ask a question or request research about SOMAS or a project
+title: "[QUESTION] "
+labels: ["somas:question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ❓ SOMAS Question/Research Request
+        
+        Use this template to ask questions about SOMAS, request clarification, or
+        propose research into technical decisions.
+        
+        ### Question Types
+        
+        - **Technical** - Technical questions about implementation or architecture
+        - **Process** - Questions about SOMAS workflow or pipeline
+        - **Clarification** - Seeking clarification on requirements or specs
+        - **Research** - Request for feasibility study or technology evaluation
+        
+        ### Routing Logic
+        
+        - **Technical questions** → Routed to advisor agent
+        - **Process questions** → Escalated to human for response
+        - **Clarification** → Routed to specifier agent
+        - **Research requests** → Routed to advisor agent
+        
+        **Note**: Questions never trigger a full pipeline run.
+
+  - type: dropdown
+    id: question_type
+    attributes:
+      label: Question Type
+      description: What type of question or research is this?
+      options:
+        - technical
+        - process
+        - clarification
+        - research_needed
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What is your question or research request?
+      placeholder: |
+        Example: Is it feasible to use WebAssembly for the computation-intensive
+        parts of the simulator agent?
+        
+        The Monte Carlo simulation currently runs in Python, which is relatively
+        slow for large iteration counts. Would WASM provide meaningful speedup?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context (Optional)
+      description: Provide any relevant context or background
+      placeholder: |
+        Example: We're running 10,000 simulation iterations for complex projects,
+        which takes 5-10 minutes. We'd like to reduce this to under 1 minute if
+        possible without sacrificing accuracy.
+        
+        Relevant considerations:
+        - Need to maintain Python integration with rest of pipeline
+        - Should be easy to maintain and debug
+        - Performance gain should justify complexity
+
+  - type: input
+    id: related_project
+    attributes:
+      label: Related Project (Optional)
+      description: Is this question related to a specific project? (e.g., project-123)
+      placeholder: "project-123"
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      description: How urgent is getting an answer?
+      options:
+        - blocking (need answer to proceed)
+        - high (affects current work)
+        - medium (affects planning)
+        - low (nice to know)
+      default: medium
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## What happens next?
+        
+        1. **Triage**: @copilot somas-triage classifies your question
+        2. **Routing Decision**:
+           - **Technical/Research**: → Routed to @copilot somas-advisor
+           - **Process**: → Escalated to human (@scotlaclair)
+           - **Clarification**: → Routed to @copilot somas-specifier
+        3. **Research/Analysis**: Advisor agent investigates and provides answer
+        4. **Response**: You'll receive a detailed response in the comments
+        
+        **Important**: Questions do not trigger pipeline execution. They are
+        handled as informational requests only.

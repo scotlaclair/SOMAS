@@ -365,6 +365,12 @@ agents:
       fallback: "claude_sonnet_4_5"
       config_file: ".somas/agents/advisor.yml"
       description: "Strategic analysis and recommendations"
+      
+    triage:
+      provider: "grok_code_fast_1"  # Fast model for quick classification
+      fallback: "claude_haiku_4_5"
+      config_file: ".somas/agents/triage.yml"
+      description: "Request triage and routing with low latency"
 
 # Optimization Configuration
 

@@ -1,0 +1,117 @@
+name: ✨ SOMAS Enhancement Suggestion
+description: Suggest an enhancement or improvement to SOMAS or a project
+title: "[ENHANCE] "
+labels: ["somas:enhance"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ✨ SOMAS Enhancement Suggestion
+        
+        Use this template to suggest enhancements, improvements, or new features for SOMAS
+        or for a specific project. The triage agent will prioritize and route appropriately.
+        
+        ### Enhancement Types
+        
+        - **Feature Idea** - New functionality or capability
+        - **Improvement** - Enhancement to existing functionality
+        - **Optimization** - Performance or efficiency improvement
+        - **Documentation** - Documentation enhancements
+        
+        ### Routing Logic
+        
+        - **Critical/High priority** → Routed to planner for immediate consideration
+        - **Medium/Low priority** → Added to backlog for future implementation
+        - **Future consideration** → Deferred to backlog with future tag
+
+  - type: dropdown
+    id: enhancement_type
+    attributes:
+      label: Enhancement Type
+      description: What type of enhancement is this?
+      options:
+        - feature_idea
+        - improvement
+        - optimization
+        - documentation
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Enhancement Description
+      description: Describe your enhancement suggestion in detail
+      placeholder: |
+        Example: Add support for incremental specification updates.
+        
+        Currently, any change to requirements requires regenerating the entire
+        SPEC.md. This enhancement would allow the specifier agent to perform
+        targeted updates to specific sections while preserving the rest.
+        
+        Benefits:
+        - Faster change processing
+        - Reduced risk of losing context
+        - Better change tracking
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Suggestion
+      description: How urgent or important is this enhancement?
+      options:
+        - critical
+        - high
+        - medium
+        - low
+        - future
+      default: medium
+    validations:
+      required: true
+
+  - type: input
+    id: related_project
+    attributes:
+      label: Related Project (Optional)
+      description: Is this enhancement specific to a project? (e.g., project-123)
+      placeholder: "project-123"
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case (Optional)
+      description: Describe the use case or scenario where this would be valuable
+      placeholder: |
+        Example: When a client requests a minor feature addition mid-project,
+        we need to update the spec without losing all the existing context
+        and validated requirements.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions (Optional)
+      description: Have you considered any alternative approaches?
+      placeholder: |
+        Example: 
+        - Manual spec editing (error-prone, loses context)
+        - Full re-generation (wasteful, loses nuances)
+        - Version control of specs (tracking only, doesn't help generation)
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## What happens next?
+        
+        1. **Triage**: @copilot somas-triage analyzes your enhancement
+        2. **Priority Assessment**: Determines urgency and value
+        3. **Routing Decision**:
+           - **Critical/High**: → Routed to planner for immediate planning
+           - **Medium/Low**: → Added to backlog, reviewed in planning cycles
+           - **Future**: → Tagged for future consideration
+        4. **Human Review**: High-impact enhancements may be escalated for discussion
+        
+        You'll be notified of the triage decision and next steps.
