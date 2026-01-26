@@ -384,6 +384,8 @@ class StateManager:
                 status="success",
                 artifacts=artifacts
             )
+            # Reload state to get updated checkpoint
+            state = self.get_state(project_id)
         
         # Log transition
         self.log_transition(
@@ -438,7 +440,7 @@ class StateManager:
         state["status"] = "failed"
         state["updated_at"] = now
         
-        # Write state
+        # Write state (before dead letter)
         self._atomic_write_json(self._get_state_path(project_id), state)
         
         # Create dead letter if requested
@@ -452,6 +454,8 @@ class StateManager:
                 context=context,
                 attempt_number=retry_count + 1
             )
+            # Reload state to get updated metrics
+            state = self.get_state(project_id)
         
         # Log transition
         self.log_transition(
@@ -465,6 +469,8 @@ class StateManager:
                 "dead_letter_id": dead_letter_id
             }
         )
+        
+        return state
         
         return state
     
