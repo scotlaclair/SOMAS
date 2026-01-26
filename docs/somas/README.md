@@ -97,7 +97,7 @@ Each project maintains three persistent state files:
 
 - **`state.json`**: Complete pipeline state with checkpoints, labels, and metrics
 - **`dead_letters.json`**: Failed agent contexts for recovery and replay
-- **transitions.jsonl`**: Chronological audit log of all transitions
+- **`transitions.jsonl`**: Chronological audit log of all transitions
 
 ### Key Features
 

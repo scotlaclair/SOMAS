@@ -471,8 +471,6 @@ class StateManager:
         )
         
         return state
-        
-        return state
     
     def create_checkpoint(
         self,
