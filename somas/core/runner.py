@@ -23,6 +23,13 @@ import yaml
 import re
 from pathlib import Path
 from typing import List, Optional, Dict, Any
+from datetime import datetime
+
+# Import state manager
+try:
+    from .state_manager import StateManager
+except ImportError:
+    from state_manager import StateManager
 
 
 class SOMASRunner:
@@ -33,6 +40,7 @@ class SOMASRunner:
         self.config_path = Path(config_path)
         self.config = self._load_config()
         self.repo_root = Path.cwd()
+        self.state_manager = StateManager()
         
     def _load_config(self) -> Dict[str, Any]:
         """Load and parse SOMAS configuration."""
@@ -131,7 +139,8 @@ class SOMASRunner:
         task_desc: str,
         context_files: List[str],
         output_path: str,
-        project_id: Optional[str] = None
+        project_id: Optional[str] = None,
+        stage: Optional[str] = None
     ) -> int:
         """
         Execute a single task with the specified agent.
@@ -143,6 +152,7 @@ class SOMASRunner:
             context_files: List of file paths providing context
             output_path: Where to write the output
             project_id: Optional project identifier
+            stage: Optional pipeline stage name
             
         Returns:
             Exit code (0 for success, non-zero for failure)
@@ -172,15 +182,37 @@ class SOMASRunner:
             'provider': provider,
             'context_files': list(context.keys()),
             'output_path': output_path,
-            'project_id': project_id
+            'project_id': project_id,
+            'stage': stage
         }
         
         print(f"Executing task: {task_name}")
         print(f"Agent: {agent} (Provider: {provider})")
         print(f"Context files: {len(context)}")
         
+        # Log agent invocation to state if project_id provided
+        if project_id and stage:
+            try:
+                self.state_manager.log_transition(
+                    project_id=project_id,
+                    event_type="agent_invoked",
+                    stage=stage,
+                    agent=agent,
+                    metadata={
+                        "task_name": task_name,
+                        "task_description": task_desc,
+                        "provider": provider
+                    }
+                )
+            except Exception as e:
+                print(f"Warning: Could not log agent invocation: {e}", file=sys.stderr)
+        
         # TODO: Actual agent invocation would happen here
         # For now, create a placeholder output
+        start_time = datetime.utcnow()
+        success = False
+        error_info = None
+        
         try:
             # Ensure output directory exists
             output_dir = Path(output_path).parent
@@ -200,11 +232,69 @@ class SOMASRunner:
                 f.write("\n```\n")
             
             print(f"Task completed successfully. Output written to: {output_path}")
-            return 0
+            success = True
             
         except Exception as e:
             print(f"Error executing task: {e}", file=sys.stderr)
-            return 1
+            error_info = {
+                "type": type(e).__name__,
+                "message": str(e)
+            }
+        
+        # Log completion or failure to state if project_id provided
+        if project_id and stage:
+            try:
+                end_time = datetime.utcnow()
+                duration = (end_time - start_time).total_seconds()
+                
+                if success:
+                    self.state_manager.log_transition(
+                        project_id=project_id,
+                        event_type="agent_completed",
+                        stage=stage,
+                        agent=agent,
+                        metadata={
+                            "task_name": task_name,
+                            "output_path": output_path
+                        },
+                        metrics={"duration_seconds": duration},
+                        artifacts=[{"path": output_path, "action": "created"}]
+                    )
+                else:
+                    self.state_manager.log_transition(
+                        project_id=project_id,
+                        event_type="agent_failed",
+                        stage=stage,
+                        agent=agent,
+                        error=error_info,
+                        metadata={
+                            "task_name": task_name
+                        },
+                        metrics={"duration_seconds": duration}
+                    )
+                    
+                    # Create dead letter entry for failure
+                    self.state_manager.add_dead_letter(
+                        project_id=project_id,
+                        stage=stage,
+                        agent=agent,
+                        error=error_info,
+                        context={
+                            "task_name": task_name,
+                            "task_description": task_desc,
+                            "context_files": list(context.keys()),
+                            "output_path": output_path
+                        },
+                        request={
+                            "task": task_name,
+                            "parameters": task_metadata
+                        }
+                    )
+                    
+            except Exception as e:
+                print(f"Warning: Could not log task completion: {e}", file=sys.stderr)
+        
+        return 0 if success else 1
 
 
 def main():
@@ -266,6 +356,12 @@ Examples:
     )
     
     parser.add_argument(
+        '--stage',
+        required=False,
+        help='Optional pipeline stage name (e.g., "implementation")'
+    )
+    
+    parser.add_argument(
         '--config',
         default='.somas/config.yml',
         help='Path to SOMAS configuration file (default: .somas/config.yml)'
@@ -286,7 +382,8 @@ Examples:
         task_desc=args.task_desc,
         context_files=context_files,
         output_path=args.output_path,
-        project_id=args.project_id
+        project_id=args.project_id,
+        stage=args.stage
     )
     
     sys.exit(exit_code)

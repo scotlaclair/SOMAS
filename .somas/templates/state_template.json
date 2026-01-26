@@ -1,0 +1,58 @@
+{
+  "project_id": "[PROJECT-ID]",
+  "version": "1.0.0",
+  "created_at": "[ISO-8601-TIMESTAMP]",
+  "updated_at": "[ISO-8601-TIMESTAMP]",
+  "issue_number": 0,
+  "branch": "somas/[PROJECT-ID]",
+  "current_stage": "ideation",
+  "status": "initializing",
+  "stages": {
+    "ideation": {
+      "status": "pending",
+      "retry_count": 0
+    },
+    "specification": {
+      "status": "pending",
+      "retry_count": 0
+    },
+    "simulation": {
+      "status": "pending",
+      "retry_count": 0
+    },
+    "architecture": {
+      "status": "pending",
+      "retry_count": 0
+    },
+    "implementation": {
+      "status": "pending",
+      "retry_count": 0
+    },
+    "validation": {
+      "status": "pending",
+      "retry_count": 0
+    },
+    "staging": {
+      "status": "pending",
+      "retry_count": 0
+    }
+  },
+  "checkpoints": [],
+  "labels": {
+    "github": ["somas-project", "somas:dev"],
+    "custom": {}
+  },
+  "metrics": {
+    "total_duration_seconds": 0,
+    "stage_durations": {},
+    "retry_count": 0,
+    "agent_invocations": 0,
+    "artifacts_generated": 0,
+    "dead_letters": 0
+  },
+  "recovery_info": {
+    "last_successful_checkpoint": null,
+    "can_resume": true,
+    "resume_from_stage": "ideation"
+  }
+}
