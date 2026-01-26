@@ -130,10 +130,10 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issueNumber,
-              body: \`<!-- SOMAS_PR_CONTINUE -->
-              ## 🔗 PR Ready for Review: #\${prNumber}
+              body: `<!-- SOMAS_PR_CONTINUE -->
+              ## 🔗 PR Ready for Review: #${prNumber}
               
-              **PR:** [\${prTitle}](\${prUrl})
+              **PR:** [${prTitle}](${prUrl})
               **Stage:** Implementation Complete → Review Pipeline
               
               The implementation PR is ready. Starting the review pipeline.
@@ -142,11 +142,11 @@ jobs:
               
               @copilot somas-architect
               
-              Please review the architecture of PR #\${prNumber} for this change request.
+              Please review the architecture of PR #${prNumber} for this change request.
               
               **Review Context:**
-              - PR: #\${prNumber}
-              - Issue: #\${issueNumber}
+              - PR: #${prNumber}
+              - Issue: #${issueNumber}
               
               **Review Focus:**
               - Verify implementation aligns with SOMAS architecture patterns
@@ -154,7 +154,7 @@ jobs:
               - Validate integration points with existing pipeline
               - Confirm backward compatibility
               
-              **Required Output:** Architecture review with approval recommendation or specific changes needed.\`
+              **Required Output:** Architecture review with approval recommendation or specific changes needed.`
             });
             
             // Also add a label to track that review pipeline started
