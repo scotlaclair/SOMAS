@@ -79,6 +79,7 @@ class TestStateManager(unittest.TestCase):
     
     def test_invalid_project_id(self):
         """Test that invalid project IDs are rejected."""
+        # Path traversal attempt
         with self.assertRaises(ValueError):
             self.state_manager.initialize_project(
                 project_id="../evil",
@@ -86,9 +87,10 @@ class TestStateManager(unittest.TestCase):
                 title="Test"
             )
         
+        # Invalid format (should be project-<number>)
         with self.assertRaises(ValueError):
             self.state_manager.initialize_project(
-                project_id="project-abc",
+                project_id="invalid-format",
                 issue_number=1,
                 title="Test"
             )

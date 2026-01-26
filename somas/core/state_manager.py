@@ -581,6 +581,8 @@ class StateManager:
         now = datetime.utcnow().isoformat() + 'Z'
         
         # Get current state snapshot
+        state_snapshot = {}
+        labels = {}
         try:
             state = self.get_state(project_id)
             state_snapshot = {
@@ -589,9 +591,9 @@ class StateManager:
                 "metrics": state.get("metrics", {})
             }
             labels = state.get("labels", {})
-        except:
-            state_snapshot = {}
-            labels = {}
+        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+            # If state cannot be loaded, continue without snapshot
+            pass
         
         entry = {
             "id": dead_letter_id,
@@ -629,8 +631,10 @@ class StateManager:
             state = self.get_state(project_id)
             state["metrics"]["dead_letters"] = stats["total_entries"]
             self._atomic_write_json(self._get_state_path(project_id), state)
-        except:
-            pass
+        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+            # If state update fails, log but continue
+            import sys
+            print(f"Warning: Could not update state metrics: {e}", file=sys.stderr)
         
         # Log transition
         self.log_transition(
@@ -804,6 +808,10 @@ class StateManager:
         if agent:
             entries = [e for e in entries if e.get("agent") == agent]
         if unrecovered_only:
-            entries = [e for e in entries if e.get("recovery_result") != "success"]
+            # Filter to entries that haven't been successfully recovered
+            entries = [
+                e for e in entries 
+                if not e.get("recovery_attempted") or e.get("recovery_result") != "success"
+            ]
         
         return entries
