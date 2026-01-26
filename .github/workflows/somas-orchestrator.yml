@@ -138,9 +138,12 @@ jobs:
       
       - name: Create Project Structure
         id: init
+        env:
+          ISSUE: ${{ github.event.issue.number }}
+          TITLE: ${{ github.event.issue.title }}
         run: |
-          ISSUE="${{ github.event.issue.number }}"
-          TITLE="${{ github.event.issue.title }}"
+          ISSUE="$ISSUE"
+          TITLE="$TITLE"
           PROJECT_ID="project-${ISSUE}"
           BRANCH_NAME="somas/${PROJECT_ID}"
           
