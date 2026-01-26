@@ -16,6 +16,7 @@ Security:
 
 import json
 import uuid
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -593,7 +594,7 @@ class StateManager:
             labels = state.get("labels", {})
         except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
             # If state cannot be loaded, continue without snapshot
-            pass
+            print(f"Warning: Could not load state snapshot for dead letter: {e}", file=sys.stderr)
         
         entry = {
             "id": dead_letter_id,
@@ -633,7 +634,6 @@ class StateManager:
             self._atomic_write_json(self._get_state_path(project_id), state)
         except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
             # If state update fails, log but continue
-            import sys
             print(f"Warning: Could not update state metrics: {e}", file=sys.stderr)
         
         # Log transition
