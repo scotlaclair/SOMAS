@@ -266,16 +266,8 @@ class StateManager:
             state.update(updates)
             state["updated_at"] = datetime.utcnow().isoformat() + 'Z'
             
-            # Write directly (we already have the lock)
-            tmp_path = state_path.with_suffix('.tmp')
-            try:
-                with open(tmp_path, 'w') as f:
-                    json.dump(state, f, indent=2)
-                tmp_path.replace(state_path)
-            except Exception as e:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-                raise
+            # Perform atomic write while lock is held
+            self._atomic_write_json_unlocked(state_path, state)
         
         # Log transition if requested (outside the lock)
         if log_transition:
