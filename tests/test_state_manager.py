@@ -9,6 +9,7 @@ import unittest
 import json
 import tempfile
 import shutil
+import threading
 from pathlib import Path
 from datetime import datetime
 
@@ -239,6 +240,160 @@ class TestStateManager(unittest.TestCase):
         
         error_recorded = [t for t in transitions if t["event_type"] == "error_recorded"]
         self.assertEqual(len(error_recorded), 1)
+
+
+class TestConcurrentAccess(unittest.TestCase):
+    """Test cases for concurrent access to StateManager."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        # Create temporary directory for test projects
+        self.test_dir = tempfile.mkdtemp()
+        self.state_manager = StateManager(projects_dir=Path(self.test_dir))
+    
+    def tearDown(self):
+        """Clean up test fixtures."""
+        # Remove temporary directory
+        shutil.rmtree(self.test_dir)
+    
+    def test_parallel_checkpoint_writes(self):
+        """Verify no corruption under parallel checkpoint creation."""
+        project_id = "project-999"
+        self.state_manager.initialize_project(project_id, 999, "Concurrency Test")
+        
+        errors = []
+        checkpoints_created = []
+        lock = threading.Lock()
+        
+        def worker(worker_id):
+            try:
+                for i in range(10):
+                    chk_id = self.state_manager.create_checkpoint(
+                        project_id, 
+                        stage=f"test-{worker_id}", 
+                        status="success"
+                    )
+                    with lock:
+                        checkpoints_created.append(chk_id)
+            except Exception as e:
+                with lock:
+                    errors.append((worker_id, str(e)))
+        
+        # Spawn 5 concurrent workers
+        threads = [threading.Thread(target=worker, args=(i,)) for i in range(5)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        
+        # Assertions
+        self.assertEqual(len(errors), 0, f"Errors during concurrent access: {errors}")
+        
+        # Verify state integrity
+        state = self.state_manager.get_state(project_id)
+        self.assertEqual(len(state["checkpoints"]), 50, 
+                         f"Expected 50 checkpoints but got {len(state['checkpoints'])}")
+        
+        # Verify all checkpoint IDs are unique
+        self.assertEqual(len(set(checkpoints_created)), 50,
+                        "Not all checkpoint IDs are unique")
+    
+    def test_parallel_stage_transitions(self):
+        """Verify stage updates don't corrupt state under concurrency."""
+        project_id = "project-888"
+        self.state_manager.initialize_project(project_id, 888, "Stage Test")
+        
+        errors = []
+        lock = threading.Lock()
+        stage_started = threading.Event()
+        
+        def start_worker():
+            try:
+                self.state_manager.start_stage(project_id, "ideation", "planner")
+                stage_started.set()  # Signal that stage has started
+            except Exception as e:
+                with lock:
+                    errors.append(f"start_worker: {str(e)}")
+        
+        def complete_worker():
+            try:
+                # Wait for stage to be started before completing
+                if not stage_started.wait(timeout=5.0):
+                    with lock:
+                        errors.append("complete_worker: timeout waiting for stage to start")
+                    return
+                self.state_manager.complete_stage(project_id, "ideation", artifacts=["test.md"])
+            except Exception as e:
+                with lock:
+                    errors.append(f"complete_worker: {str(e)}")
+        
+        threads = [
+            threading.Thread(target=start_worker),
+            threading.Thread(target=complete_worker),
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        
+        # Should complete without corruption
+        self.assertEqual(len(errors), 0, f"Errors during concurrent access: {errors}")
+        
+        state = self.state_manager.get_state(project_id)
+        self.assertIn(state["stages"]["ideation"]["status"], ["in_progress", "completed"],
+                     f"Unexpected stage status: {state['stages']['ideation']['status']}")
+    
+    def test_parallel_dead_letter_writes(self):
+        """Verify dead letter writes don't corrupt under concurrency."""
+        project_id = "project-777"
+        self.state_manager.initialize_project(project_id, 777, "Dead Letter Test")
+        
+        errors = []
+        dead_letter_ids = []
+        lock = threading.Lock()
+        
+        def worker(worker_id):
+            try:
+                for i in range(5):
+                    dl_id = self.state_manager.add_dead_letter(
+                        project_id=project_id,
+                        stage=f"stage-{worker_id}",
+                        agent=f"agent-{worker_id}",
+                        error={
+                            "type": "TestError",
+                            "message": f"Test error {worker_id}-{i}"
+                        },
+                        context={"worker": worker_id, "iteration": i}
+                    )
+                    with lock:
+                        dead_letter_ids.append(dl_id)
+            except Exception as e:
+                with lock:
+                    errors.append((worker_id, str(e)))
+        
+        # Spawn 3 concurrent workers
+        threads = [threading.Thread(target=worker, args=(i,)) for i in range(3)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        
+        # Assertions
+        self.assertEqual(len(errors), 0, f"Errors during concurrent access: {errors}")
+        
+        # Verify dead letter integrity
+        dead_letters = self.state_manager.get_dead_letters(project_id)
+        self.assertEqual(len(dead_letters), 15,
+                        f"Expected 15 dead letters but got {len(dead_letters)}")
+        
+        # Verify all dead letter IDs are unique
+        self.assertEqual(len(set(dead_letter_ids)), 15,
+                        "Not all dead letter IDs are unique")
+        
+        # Verify state metrics updated correctly
+        state = self.state_manager.get_state(project_id)
+        self.assertEqual(state["metrics"]["dead_letters"], 15,
+                        f"Expected 15 dead letters in metrics but got {state['metrics']['dead_letters']}")
 
 
 if __name__ == '__main__':
