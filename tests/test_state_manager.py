@@ -560,5 +560,202 @@ class TestSecurityValidation(unittest.TestCase):
                 self.fail(f"Initialization failed with title '{title}': {e}")
 
 
+class TestFullPipelineStateTracking(unittest.TestCase):
+    """Test cases for full pipeline state tracking across all stages."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        # Create temporary directory for test projects
+        self.test_dir = tempfile.mkdtemp()
+        self.state_manager = StateManager(projects_dir=Path(self.test_dir))
+        self.project_id = "project-100"
+        
+    def tearDown(self):
+        """Clean up test fixtures."""
+        # Remove temporary directory
+        shutil.rmtree(self.test_dir)
+    
+    def test_all_stages_tracked_sequentially(self):
+        """Verify state tracking works for complete pipeline run."""
+        manager = self.state_manager
+        project_id = self.project_id
+        manager.initialize_project(project_id, 100, "Full Pipeline Test")
+        
+        stages = [
+            ("ideation", "planner", ["artifacts/initial_plan.md"]),
+            ("specification", "specifier", ["artifacts/SPEC.md"]),
+            ("simulation", "simulator", ["artifacts/execution_plan.yml"]),
+            ("architecture", "architect", ["artifacts/ARCHITECTURE.md"]),
+            ("implementation", "implementer", ["artifacts/tasks/"]),
+            ("validation", "tester", ["artifacts/test_results.json"]),
+            ("staging", "merger", ["artifacts/pr_summary.md"]),
+        ]
+        
+        for stage, agent, artifacts in stages:
+            # Start stage
+            manager.start_stage(project_id, stage, agent)
+            state = manager.get_state(project_id)
+            self.assertEqual(state["current_stage"], stage)
+            self.assertEqual(state["stages"][stage]["status"], "in_progress")
+            self.assertEqual(state["stages"][stage]["agent"], agent)
+            
+            # Complete stage
+            manager.complete_stage(project_id, stage, artifacts=artifacts, create_checkpoint=True)
+            state = manager.get_state(project_id)
+            self.assertEqual(state["stages"][stage]["status"], "completed")
+            self.assertEqual(state["stages"][stage]["artifacts"], artifacts)
+        
+        # Verify final state
+        final_state = manager.get_state(project_id)
+        
+        # All stages should be completed
+        for stage, _, _ in stages:
+            self.assertEqual(final_state["stages"][stage]["status"], "completed",
+                           f"Stage {stage} should be completed")
+        
+        # Should have checkpoints for each stage
+        self.assertEqual(len(final_state["checkpoints"]), len(stages),
+                        "Should have one checkpoint per stage")
+        
+        # Recovery info should point to last successful checkpoint
+        self.assertIsNotNone(final_state["recovery_info"]["last_successful_checkpoint"],
+                            "Should have a last successful checkpoint")
+        
+        # Verify all stage names are tracked
+        tracked_stages = set(final_state["stages"].keys())
+        expected_stages = {stage for stage, _, _ in stages}
+        self.assertEqual(tracked_stages, expected_stages,
+                        "All stages should be tracked in state")
+    
+    def test_stage_failure_creates_dead_letter(self):
+        """Verify failed stages create dead letter entries."""
+        manager = self.state_manager
+        project_id = "project-101"
+        manager.initialize_project(project_id, 101, "Failure Test")
+        
+        # Start and fail a stage
+        manager.start_stage(project_id, "simulation", "simulator")
+        manager.fail_stage(
+            project_id=project_id,
+            stage="simulation",
+            agent="simulator",
+            error={"type": "TimeoutError", "message": "Agent timed out"},
+            create_dead_letter=True
+        )
+        
+        # Verify dead letter was created
+        dead_letters = manager.get_dead_letters(project_id)
+        self.assertEqual(len(dead_letters), 1, "Should have one dead letter")
+        
+        dead_letter = dead_letters[0]
+        self.assertEqual(dead_letter["stage"], "simulation")
+        self.assertEqual(dead_letter["agent"], "simulator")
+        self.assertEqual(dead_letter["error"]["type"], "TimeoutError")
+        self.assertEqual(dead_letter["error"]["message"], "Agent timed out")
+        
+        # Verify state reflects failure
+        state = manager.get_state(project_id)
+        self.assertEqual(state["stages"]["simulation"]["status"], "failed")
+        self.assertEqual(state["status"], "failed")
+        self.assertEqual(state["metrics"]["dead_letters"], 1)
+    
+    def test_transitions_logged_for_all_stages(self):
+        """Verify transitions.jsonl captures all stage events."""
+        manager = self.state_manager
+        project_id = "project-102"
+        manager.initialize_project(project_id, 102, "Transitions Test")
+        
+        # Run through two stages
+        manager.start_stage(project_id, "ideation", "planner")
+        manager.complete_stage(project_id, "ideation", artifacts=["artifacts/plan.md"], create_checkpoint=True)
+        manager.start_stage(project_id, "specification", "specifier")
+        manager.complete_stage(project_id, "specification", artifacts=["artifacts/SPEC.md"], create_checkpoint=True)
+        
+        # Get transitions
+        transitions = manager.get_transitions(project_id)
+        
+        # Should have: init, start_ideation, complete_ideation, checkpoint,
+        #              start_spec, complete_spec, checkpoint
+        event_types = [t["event_type"] for t in transitions]
+        
+        self.assertIn("project_initialized", event_types,
+                     "Should have project initialization event")
+        self.assertEqual(event_types.count("stage_started"), 2,
+                        "Should have two stage_started events")
+        self.assertEqual(event_types.count("stage_completed"), 2,
+                        "Should have two stage_completed events")
+        self.assertGreaterEqual(event_types.count("checkpoint_created"), 2,
+                               "Should have at least two checkpoint_created events")
+        
+        # Verify stage names in transitions
+        stage_started_events = [t for t in transitions if t["event_type"] == "stage_started"]
+        stage_names = [t["stage"] for t in stage_started_events]
+        self.assertIn("ideation", stage_names, "Should track ideation stage start")
+        self.assertIn("specification", stage_names, "Should track specification stage start")
+    
+    def test_multiple_stage_failures_tracked(self):
+        """Verify multiple stage failures are all tracked."""
+        manager = self.state_manager
+        project_id = "project-103"
+        manager.initialize_project(project_id, 103, "Multi-Failure Test")
+        
+        # Fail multiple stages
+        stages_to_fail = [
+            ("specification", "specifier", {"type": "ValidationError", "message": "Invalid spec"}),
+            ("implementation", "implementer", {"type": "SyntaxError", "message": "Code error"}),
+            ("validation", "tester", {"type": "TestFailure", "message": "Tests failed"}),
+        ]
+        
+        for stage, agent, error in stages_to_fail:
+            manager.start_stage(project_id, stage, agent)
+            manager.fail_stage(
+                project_id=project_id,
+                stage=stage,
+                agent=agent,
+                error=error,
+                create_dead_letter=True
+            )
+        
+        # Verify all dead letters were created
+        dead_letters = manager.get_dead_letters(project_id)
+        self.assertEqual(len(dead_letters), 3, "Should have three dead letters")
+        
+        # Verify each failure is tracked
+        failed_stages = {dl["stage"] for dl in dead_letters}
+        expected_stages = {"specification", "implementation", "validation"}
+        self.assertEqual(failed_stages, expected_stages, "All failed stages should be tracked")
+        
+        # Verify metrics
+        state = manager.get_state(project_id)
+        self.assertEqual(state["metrics"]["dead_letters"], 3)
+    
+    def test_checkpoint_creation_for_all_stages(self):
+        """Verify checkpoints are created for all completed stages."""
+        manager = self.state_manager
+        project_id = "project-104"
+        manager.initialize_project(project_id, 104, "Checkpoint Test")
+        
+        stages = ["ideation", "specification", "simulation", "architecture", "implementation"]
+        
+        for i, stage in enumerate(stages):
+            manager.start_stage(project_id, stage, f"agent-{i}")
+            manager.complete_stage(
+                project_id, 
+                stage, 
+                artifacts=[f"artifacts/{stage}.md"],
+                create_checkpoint=True
+            )
+        
+        # Verify all checkpoints were created
+        state = manager.get_state(project_id)
+        self.assertEqual(len(state["checkpoints"]), len(stages),
+                        "Should have one checkpoint per completed stage")
+        
+        # Verify checkpoint stages match
+        checkpoint_stages = [cp["stage"] for cp in state["checkpoints"]]
+        self.assertEqual(checkpoint_stages, stages,
+                        "Checkpoint stages should match completed stages in order")
+
+
 if __name__ == '__main__':
     unittest.main()
