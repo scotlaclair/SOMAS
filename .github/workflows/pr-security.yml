@@ -55,6 +55,8 @@ jobs:
             echo "### ✅ Dependency Security Review Complete" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "All dependencies have been scanned for known vulnerabilities." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "See the dependency review results above." >> $GITHUB_STEP_SUMMARY
           elif [ "$REVIEW_OUTCOME" == "failure" ]; then
             echo "### ⚠️  Dependency Review Not Available" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -62,11 +64,11 @@ jobs:
             echo "This is a paid feature for private repositories." >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Alternative:** Use Dependabot alerts (free) or enable GHAS for full dependency scanning." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ℹ️ Dependency Review Status Unknown" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The dependency review step completed with status: $REVIEW_OUTCOME" >> $GITHUB_STEP_SUMMARY
           fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "All dependencies have been scanned for known vulnerabilities." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "See the dependency review results above." >> $GITHUB_STEP_SUMMARY
 
   pr-validation:
     name: Validate PR Structure
