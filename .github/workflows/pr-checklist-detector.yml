@@ -250,8 +250,7 @@ jobs:
       - name: Disable Auto-Merge
         if: |
           steps.check.outputs.skip != 'true' &&
-          steps.check.outputs.all_checked != 'true' &&
-          steps.check.outputs.has_auto_merge_label == 'true'
+          steps.check.outputs.all_checked != 'true'
         uses: actions/github-script@v7
         with:
           script: |
