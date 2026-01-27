@@ -91,7 +91,7 @@ All use color 🔵 BFDADC except `state:complete` which uses C5DEF5.
 
 | Label | Description | Color | Used By | Status |
 |-------|-------------|-------|---------|--------|
-| `stage:*` (11 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml | ✅ Active |
+| `stage:*` (11 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml, sync-stage-milestones.yml | ✅ Active |
 
 Track the current pipeline stage (Energy, Frequency, Vibration, Sound):
 
@@ -106,17 +106,6 @@ Track the current pipeline stage (Energy, Frequency, Vibration, Sound):
 - `stage:velocity` - Stage 9: VELOCITY (Release) - Deploy at speed
 - `stage:vibe` - Stage 10: VIBE (Operate) - Monitor SLOs
 - `stage:whole` - Stage 11: WHOLE (Learn) - Analyze & loop back
-| `stage:*` (7 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml, sync-stage-milestones.yml | ✅ Active |
-
-Track the current pipeline stage:
-
-- `stage:ideation`
-- `stage:specification`
-- `stage:simulation`
-- `stage:architecture`
-- `stage:implementation`
-- `stage:validation`
-- `stage:staging`
 
 All use color 🔴 E99695.
 
@@ -216,14 +205,18 @@ Uses these labels:
 
 ### sync-stage-milestones.yml
 
-Automatically creates and assigns milestones based on stage labels:
-- `stage:ideation` → Creates/assigns "Ideation" milestone
-- `stage:specification` → Creates/assigns "Specification" milestone
-- `stage:simulation` → Creates/assigns "Simulation" milestone
-- `stage:architecture` → Creates/assigns "Architecture" milestone
-- `stage:implementation` → Creates/assigns "Implementation" milestone
-- `stage:validation` → Creates/assigns "Validation" milestone
-- `stage:staging` → Creates/assigns "Staging" milestone
+Automatically creates and assigns milestones based on the 11-stage neurology-inspired pipeline labels:
+- `stage:signal` → Creates/assigns "SIGNAL (Intake)" milestone
+- `stage:design` → Creates/assigns "DESIGN (Specify)" milestone
+- `stage:grid` → Creates/assigns "GRID (Plan)" milestone
+- `stage:line` → Creates/assigns "LINE (Decompose)" milestone
+- `stage:mcp` → Creates/assigns "MCP (Implement)" milestone
+- `stage:pulse` → Creates/assigns "PULSE (Verify)" milestone
+- `stage:synapse` → Creates/assigns "SYNAPSE (Integrate)" milestone
+- `stage:overload` → Creates/assigns "OVERLOAD (Harden)" milestone
+- `stage:velocity` → Creates/assigns "VELOCITY (Release)" milestone
+- `stage:vibe` → Creates/assigns "VIBE (Operate)" milestone
+- `stage:whole` → Creates/assigns "WHOLE (Learn)" milestone
 
 **Features:**
 - Automatically creates milestones if they don't exist

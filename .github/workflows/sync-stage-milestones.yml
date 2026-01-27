@@ -1,7 +1,7 @@
 name: Sync Stage Labels to Milestones
 
 # Automatically create and assign milestones based on stage labels
-# Supports stage labels like stage:ideation, stage:implementation, etc.
+# Supports 11-stage neurology-inspired pipeline: signal, design, grid, line, mcp, pulse, synapse, overload, velocity, vibe, whole
 # Enables milestone-based progress tracking, burndown charts, and planning
 
 on:
@@ -17,7 +17,7 @@ concurrency:
 
 permissions:
   issues: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   sync-milestone:
@@ -34,14 +34,19 @@ jobs:
             
             // Define stage-to-milestone mapping
             // Maps stage labels to their corresponding milestone names
+            // 11-Stage Neurology-Inspired Pipeline: Energy, Frequency, Vibration, Sound
             const stageMilestoneMap = {
-              'stage:ideation': 'Ideation',
-              'stage:specification': 'Specification',
-              'stage:simulation': 'Simulation',
-              'stage:architecture': 'Architecture',
-              'stage:implementation': 'Implementation',
-              'stage:validation': 'Validation',
-              'stage:staging': 'Staging'
+              'stage:signal': 'SIGNAL (Intake)',
+              'stage:design': 'DESIGN (Specify)',
+              'stage:grid': 'GRID (Plan)',
+              'stage:line': 'LINE (Decompose)',
+              'stage:mcp': 'MCP (Implement)',
+              'stage:pulse': 'PULSE (Verify)',
+              'stage:synapse': 'SYNAPSE (Integrate)',
+              'stage:overload': 'OVERLOAD (Harden)',
+              'stage:velocity': 'VELOCITY (Release)',
+              'stage:vibe': 'VIBE (Operate)',
+              'stage:whole': 'WHOLE (Learn)'
             };
             
             // Check if the label is a stage label
@@ -145,14 +150,19 @@ jobs:
             const removedLabel = '${{ steps.check-label.outputs.stage_label }}';
             
             // Define stage-to-milestone mapping
+            // 11-Stage Neurology-Inspired Pipeline: Energy, Frequency, Vibration, Sound
             const stageMilestoneMap = {
-              'stage:ideation': 'Ideation',
-              'stage:specification': 'Specification',
-              'stage:simulation': 'Simulation',
-              'stage:architecture': 'Architecture',
-              'stage:implementation': 'Implementation',
-              'stage:validation': 'Validation',
-              'stage:staging': 'Staging'
+              'stage:signal': 'SIGNAL (Intake)',
+              'stage:design': 'DESIGN (Specify)',
+              'stage:grid': 'GRID (Plan)',
+              'stage:line': 'LINE (Decompose)',
+              'stage:mcp': 'MCP (Implement)',
+              'stage:pulse': 'PULSE (Verify)',
+              'stage:synapse': 'SYNAPSE (Integrate)',
+              'stage:overload': 'OVERLOAD (Harden)',
+              'stage:velocity': 'VELOCITY (Release)',
+              'stage:vibe': 'VIBE (Operate)',
+              'stage:whole': 'WHOLE (Learn)'
             };
             
             // Get current issue/PR to check milestone and labels
