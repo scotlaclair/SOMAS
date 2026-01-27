@@ -318,7 +318,10 @@ class TestConcurrentAccess(unittest.TestCase):
         def complete_worker():
             try:
                 # Wait for stage to be started before completing
-                stage_started.wait(timeout=1.0)
+                if not stage_started.wait(timeout=5.0):
+                    with lock:
+                        errors.append("complete_worker: timeout waiting for stage to start")
+                    return
                 self.state_manager.complete_stage(project_id, "ideation", artifacts=["test.md"])
             except Exception as e:
                 with lock:
