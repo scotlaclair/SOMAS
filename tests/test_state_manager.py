@@ -289,12 +289,13 @@ class TestConcurrentAccess(unittest.TestCase):
         # Assertions
         self.assertEqual(len(errors), 0, f"Errors during concurrent access: {errors}")
         
-        # Verify state integrity - with rotation, should have MAX_CHECKPOINTS (20)
+        # Verify state integrity - with rotation, should have max_checkpoints
         state = self.state_manager.get_state(project_id)
-        self.assertEqual(len(state["checkpoints"]), 20, 
-                         f"Expected 20 checkpoints (due to rotation) but got {len(state['checkpoints'])}")
+        max_checkpoints = self.state_manager._get_max_checkpoints()
+        self.assertEqual(len(state["checkpoints"]), max_checkpoints, 
+                         f"Expected {max_checkpoints} checkpoints (due to rotation) but got {len(state['checkpoints'])}")
         
-        # Verify all checkpoint IDs created were unique (even though only 20 are retained)
+        # Verify all checkpoint IDs created were unique (even though only max_checkpoints are retained)
         self.assertEqual(len(set(checkpoints_created)), 50,
                         "Not all checkpoint IDs are unique")
     
@@ -573,9 +574,12 @@ class TestCheckpointRotation(unittest.TestCase):
         shutil.rmtree(self.test_dir)
     
     def test_checkpoint_rotation_limits_array_size(self):
-        """Verify checkpoints are rotated when exceeding MAX_CHECKPOINTS."""
+        """Verify checkpoints are rotated when exceeding max_checkpoints."""
         project_id = "project-9001"
         self.state_manager.initialize_project(project_id, 9001, "Rotation Test")
+        
+        # Get the configured max checkpoints
+        max_checkpoints = self.state_manager._get_max_checkpoints()
         
         # Create more checkpoints than the limit
         num_checkpoints = 30
@@ -588,9 +592,9 @@ class TestCheckpointRotation(unittest.TestCase):
         
         state = self.state_manager.get_state(project_id)
         
-        # Should not exceed MAX_CHECKPOINTS (20 by default)
-        self.assertLessEqual(len(state["checkpoints"]), 20,
-                            f"Expected at most 20 checkpoints but got {len(state['checkpoints'])}")
+        # Should not exceed max_checkpoints
+        self.assertLessEqual(len(state["checkpoints"]), max_checkpoints,
+                            f"Expected at most {max_checkpoints} checkpoints but got {len(state['checkpoints'])}")
         
         # Oldest checkpoints should be pruned (first ones created)
         # The remaining checkpoints should be the most recent
@@ -637,8 +641,9 @@ class TestCheckpointRotation(unittest.TestCase):
         
         state = self.state_manager.get_state(project_id)
         
-        # Should not exceed MAX_CHECKPOINTS
-        self.assertLessEqual(len(state["checkpoints"]), 20)
+        # Should not exceed max_checkpoints
+        max_checkpoints = self.state_manager._get_max_checkpoints()
+        self.assertLessEqual(len(state["checkpoints"]), max_checkpoints)
         
         # Verify mix of statuses is preserved in recent checkpoints
         statuses = [c["status"] for c in state["checkpoints"]]
@@ -676,8 +681,11 @@ class TestCheckpointRotation(unittest.TestCase):
         project_id = "project-9005"
         self.state_manager.initialize_project(project_id, 9005, "Order Test")
         
-        # Create exactly MAX_CHECKPOINTS + 5 checkpoints
-        num_checkpoints = 25
+        # Get the configured max checkpoints
+        max_checkpoints = self.state_manager._get_max_checkpoints()
+        
+        # Create exactly max_checkpoints + 5 checkpoints
+        num_checkpoints = max_checkpoints + 5
         for i in range(num_checkpoints):
             self.state_manager.create_checkpoint(
                 project_id,
@@ -687,14 +695,14 @@ class TestCheckpointRotation(unittest.TestCase):
         
         state = self.state_manager.get_state(project_id)
         
-        # Should have exactly 20 checkpoints
-        self.assertEqual(len(state["checkpoints"]), 20)
+        # Should have exactly max_checkpoints checkpoints
+        self.assertEqual(len(state["checkpoints"]), max_checkpoints)
         
-        # Verify it's the last 20 (stages 5-24)
+        # Verify it's the last max_checkpoints (stages 5-24 for default 20)
         checkpoint_stages = [c["stage"] for c in state["checkpoints"]]
-        expected_stages = [f"stage-{i:02d}" for i in range(5, 25)]
+        expected_stages = [f"stage-{i:02d}" for i in range(5, num_checkpoints)]
         self.assertEqual(checkpoint_stages, expected_stages,
-                        "Should keep the most recent 20 checkpoints in order")
+                        f"Should keep the most recent {max_checkpoints} checkpoints in order")
 
 
 if __name__ == '__main__':

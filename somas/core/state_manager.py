@@ -68,7 +68,7 @@ class StateManager:
                     config = yaml.safe_load(f) or {}
                     self._max_checkpoints = config.get("state_manager", {}).get("max_checkpoints", DEFAULT_MAX_CHECKPOINTS)
                     return self._max_checkpoints
-            except (yaml.YAMLError, FileNotFoundError, IOError, PermissionError) as e:
+            except (yaml.YAMLError, IOError, PermissionError) as e:
                 # If config is invalid or can't be read, use default
                 # Log the error but don't fail
                 print(f"Warning: Could not load max_checkpoints from config: {e}", file=sys.stderr)
