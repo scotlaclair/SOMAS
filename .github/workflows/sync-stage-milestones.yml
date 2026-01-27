@@ -1,0 +1,194 @@
+name: Sync Stage Labels to Milestones
+
+# Automatically create and assign milestones based on stage labels
+# Supports stage labels like stage:ideation, stage:implementation, etc.
+# Enables milestone-based progress tracking, burndown charts, and planning
+
+on:
+  issues:
+    types: [labeled, unlabeled]
+  pull_request:
+    types: [labeled, unlabeled]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  sync-milestone:
+    runs-on: ubuntu-latest
+    name: Sync Stage Label to Milestone
+    
+    steps:
+      - name: Check if label is a stage label
+        id: check-label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labelName = context.payload.label?.name || '';
+            
+            // Define stage-to-milestone mapping
+            // Maps stage labels to their corresponding milestone names
+            const stageMilestoneMap = {
+              'stage:ideation': 'Ideation',
+              'stage:specification': 'Specification',
+              'stage:simulation': 'Simulation',
+              'stage:architecture': 'Architecture',
+              'stage:implementation': 'Implementation',
+              'stage:validation': 'Validation',
+              'stage:staging': 'Staging'
+            };
+            
+            // Check if the label is a stage label
+            if (!stageMilestoneMap[labelName]) {
+              console.log(`Label "${labelName}" is not a stage label. No action needed.`);
+              core.setOutput('is_stage_label', 'false');
+              return;
+            }
+            
+            core.setOutput('is_stage_label', 'true');
+            core.setOutput('stage_label', labelName);
+            core.setOutput('milestone_name', stageMilestoneMap[labelName]);
+            
+            console.log(`Detected stage label: ${labelName} → Milestone: ${stageMilestoneMap[labelName]}`);
+
+      - name: Get or create milestone
+        id: milestone
+        if: steps.check-label.outputs.is_stage_label == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const milestoneName = '${{ steps.check-label.outputs.milestone_name }}';
+            
+            // Get all milestones
+            const { data: milestones } = await github.rest.issues.listMilestones({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+            
+            // Check if milestone exists
+            let milestone = milestones.find(m => m.title === milestoneName);
+            
+            if (milestone) {
+              console.log(`Milestone "${milestoneName}" already exists (ID: ${milestone.number})`);
+            } else {
+              // Create the milestone
+              console.log(`Creating milestone: ${milestoneName}`);
+              const { data: newMilestone } = await github.rest.issues.createMilestone({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: milestoneName,
+                description: `Milestone for tracking ${milestoneName} stage progress`
+              });
+              milestone = newMilestone;
+              console.log(`Created milestone "${milestoneName}" (ID: ${milestone.number})`);
+            }
+            
+            core.setOutput('milestone_number', milestone.number);
+            return milestone.number;
+
+      - name: Assign milestone to issue/PR
+        if: steps.check-label.outputs.is_stage_label == 'true' && github.event.action == 'labeled'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const milestoneNumber = parseInt('${{ steps.milestone.outputs.milestone_number }}');
+            const issueNumber = context.issue.number;
+            const issuePR = context.payload.pull_request ? 'PR' : 'Issue';
+            
+            // Remove any existing milestone first (one milestone per issue/PR rule)
+            // Get current issue/PR details
+            const { data: current } = context.payload.pull_request 
+              ? await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: issueNumber
+                })
+              : await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber
+                });
+            
+            if (current.milestone) {
+              console.log(`Removing existing milestone: ${current.milestone.title}`);
+            }
+            
+            // Assign the new milestone
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              milestone: milestoneNumber
+            });
+            
+            console.log(`Assigned ${issuePR} #${issueNumber} to milestone "${milestoneNumber}"`);
+            
+            // Post a comment to inform users
+            const milestoneName = '${{ steps.check-label.outputs.milestone_name }}';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `🎯 **Milestone Updated**\n\nThis ${issuePR} has been assigned to the **${milestoneName}** milestone based on the stage label.\n\n_This milestone tracks all items in the ${milestoneName} stage for better progress visibility._`
+            });
+
+      - name: Remove milestone on unlabeled
+        if: steps.check-label.outputs.is_stage_label == 'true' && github.event.action == 'unlabeled'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const issuePR = context.payload.pull_request ? 'PR' : 'Issue';
+            const removedLabel = '${{ steps.check-label.outputs.stage_label }}';
+            
+            // Get current issue/PR to check milestone
+            const { data: current } = context.payload.pull_request 
+              ? await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: issueNumber
+                })
+              : await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber
+                });
+            
+            // Only remove milestone if it matches the unlabeled stage
+            const milestoneName = '${{ steps.check-label.outputs.milestone_name }}';
+            if (current.milestone && current.milestone.title === milestoneName) {
+              console.log(`Removing milestone "${milestoneName}" from ${issuePR} #${issueNumber}`);
+              
+              // Check if there are other stage labels
+              const { data: issue } = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber
+              });
+              
+              const otherStageLabels = issue.labels
+                .map(l => l.name)
+                .filter(name => name.startsWith('stage:') && name !== removedLabel);
+              
+              if (otherStageLabels.length > 0) {
+                // There's another stage label, find its milestone
+                console.log(`Found other stage label(s): ${otherStageLabels.join(', ')}`);
+                // Note: We don't automatically assign the other label's milestone here
+                // The user can re-trigger by removing and re-adding the label, or
+                // the milestone will be set when that label was originally added
+              } else {
+                // No other stage labels, remove milestone
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  milestone: null
+                });
+                
+                console.log(`Removed milestone from ${issuePR} #${issueNumber}`);
+              }
+            } else {
+              console.log(`${issuePR} #${issueNumber} is not in milestone "${milestoneName}", no action needed`);
+            }
