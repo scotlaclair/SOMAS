@@ -8,6 +8,10 @@ on:
   pull_request:
     types: [closed]
 
+concurrency:
+  group: meta-capture
+  cancel-in-progress: false
+
 permissions:
   contents: write
   issues: write
@@ -84,7 +88,7 @@ jobs:
                   
                   if (inRecommendations) {
                     // Check for priority sections
-                    if (line.includes('### Must Address Soon')) {
+                    if (line.trim() === '### Must Address Soon') {
                       if (currentSection && currentItems.length > 0) {
                         recommendationBlocks.push({
                           section: currentSection,
@@ -96,7 +100,7 @@ jobs:
                       }
                       currentSection = 'must_address_soon';
                       currentItems = [];
-                    } else if (line.includes('### Should Consider')) {
+                    } else if (line.trim() === '### Should Consider') {
                       if (currentSection && currentItems.length > 0) {
                         recommendationBlocks.push({
                           section: currentSection,
@@ -108,7 +112,7 @@ jobs:
                       }
                       currentSection = 'should_consider';
                       currentItems = [];
-                    } else if (line.includes('### Future Enhancement')) {
+                    } else if (line.trim() === '### Future Enhancement') {
                       if (currentSection && currentItems.length > 0) {
                         recommendationBlocks.push({
                           section: currentSection,
@@ -241,7 +245,20 @@ jobs:
             // Update backlog file
             if (backlogItems.length > 0) {
               const backlogPath = '.somas/backlog.md';
-              let backlogContent = fs.readFileSync(backlogPath, 'utf8');
+              
+              // Check if file exists
+              if (!fs.existsSync(backlogPath)) {
+                core.setFailed(`Backlog file not found at ${backlogPath}`);
+                return;
+              }
+              
+              let backlogContent;
+              try {
+                backlogContent = fs.readFileSync(backlogPath, 'utf8');
+              } catch (error) {
+                core.setFailed(`Failed to read backlog file: ${error.message}`);
+                return;
+              }
 
               // Simple keyword-based category detection with safe default.
               // @copilot-context: This helps align backlog categorization with review content.
@@ -358,16 +375,37 @@ jobs:
                   }
                 }
                 
-                fs.writeFileSync(backlogPath, backlogContent);
-                core.info(`Added ${backlogItems.length} items to backlog`);
+                try {
+                  fs.writeFileSync(backlogPath, backlogContent);
+                  core.info(`Added ${backlogItems.length} items to backlog`);
+                } catch (error) {
+                  core.setFailed(`Failed to write backlog file: ${error.message}`);
+                  return;
+                }
               }
             }
             
             // Update roadmap file
             if (roadmapItems.length > 0) {
               const roadmapPath = '.somas/roadmap.md';
-              let roadmapContent = fs.readFileSync(roadmapPath, 'utf8');
               
+              // Check if file exists
+              if (!fs.existsSync(roadmapPath)) {
+                core.setFailed(`Roadmap file not found at ${roadmapPath}`);
+                return;
+              }
+              
+              let roadmapContent;
+              try {
+                roadmapContent = fs.readFileSync(roadmapPath, 'utf8');
+              } catch (error) {
+                core.setFailed(`Failed to read roadmap file: ${error.message}`);
+                return;
+              }
+              
+              // Note: All roadmap items are added to "Pipeline Enhancements" by default.
+              // Items can be manually moved to other sections (Agent Improvements, 
+              // Infrastructure, Developer Experience) during roadmap review if appropriate.
               const sectionMarker = '## Future (v0.3.x)\n\n### Pipeline Enhancements';
               if (roadmapContent.includes(sectionMarker)) {
                 let itemsText = '\n';
@@ -404,8 +442,13 @@ jobs:
                   }
                 }
                 
-                fs.writeFileSync(roadmapPath, roadmapContent);
-                core.info(`Added ${roadmapItems.length} items to roadmap`);
+                try {
+                  fs.writeFileSync(roadmapPath, roadmapContent);
+                  core.info(`Added ${roadmapItems.length} items to roadmap`);
+                } catch (error) {
+                  core.setFailed(`Failed to write roadmap file: ${error.message}`);
+                  return;
+                }
               }
             }
             

@@ -118,11 +118,14 @@ ADR-003-state-persistence-strategy.md
 
 ### Via Meta-Capture Process
 
-ADRs can be automatically created from PR review recommendations:
+When capturing architectural recommendations from PR reviews:
 1. PR review includes architectural recommendation
-2. Meta-capture process routes it to ADR creation
-3. ADR template is generated with recommendation content
-4. Owner reviews, refines, and merges
+2. Use the manual meta-capture template (`.somas/templates/meta-capture.md`)
+3. Create ADR file with appropriate number and slug
+4. Fill in the ADR template with recommendation content
+5. Owner reviews, refines, and merges
+
+The meta-capture workflow automatically routes "Must Address Soon", "Should Consider", and "Future Enhancement" items, but architectural decisions requiring ADRs should be created manually to ensure proper documentation and review.
 
 ---
 
@@ -155,7 +158,7 @@ ADRs can be automatically created from PR review recommendations:
 - `.somas/templates/meta-capture.md` - Template for capturing recommendations
 - `.somas/architecture/` - Architecture documentation and diagrams
 - `docs/somas/COPILOT_GUIDE.md` - Guide for Copilot integration
-- `.github/workflows/somas-meta-capture.yml` - Workflow for automated ADR creation
+- `.github/workflows/somas-meta-capture.yml` - Workflow for automated recommendation capture
 
 ---
 

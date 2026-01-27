@@ -30,9 +30,10 @@ An automated meta-process that:
    - **Must Address Soon** → Create follow-up issues with `somas:follow-up` label
    - **Should Consider** → Add to `.somas/backlog.md`
    - **Future Enhancements** → Add to `.somas/roadmap.md`
-   - **Architecture Decisions** → Generate ADR templates in `.somas/architecture/ADRs/`
 4. **Preserves** context with links back to source PR and comments
 5. **Prevents** duplicates using idempotent markers
+
+**Note:** For architectural decisions that warrant an ADR, use the manual meta-capture template to document the decision in `.somas/architecture/ADRs/` following the guidelines in the ADR README.
 
 ---
 

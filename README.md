@@ -361,7 +361,8 @@ On PR merge, SOMAS:
 2. 📝 **Creates Issues** for "Must Address Soon" items with `somas:follow-up` label
 3. 📚 **Updates Backlog** (`.somas/backlog.md`) with "Should Consider" items
 4. 🗺️ **Updates Roadmap** (`.somas/roadmap.md`) with "Future Enhancement" items
-5. 🏛️ **Generates ADRs** for architectural decisions in `.somas/architecture/ADRs/`
+
+**Note:** For architectural decisions, use the manual process to create ADRs in `.somas/architecture/ADRs/` following the guidelines in the ADR README.
 
 ### Benefits
 
