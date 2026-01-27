@@ -158,6 +158,7 @@ jobs:
             core.info(`Found ${recommendationBlocks.length} recommendation blocks`);
       
       - name: Process Recommendations
+        id: process
         if: steps.scan.outputs.has_recommendations == 'true'
         uses: actions/github-script@v7
         with:
@@ -258,13 +259,14 @@ jobs:
                   itemsText += `---\n`;
                 }
                 
+                const originalContent = backlogContent;
                 backlogContent = backlogContent.replace(
                   sectionMarker + '\n\n*No items yet. Items will be added via meta-capture process.*',
                   sectionMarker + itemsText
                 );
                 
-                // If marker text not found, append to section
-                if (!backlogContent.includes(itemsText)) {
+                // If replace didn't work (already has items), append to section
+                if (backlogContent === originalContent) {
                   const idx = backlogContent.indexOf(sectionMarker);
                   if (idx >= 0) {
                     const insertIdx = backlogContent.indexOf('\n---\n', idx);
@@ -300,13 +302,14 @@ jobs:
                   itemsText += `*Captured from PR review as a future enhancement opportunity.*\n\n`;
                 }
                 
+                const originalContent = roadmapContent;
                 roadmapContent = roadmapContent.replace(
                   sectionMarker + '\n\n*Future enhancement items will be added via meta-capture process.*',
                   sectionMarker + itemsText
                 );
                 
-                // If marker text not found, append to section
-                if (!roadmapContent.includes(itemsText)) {
+                // If replace didn't work (already has items), append to section
+                if (roadmapContent === originalContent) {
                   const idx = roadmapContent.indexOf(sectionMarker);
                   if (idx >= 0) {
                     const nextSection = roadmapContent.indexOf('\n### ', idx + sectionMarker.length);
