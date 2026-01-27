@@ -81,7 +81,8 @@ class CircuitBreaker:
     
     def count_recent_comments(self, comments: list, hours: int = 1) -> int:
         """Count comments within the last N hours."""
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        from datetime import timezone
+        cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=hours)
         count = 0
         for comment in comments:
             created = comment.get('created_at', '')

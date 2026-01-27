@@ -65,7 +65,8 @@ class TestCircuitBreaker:
     
     def test_comment_rate_limit(self):
         cb = CircuitBreaker()
-        now = datetime.utcnow()
+        from datetime import timezone
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         comments = [
             {'body': 'test', 'created_at': (now - timedelta(minutes=i)).isoformat() + 'Z'}
             for i in range(15)
