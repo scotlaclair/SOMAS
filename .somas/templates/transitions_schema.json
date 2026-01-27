@@ -1,0 +1,179 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SOMAS Transition Audit Log Entry",
+  "description": "Schema for individual transition entries in .somas/projects/{project_id}/transitions.jsonl (JSON Lines format)",
+  "type": "object",
+  "required": ["id", "timestamp", "project_id", "event_type"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique transition event identifier (UUID)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when transition occurred"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^project-\\d+$",
+      "description": "Project identifier"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "project_initialized",
+        "stage_started",
+        "stage_completed",
+        "stage_failed",
+        "stage_retrying",
+        "checkpoint_created",
+        "state_updated",
+        "label_added",
+        "label_removed",
+        "agent_invoked",
+        "agent_completed",
+        "agent_failed",
+        "artifact_created",
+        "error_recorded",
+        "recovery_attempted",
+        "recovery_completed",
+        "pipeline_paused",
+        "pipeline_resumed",
+        "pipeline_completed",
+        "pipeline_failed",
+        "pipeline_cancelled"
+      ],
+      "description": "Type of transition event"
+    },
+    "stage": {
+      "type": "string",
+      "description": "Pipeline stage associated with this event"
+    },
+    "agent": {
+      "type": "string",
+      "description": "Agent associated with this event"
+    },
+    "from_state": {
+      "type": "object",
+      "description": "State before transition",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string"
+        }
+      }
+    },
+    "to_state": {
+      "type": "object",
+      "description": "State after transition",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional event-specific metadata",
+      "additionalProperties": true
+    },
+    "labels": {
+      "type": "object",
+      "description": "Labels at time of transition",
+      "properties": {
+        "added": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "removed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "current": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "description": "Artifacts created or modified during this transition",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["created", "modified", "deleted"]
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Metrics captured at this transition",
+      "properties": {
+        "duration_seconds": {
+          "type": "number"
+        },
+        "retry_count": {
+          "type": "integer"
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "description": "Error information if transition failed",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "dead_letter_id": {
+          "type": "string",
+          "description": "Reference to dead letter entry if created"
+        }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "description": "Who or what triggered this transition",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["agent", "workflow", "human", "system"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "github_user": {
+          "type": "string"
+        }
+      }
+    },
+    "parent_transition_id": {
+      "type": "string",
+      "description": "ID of parent transition if this is a child event"
+    },
+    "checkpoint_id": {
+      "type": "string",
+      "description": "Checkpoint ID if transition created a checkpoint"
+    }
+  }
+}

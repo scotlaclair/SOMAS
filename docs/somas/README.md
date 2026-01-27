@@ -14,12 +14,13 @@ Complete technical documentation for the autonomous AI development pipeline.
 4. [Agent System](#agent-system)
 5. [Triage System](#triage-system)
 6. [Configuration](#configuration)
-7. [Autonomy & Self-Healing](#autonomy--self-healing)
-8. [Quality Assurance](#quality-assurance)
-9. [Security](#security)
-10. [Optimization](#optimization)
-11. [Advanced Usage](#advanced-usage)
-12. [Troubleshooting](#troubleshooting)
+7. [State Persistence](#state-persistence)
+8. [Autonomy & Self-Healing](#autonomy--self-healing)
+9. [Quality Assurance](#quality-assurance)
+10. [Security](#security)
+11. [Optimization](#optimization)
+12. [Advanced Usage](#advanced-usage)
+13. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -82,6 +83,51 @@ Human approves and merges
    - Code merged to main branch
    - Project artifacts archived
    - Metrics recorded for continuous learning
+   - State persisted for audit and recovery
+
+---
+
+## State Persistence
+
+**New in v1.0.0**: SOMAS now includes comprehensive JSON-based state persistence for robust fault recovery and forensics.
+
+### State Files
+
+Each project maintains three persistent state files:
+
+- **`state.json`**: Complete pipeline state with checkpoints, labels, and metrics
+- **`dead_letters.json`**: Failed agent contexts for recovery and replay
+- **`transitions.jsonl`**: Chronological audit log of all transitions
+
+### Key Features
+
+- **Automatic Recovery**: Resume from last successful checkpoint on failure
+- **Audit Trail**: Complete history of all state transitions and events
+- **Forensics**: Rich context for debugging failures
+- **Metrics**: Detailed execution metrics per stage
+- **Replay**: Ability to replay failed operations with full context
+
+### Example State Structure
+
+```json
+{
+  "project_id": "project-123",
+  "current_stage": "implementation",
+  "status": "in_progress",
+  "checkpoints": [...],
+  "metrics": {
+    "total_duration_seconds": 1800,
+    "agent_invocations": 5,
+    "dead_letters": 0
+  },
+  "recovery_info": {
+    "last_successful_checkpoint": "chk-abc123",
+    "can_resume": true
+  }
+}
+```
+
+📖 **Full Documentation**: See [State Persistence Guide](./STATE_PERSISTENCE.md)
 
 ---
 
