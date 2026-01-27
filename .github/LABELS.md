@@ -87,21 +87,25 @@ All use color 🔵 BFDADC except `state:complete` which uses C5DEF5.
 
 **Note:** These labels are defined now for future label-driven state machine transitions. Workflows can reference them once state machine features are implemented.
 
-### Stage Labels
+### Stage Labels - 11-Stage Neurology-Inspired Pipeline
 
 | Label | Description | Color | Used By | Status |
 |-------|-------------|-------|---------|--------|
-| `stage:*` (7 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml | ✅ Active |
+| `stage:*` (11 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml | ✅ Active |
 
-Track the current pipeline stage:
+Track the current pipeline stage (Energy, Frequency, Vibration, Sound):
 
-- `stage:ideation`
-- `stage:specification`
-- `stage:simulation`
-- `stage:architecture`
-- `stage:implementation`
-- `stage:validation`
-- `stage:staging`
+- `stage:signal` - Stage 1: SIGNAL (Intake) - Catch the initial request
+- `stage:design` - Stage 2: DESIGN (Specify) - Expand into requirements
+- `stage:grid` - Stage 3: GRID (Plan) - Map components & strategy
+- `stage:line` - Stage 4: LINE (Decompose) - Break into atomic tasks
+- `stage:mcp` - Stage 5: MCP (Implement) - Generate code via AI agents
+- `stage:pulse` - Stage 6: PULSE (Verify) - Run tests, check heartbeat
+- `stage:synapse` - Stage 7: SYNAPSE (Integrate) - Connect & merge
+- `stage:overload` - Stage 8: OVERLOAD (Harden) - Stress test & document
+- `stage:velocity` - Stage 9: VELOCITY (Release) - Deploy at speed
+- `stage:vibe` - Stage 10: VIBE (Operate) - Monitor SLOs
+- `stage:whole` - Stage 11: WHOLE (Learn) - Analyze & loop back
 
 All use color 🔴 E99695.
 
