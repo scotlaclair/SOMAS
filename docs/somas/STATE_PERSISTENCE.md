@@ -668,6 +668,282 @@ JSON schemas are provided in `.somas/templates/`:
 
 Validate files using standard JSON Schema validators.
 
+## State Tracking Across All Pipeline Stages
+
+Every pipeline stage follows a consistent state tracking pattern to ensure recovery, audit, and artifact tracking guarantees across the entire SOMAS pipeline.
+
+### Lifecycle Events
+
+Each of the 7 pipeline stages (ideation, specification, simulation, architecture, implementation, validation, staging) implements three key lifecycle events:
+
+1. **Stage Start** - `start_stage(project_id, stage, agent)`
+   - Sets `current_stage` in state
+   - Updates stage status to `in_progress`
+   - Logs `stage_started` transition
+   - Increments `agent_invocations` metric
+   - Records agent name for the stage
+
+2. **Stage Complete** - `complete_stage(project_id, stage, artifacts, create_checkpoint=True)`
+   - Updates stage status to `completed`
+   - Records artifacts and duration
+   - Creates recovery checkpoint
+   - Logs `stage_completed` transition
+   - Updates metrics (duration, artifact count)
+
+3. **Stage Failure** - `fail_stage(project_id, stage, agent, error, create_dead_letter=True)`
+   - Updates stage status to `failed`
+   - Creates dead letter entry for debugging
+   - Logs `stage_failed` transition
+   - Preserves context for recovery/replay
+   - Records error details and type
+
+### Stage-Specific Configuration
+
+Each stage has specific agents and expected artifacts:
+
+| Stage | Agent | Expected Artifacts |
+|-------|-------|-------------------|
+| ideation | planner | `artifacts/initial_plan.md` |
+| specification | specifier | `artifacts/SPEC.md` |
+| simulation | simulator | `artifacts/execution_plan.yml` |
+| architecture | architect | `artifacts/ARCHITECTURE.md` |
+| implementation | implementer | `artifacts/tasks/` (directory) |
+| validation | tester | `artifacts/test_results.json` |
+| staging | merger | `artifacts/pr_summary.md` |
+
+### State File Structure After Full Pipeline
+
+After a complete pipeline run, the state file includes all stages:
+
+```json
+{
+  "project_id": "project-123",
+  "version": "1.0.0",
+  "created_at": "2026-01-27T12:00:00Z",
+  "updated_at": "2026-01-27T15:30:00Z",
+  "issue_number": 123,
+  "branch": "somas/project-123",
+  "current_stage": "staging",
+  "status": "in_progress",
+  "stages": {
+    "ideation": {
+      "status": "completed",
+      "started_at": "2026-01-27T12:00:00Z",
+      "completed_at": "2026-01-27T12:05:00Z",
+      "duration_seconds": 300,
+      "agent": "planner",
+      "artifacts": ["artifacts/initial_plan.md"]
+    },
+    "specification": {
+      "status": "completed",
+      "started_at": "2026-01-27T12:05:30Z",
+      "completed_at": "2026-01-27T12:25:30Z",
+      "duration_seconds": 1200,
+      "agent": "specifier",
+      "artifacts": ["artifacts/SPEC.md"]
+    },
+    "simulation": {
+      "status": "completed",
+      "started_at": "2026-01-27T12:26:00Z",
+      "completed_at": "2026-01-27T12:36:00Z",
+      "duration_seconds": 600,
+      "agent": "simulator",
+      "artifacts": ["artifacts/execution_plan.yml"]
+    },
+    "architecture": {
+      "status": "completed",
+      "started_at": "2026-01-27T12:36:30Z",
+      "completed_at": "2026-01-27T13:06:30Z",
+      "duration_seconds": 1800,
+      "agent": "architect",
+      "artifacts": ["artifacts/ARCHITECTURE.md"]
+    },
+    "implementation": {
+      "status": "completed",
+      "started_at": "2026-01-27T13:07:00Z",
+      "completed_at": "2026-01-27T14:47:00Z",
+      "duration_seconds": 6000,
+      "agent": "implementer",
+      "artifacts": ["artifacts/tasks/"]
+    },
+    "validation": {
+      "status": "completed",
+      "started_at": "2026-01-27T14:47:30Z",
+      "completed_at": "2026-01-27T15:07:30Z",
+      "duration_seconds": 1200,
+      "agent": "tester",
+      "artifacts": ["artifacts/test_results.json"]
+    },
+    "staging": {
+      "status": "in_progress",
+      "started_at": "2026-01-27T15:08:00Z",
+      "agent": "merger"
+    }
+  },
+  "checkpoints": [
+    {"id": "chk-abc123", "stage": "ideation", "status": "success", "timestamp": "2026-01-27T12:05:00Z"},
+    {"id": "chk-def456", "stage": "specification", "status": "success", "timestamp": "2026-01-27T12:25:30Z"},
+    {"id": "chk-ghi789", "stage": "simulation", "status": "success", "timestamp": "2026-01-27T12:36:00Z"},
+    {"id": "chk-jkl012", "stage": "architecture", "status": "success", "timestamp": "2026-01-27T13:06:30Z"},
+    {"id": "chk-mno345", "stage": "implementation", "status": "success", "timestamp": "2026-01-27T14:47:00Z"},
+    {"id": "chk-pqr678", "stage": "validation", "status": "success", "timestamp": "2026-01-27T15:07:30Z"}
+  ],
+  "metrics": {
+    "total_duration_seconds": 11100,
+    "stage_durations": {
+      "ideation": 300,
+      "specification": 1200,
+      "simulation": 600,
+      "architecture": 1800,
+      "implementation": 6000,
+      "validation": 1200
+    },
+    "retry_count": 0,
+    "agent_invocations": 7,
+    "artifacts_generated": 7,
+    "dead_letters": 0
+  },
+  "recovery_info": {
+    "last_successful_checkpoint": "chk-pqr678",
+    "can_resume": true,
+    "resume_from_stage": "staging"
+  }
+}
+```
+
+### Recovery Capabilities
+
+With full pipeline tracking:
+- **Resume from any checkpoint after failure**: Each completed stage creates a checkpoint
+- **Replay failed stages with preserved context**: Dead letters preserve full failure context
+- **Audit complete pipeline execution history**: Transitions log captures all events
+- **Monitor stage durations and bottlenecks**: Metrics track duration for each stage
+- **Identify critical path**: Track which stages take longest
+- **Debug pipeline failures**: Complete context available for every failure
+
+### Workflow Integration Pattern
+
+Each stage in `.github/workflows/somas-pipeline.yml` follows this pattern:
+
+```yaml
+stage-N-example:
+  runs-on: ubuntu-latest
+  needs: [initialize-pipeline, previous-stage]
+  
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Start Stage
+      run: |
+        python3 <<'PYTHON'
+        import sys
+        import os
+        sys.path.insert(0, "somas")
+        from core.state_manager import StateManager
+
+        project_id = os.environ["PROJECT_ID"]
+        state_manager = StateManager()
+        state_manager.start_stage(
+            project_id=project_id,
+            stage="specification",  # Change per stage
+            agent="specifier"       # Change per stage
+        )
+        print(f"Started specification stage for {project_id}")
+        PYTHON
+    
+    # ... Agent invocation and artifact generation ...
+    
+    - name: Complete Stage
+      if: steps.wait_artifact.outputs.artifact_ready == 'true'
+      run: |
+        python3 <<'PYTHON'
+        import sys
+        import os
+        sys.path.insert(0, "somas")
+        from core.state_manager import StateManager
+
+        project_id = os.environ["PROJECT_ID"]
+        state_manager = StateManager()
+        state_manager.complete_stage(
+            project_id=project_id,
+            stage="specification",
+            artifacts=["artifacts/SPEC.md"],
+            create_checkpoint=True
+        )
+        print(f"Completed specification stage for {project_id}")
+        PYTHON
+    
+    - name: Record Stage Failure
+      if: failure() or steps.wait_artifact.outputs.artifact_ready != 'true'
+      run: |
+        python3 <<'PYTHON'
+        import sys
+        import os
+        sys.path.insert(0, "somas")
+        from core.state_manager import StateManager
+
+        project_id = os.environ["PROJECT_ID"]
+        state_manager = StateManager()
+        state_manager.fail_stage(
+            project_id=project_id,
+            stage="specification",
+            agent="specifier",
+            error={"type": "WorkflowError", "message": "Stage failed"},
+            create_dead_letter=True
+        )
+        PYTHON
+    
+    - name: Commit State Updates
+      run: |
+        git config user.name "SOMAS Bot"
+        git config user.email "somas-bot@users.noreply.github.com"
+        
+        if git status --porcelain .somas/projects/ | grep . >/dev/null; then
+          git add .somas/projects/
+          git commit -m "Update state for specification stage"
+          git push
+        fi
+```
+
+### Benefits of Full Coverage
+
+Applying state tracking to all pipeline stages provides:
+
+1. **Consistent Recovery**: Resume from any stage after failure, not just ideation
+2. **Complete Audit Trail**: Full execution history for compliance and debugging
+3. **Performance Metrics**: Stage duration tracking enables optimization
+4. **Failure Analysis**: Dead letters for every stage enable systematic debugging
+5. **Pipeline Introspection**: Query state to understand pipeline status at any time
+6. **Artifact Tracking**: Know exactly what was produced in each stage
+7. **Checkpoint-based Resume**: Precise recovery from any successful stage
+
+### Testing
+
+Comprehensive test coverage validates state tracking across all stages:
+
+```python
+# Test all stages tracked sequentially
+def test_all_stages_tracked_sequentially():
+    stages = [
+        ("ideation", "planner", ["artifacts/initial_plan.md"]),
+        ("specification", "specifier", ["artifacts/SPEC.md"]),
+        ("simulation", "simulator", ["artifacts/execution_plan.yml"]),
+        ("architecture", "architect", ["artifacts/ARCHITECTURE.md"]),
+        ("implementation", "implementer", ["artifacts/tasks/"]),
+        ("validation", "tester", ["artifacts/test_results.json"]),
+        ("staging", "merger", ["artifacts/pr_summary.md"]),
+    ]
+    
+    for stage, agent, artifacts in stages:
+        manager.start_stage(project_id, stage, agent)
+        manager.complete_stage(project_id, stage, artifacts=artifacts)
+    
+    # Verify all stages completed with checkpoints
+    assert all(stage["status"] == "completed" for stage in state["stages"].values())
+    assert len(state["checkpoints"]) == len(stages)
+```
+
 ## See Also
 
 - [SOMAS Documentation](./README.md)
