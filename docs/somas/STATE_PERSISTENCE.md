@@ -68,8 +68,8 @@ Each project has three persistent state files in `.somas/projects/{project_id}/`
 ├── state.json.lock      # Lock file (transient)
 ├── dead_letters.json    # Failed execution contexts
 ├── dead_letters.json.lock  # Lock file (transient)
-└── transitions.jsonl    # Audit log (JSON Lines)
-    └── transitions.jsonl.lock  # Lock file (transient)
+├── transitions.jsonl    # Audit log (JSON Lines)
+└── transitions.jsonl.lock  # Lock file (transient)
 ```
 
 ### State Files
