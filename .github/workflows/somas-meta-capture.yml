@@ -1,0 +1,521 @@
+name: SOMAS Meta-Capture Recommendations
+
+# Captures structured recommendations from merged PR reviews and routes them
+# to appropriate artifacts (issues, backlog, roadmap, ADRs) to preserve
+# institutional knowledge and ensure follow-up actions.
+
+on:
+  pull_request:
+    types: [closed]
+
+concurrency:
+  group: meta-capture
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  capture-recommendations:
+    # Only run on merged PRs with appropriate labels
+    if: |
+      github.event.pull_request.merged == true &&
+      (contains(github.event.pull_request.labels.*.name, 'somas:approved') ||
+       contains(github.event.pull_request.labels.*.name, 'somas:reviewed'))
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Scan PR for Recommendations
+        id: scan
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const prTitle = context.payload.pull_request.title;
+            const prUrl = context.payload.pull_request.html_url;
+            
+            // Check if already processed
+            const markerComment = `<!-- SOMAS_RECOMMENDATIONS_CAPTURED:${prNumber} -->`;
+            const existingComments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+            
+            const alreadyProcessed = existingComments.data.some(c => 
+              c.body && c.body.includes(markerComment)
+            );
+            
+            if (alreadyProcessed) {
+              core.info('Recommendations already captured for this PR');
+              core.setOutput('has_recommendations', 'false');
+              return;
+            }
+            
+            // Fetch all comments
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+            
+            // Look for structured recommendations
+            const recommendationBlocks = [];
+            
+            for (const comment of comments.data) {
+              const body = comment.body || '';
+              
+              // Look for ## Recommendations header
+              if (body.includes('## Recommendations')) {
+                const lines = body.split('\n');
+                let inRecommendations = false;
+                let currentSection = null;
+                let currentItems = [];
+                
+                for (const line of lines) {
+                  if (line.includes('## Recommendations')) {
+                    inRecommendations = true;
+                    continue;
+                  }
+                  
+                  if (inRecommendations) {
+                    // Check for priority sections
+                    if (line.trim() === '### Must Address Soon') {
+                      if (currentSection && currentItems.length > 0) {
+                        recommendationBlocks.push({
+                          section: currentSection,
+                          items: currentItems,
+                          commentId: comment.id,
+                          commentUrl: comment.html_url,
+                          author: comment.user.login
+                        });
+                      }
+                      currentSection = 'must_address_soon';
+                      currentItems = [];
+                    } else if (line.trim() === '### Should Consider') {
+                      if (currentSection && currentItems.length > 0) {
+                        recommendationBlocks.push({
+                          section: currentSection,
+                          items: currentItems,
+                          commentId: comment.id,
+                          commentUrl: comment.html_url,
+                          author: comment.user.login
+                        });
+                      }
+                      currentSection = 'should_consider';
+                      currentItems = [];
+                    } else if (line.trim() === '### Future Enhancement') {
+                      if (currentSection && currentItems.length > 0) {
+                        recommendationBlocks.push({
+                          section: currentSection,
+                          items: currentItems,
+                          commentId: comment.id,
+                          commentUrl: comment.html_url,
+                          author: comment.user.login
+                        });
+                      }
+                      currentSection = 'future_enhancement';
+                      currentItems = [];
+                    } else if (line.trim().startsWith('- ') && currentSection) {
+                      currentItems.push(line.trim().substring(2));
+                    } else if (line.trim().startsWith('## ') && line.trim() !== '## Recommendations') {
+                      // Hit another section, stop processing
+                      break;
+                    }
+                  }
+                }
+                
+                // Add last section
+                if (currentSection && currentItems.length > 0) {
+                  recommendationBlocks.push({
+                    section: currentSection,
+                    items: currentItems,
+                    commentId: comment.id,
+                    commentUrl: comment.html_url,
+                    author: comment.user.login
+                  });
+                }
+              }
+            }
+            
+            if (recommendationBlocks.length === 0) {
+              core.info('No structured recommendations found');
+              core.setOutput('has_recommendations', 'false');
+              return;
+            }
+            
+            // Store recommendations data
+            core.setOutput('has_recommendations', 'true');
+            core.setOutput('recommendations', JSON.stringify(recommendationBlocks));
+            core.setOutput('pr_number', prNumber);
+            core.setOutput('pr_title', prTitle);
+            core.setOutput('pr_url', prUrl);
+            
+            core.info(`Found ${recommendationBlocks.length} recommendation blocks`);
+      
+      - name: Process Recommendations
+        id: process
+        if: steps.scan.outputs.has_recommendations == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            const recommendations = ${{ fromJSON(steps.scan.outputs.recommendations) }};
+            const prNumber = '${{ steps.scan.outputs.pr_number }}';
+            const prTitle = '${{ steps.scan.outputs.pr_title }}';
+            const prUrl = '${{ steps.scan.outputs.pr_url }}';
+            
+            const issuesCreated = [];
+            const backlogItems = [];
+            const roadmapItems = [];
+            
+            for (const block of recommendations) {
+              for (const item of block.items) {
+                const timestamp = new Date().toISOString();
+                const dateStr = timestamp.split('T')[0];
+                
+                if (block.section === 'must_address_soon') {
+                  // Create follow-up issue
+                  try {
+                    const issue = await github.rest.issues.create({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      title: `[CHANGE] ${item}`,
+                      body: `## Follow-up from PR #${prNumber}\n\n` +
+                            `**Source:** ${prUrl}\n` +
+                            `**Review Comment:** ${block.commentUrl}\n` +
+                            `**Reviewer:** @${block.author}\n\n` +
+                            `### Recommendation\n\n${item}\n\n` +
+                            `### Context\n\n` +
+                            `This recommendation was captured from PR review comments during the meta-capture process.\n\n` +
+                            `**Original PR:** ${prTitle}\n\n` +
+                            `### Next Steps\n\n` +
+                            `- [ ] Review recommendation and validate priority\n` +
+                            `- [ ] Determine implementation approach\n` +
+                            `- [ ] Assign to appropriate stage (planning/architecture/implementation)\n` +
+                            `- [ ] Execute change through SOMAS pipeline\n`,
+                      labels: ['somas:follow-up', 'somas:change']
+                    });
+                    
+                    issuesCreated.push({
+                      number: issue.data.number,
+                      title: issue.data.title,
+                      url: issue.data.html_url
+                    });
+                    
+                    core.info(`Created issue #${issue.data.number}: ${item}`);
+                  } catch (error) {
+                    core.error(`Failed to create issue for: ${item}`);
+                    core.error(error);
+                  }
+                  
+                } else if (block.section === 'should_consider') {
+                  // Add to backlog
+                  backlogItems.push({
+                    title: item,
+                    source: `PR #${prNumber}`,
+                    url: block.commentUrl,
+                    date: dateStr,
+                    author: block.author
+                  });
+                  
+                } else if (block.section === 'future_enhancement') {
+                  // Add to roadmap
+                  roadmapItems.push({
+                    title: item,
+                    source: `PR #${prNumber}`,
+                    url: block.commentUrl,
+                    date: dateStr,
+                    author: block.author
+                  });
+                }
+              }
+            }
+            
+            // Update backlog file
+            if (backlogItems.length > 0) {
+              const backlogPath = '.somas/backlog.md';
+              
+              // Check if file exists
+              if (!fs.existsSync(backlogPath)) {
+                core.setFailed(`Backlog file not found at ${backlogPath}`);
+                return;
+              }
+              
+              let backlogContent;
+              try {
+                backlogContent = fs.readFileSync(backlogPath, 'utf8');
+              } catch (error) {
+                core.setFailed(`Failed to read backlog file: ${error.message}`);
+                return;
+              }
+
+              // Simple keyword-based category detection with safe default.
+              // @copilot-context: This helps align backlog categorization with review content.
+              function detectCategoryFromText(text) {
+                if (!text || typeof text !== 'string') {
+                  return 'Process Improvement';
+                }
+                const lower = text.toLowerCase();
+
+                // Security-related
+                if (
+                  lower.includes('security') ||
+                  lower.includes('xss') ||
+                  lower.includes('csrf') ||
+                  lower.includes('injection') ||
+                  lower.includes('authn') ||
+                  lower.includes('authz') ||
+                  lower.includes('authorization') ||
+                  lower.includes('authentication') ||
+                  lower.includes('encryption')
+                ) {
+                  return 'Security';
+                }
+
+                // Testing-related
+                if (
+                  lower.includes('test ') ||
+                  lower.includes(' tests') ||
+                  lower.includes('testing') ||
+                  lower.includes('unit test') ||
+                  lower.includes('integration test') ||
+                  lower.includes('e2e test') ||
+                  lower.includes('coverage')
+                ) {
+                  return 'Testing';
+                }
+
+                // Architecture / design-related
+                if (
+                  lower.includes('architecture') ||
+                  lower.includes('architectural') ||
+                  lower.includes('design pattern') ||
+                  lower.includes('system design') ||
+                  lower.includes('module boundary') ||
+                  lower.includes('coupling') ||
+                  lower.includes('cohesion')
+                ) {
+                  return 'Architecture';
+                }
+
+                // Performance-related
+                if (
+                  lower.includes('performance') ||
+                  lower.includes('latency') ||
+                  lower.includes('throughput') ||
+                  lower.includes('optimiz') || // matches optimize/optimization
+                  lower.includes('profiling')
+                ) {
+                  return 'Performance';
+                }
+
+                // Documentation-related
+                if (
+                  lower.includes('documentation') ||
+                  lower.includes('docs') ||
+                  lower.includes('readme') ||
+                  lower.includes('comment') ||
+                  lower.includes('docstring')
+                ) {
+                  return 'Documentation';
+                }
+
+                // Default when no specific category is detected
+                return 'Process Improvement';
+              }
+              
+              // Find appropriate section (using "Should Consider" items -> Process Improvements)
+              const sectionMarker = '## Process Improvements\n\n### Items';
+              if (backlogContent.includes(sectionMarker)) {
+                let itemsText = '\n';
+                for (const item of backlogItems) {
+                  const inferredCategory =
+                    item && typeof item.category === 'string' && item.category.trim() !== ''
+                      ? item.category.trim()
+                      : detectCategoryFromText(item && item.title ? item.title : '');
+
+                  itemsText += `\n### ${item.title}\n`;
+                  itemsText += `**Source:** [PR #${prNumber}](${item.url})  \n`;
+                  itemsText += `**Added:** ${item.date}  \n`;
+                  itemsText += `**Added By:** @${item.author}  \n`;
+                  itemsText += `**Category:** ${inferredCategory}  \n`;
+                  itemsText += `**Effort Estimate:** Unknown  \n\n`;
+                  itemsText += `**Description:**\n${item.title}\n\n`;
+                  itemsText += `**Rationale:**\nCaptured from PR review as a "Should Consider" item.\n\n`;
+                  itemsText += `---\n`;
+                }
+                
+                const originalContent = backlogContent;
+                backlogContent = backlogContent.replace(
+                  sectionMarker + '\n\n*No items yet. Items will be added via meta-capture process.*',
+                  sectionMarker + itemsText
+                );
+                
+                // If replace didn't work (already has items), append to section
+                if (backlogContent === originalContent) {
+                  const idx = backlogContent.indexOf(sectionMarker);
+                  if (idx >= 0) {
+                    const insertIdx = backlogContent.indexOf('\n---\n', idx);
+                    if (insertIdx >= 0) {
+                      backlogContent = backlogContent.substring(0, insertIdx) + 
+                                     itemsText + 
+                                     backlogContent.substring(insertIdx);
+                    }
+                  }
+                }
+                
+                try {
+                  fs.writeFileSync(backlogPath, backlogContent);
+                  core.info(`Added ${backlogItems.length} items to backlog`);
+                } catch (error) {
+                  core.setFailed(`Failed to write backlog file: ${error.message}`);
+                  return;
+                }
+              }
+            }
+            
+            // Update roadmap file
+            if (roadmapItems.length > 0) {
+              const roadmapPath = '.somas/roadmap.md';
+              
+              // Check if file exists
+              if (!fs.existsSync(roadmapPath)) {
+                core.setFailed(`Roadmap file not found at ${roadmapPath}`);
+                return;
+              }
+              
+              let roadmapContent;
+              try {
+                roadmapContent = fs.readFileSync(roadmapPath, 'utf8');
+              } catch (error) {
+                core.setFailed(`Failed to read roadmap file: ${error.message}`);
+                return;
+              }
+              
+              // Note: All roadmap items are added to "Pipeline Enhancements" by default.
+              // Items can be manually moved to other sections (Agent Improvements, 
+              // Infrastructure, Developer Experience) during roadmap review if appropriate.
+              const sectionMarker = '## Future (v0.3.x)\n\n### Pipeline Enhancements';
+              if (roadmapContent.includes(sectionMarker)) {
+                let itemsText = '\n';
+                for (const item of roadmapItems) {
+                  itemsText += `\n#### ${item.title}\n`;
+                  itemsText += `**Source:** [PR #${prNumber}](${item.url})  \n`;
+                  itemsText += `**Added:** ${item.date}  \n`;
+                  itemsText += `**Suggested By:** @${item.author}  \n`;
+                  itemsText += `**Priority:** Low  \n`;
+                  itemsText += `**Status:** Planned  \n\n`;
+                  itemsText += `${item.title}\n\n`;
+                  itemsText += `*Captured from PR review as a future enhancement opportunity.*\n\n`;
+                }
+                
+                const originalContent = roadmapContent;
+                roadmapContent = roadmapContent.replace(
+                  sectionMarker + '\n\n*Future enhancement items will be added via meta-capture process.*',
+                  sectionMarker + itemsText
+                );
+                
+                // If replace didn't work (already has items), append to section
+                if (roadmapContent === originalContent) {
+                  const idx = roadmapContent.indexOf(sectionMarker);
+                  if (idx >= 0) {
+                    const nextSection = roadmapContent.indexOf('\n### ', idx + sectionMarker.length);
+                    if (nextSection >= 0) {
+                      roadmapContent = roadmapContent.substring(0, nextSection) + 
+                                     itemsText + 
+                                     roadmapContent.substring(nextSection);
+                    } else {
+                      core.warning('Could not find next section marker, appending to end of file');
+                      roadmapContent += itemsText;
+                    }
+                  }
+                }
+                
+                try {
+                  fs.writeFileSync(roadmapPath, roadmapContent);
+                  core.info(`Added ${roadmapItems.length} items to roadmap`);
+                } catch (error) {
+                  core.setFailed(`Failed to write roadmap file: ${error.message}`);
+                  return;
+                }
+              }
+            }
+            
+            // Store outputs for commit step
+            core.setOutput('issues_created', JSON.stringify(issuesCreated));
+            core.setOutput('backlog_count', backlogItems.length);
+            core.setOutput('roadmap_count', roadmapItems.length);
+      
+      - name: Commit Changes
+        if: steps.scan.outputs.has_recommendations == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          git add .somas/backlog.md .somas/roadmap.md
+          
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "meta: Capture recommendations from PR #${{ steps.scan.outputs.pr_number }}"
+            git push
+          fi
+      
+      - name: Post Summary Comment
+        if: steps.scan.outputs.has_recommendations == 'true'
+        uses: actions/github-script@v7
+        env:
+          ISSUES_CREATED: ${{ steps.process.outputs.issues_created || '[]' }}
+          BACKLOG_COUNT: ${{ steps.process.outputs.backlog_count || '0' }}
+          ROADMAP_COUNT: ${{ steps.process.outputs.roadmap_count || '0' }}
+        with:
+          script: |
+            const prNumber = '${{ steps.scan.outputs.pr_number }}';
+            const issuesCreated = JSON.parse(process.env.ISSUES_CREATED || '[]');
+            const backlogCount = Number(process.env.BACKLOG_COUNT || '0');
+            const roadmapCount = Number(process.env.ROADMAP_COUNT || '0');
+            
+            const markerComment = `<!-- SOMAS_RECOMMENDATIONS_CAPTURED:${prNumber} -->`;
+            
+            let commentBody = `## 📋 Meta-Capture: Recommendations Processed\n\n`;
+            commentBody += markerComment + '\n\n';
+            commentBody += `The SOMAS meta-capture process has successfully processed recommendations from this PR's reviews.\n\n`;
+            
+            if (issuesCreated.length > 0) {
+              commentBody += `### ✅ Follow-up Issues Created (${issuesCreated.length})\n\n`;
+              for (const issue of issuesCreated) {
+                commentBody += `- #${issue.number}: ${issue.title}\n`;
+              }
+              commentBody += '\n';
+            }
+            
+            if (backlogCount > 0) {
+              commentBody += `### 📝 Backlog Items Added: ${backlogCount}\n`;
+              commentBody += `Items added to [.somas/backlog.md](${context.payload.repository.html_url}/blob/main/.somas/backlog.md)\n\n`;
+            }
+            
+            if (roadmapCount > 0) {
+              commentBody += `### 🗺️ Roadmap Items Added: ${roadmapCount}\n`;
+              commentBody += `Items added to [.somas/roadmap.md](${context.payload.repository.html_url}/blob/main/.somas/roadmap.md)\n\n`;
+            }
+            
+            commentBody += `---\n\n`;
+            commentBody += `*This ensures institutional knowledge is preserved and actionable. Learn more: [Meta-Capture Process](.somas/templates/meta-capture.md)*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: commentBody
+            });

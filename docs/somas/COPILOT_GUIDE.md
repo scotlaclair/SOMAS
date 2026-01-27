@@ -10,9 +10,10 @@ This guide explains how to use GitHub Copilot effectively with the SOMAS (Self-S
 2. [Copilot's Role in the Pipeline](#copilots-role-in-the-pipeline)
 3. [Using Copilot Instructions](#using-copilot-instructions)
 4. [AI Agent Delegation](#ai-agent-delegation)
-5. [Best Practices](#best-practices)
-6. [Code Examples](#code-examples)
-7. [Troubleshooting](#troubleshooting)
+5. [PR Reviews and Meta-Capture](#pr-reviews-and-meta-capture)
+6. [Best Practices](#best-practices)
+7. [Code Examples](#code-examples)
+8. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -251,6 +252,56 @@ delegation = {
 
 # Wait for revised architecture before implementing
 ```
+
+---
+
+## PR Reviews and Meta-Capture
+
+### Structured Recommendations
+
+When reviewing PRs or providing feedback, use structured recommendation format to enable automatic capture and routing:
+
+```markdown
+## Recommendations
+
+### Must Address Soon
+- Critical items that need immediate follow-up
+- Security or architectural issues that compound over time
+
+### Should Consider
+- Improvements worth adding to the backlog
+- Code quality enhancements for future consideration
+
+### Future Enhancement
+- Long-term strategic improvements
+- Performance optimization opportunities
+```
+
+### Meta-Capture Process
+
+SOMAS automatically captures structured recommendations from merged PR reviews:
+
+1. **Automatic Processing**: When a PR with `somas:approved` or `somas:reviewed` label is merged
+2. **Issue Creation**: "Must Address Soon" items become follow-up issues with `somas:follow-up` label
+3. **Backlog Updates**: "Should Consider" items are added to `.somas/backlog.md`
+4. **Roadmap Updates**: "Future Enhancement" items are added to `.somas/roadmap.md`
+5. **Idempotent**: Markers prevent duplicate processing
+
+### Why This Matters
+
+- **Preserves Knowledge**: High-value insights don't get lost in PR comments
+- **Enables Follow-up**: Recommendations become actionable issues or backlog items
+- **Improves Traceability**: Links back to source PR and context
+- **Supports Planning**: Roadmap reflects actual feedback and evolution
+
+### Best Practices for Reviews
+
+1. **Be Specific**: Each recommendation should be clear and actionable
+2. **Categorize Appropriately**: Use correct priority level based on urgency
+3. **Provide Context**: Explain why the recommendation matters
+4. **Link Examples**: Reference similar patterns or previous work
+
+See [Meta-Capture Process Documentation](./meta-capture-process.md) for full details.
 
 ---
 
