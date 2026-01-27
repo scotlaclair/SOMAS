@@ -396,5 +396,169 @@ class TestConcurrentAccess(unittest.TestCase):
                         f"Expected 15 dead letters in metrics but got {state['metrics']['dead_letters']}")
 
 
+class TestSecurityValidation(unittest.TestCase):
+    """Test cases for security validation and injection prevention."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.test_dir = tempfile.mkdtemp()
+        self.state_manager = StateManager(projects_dir=Path(self.test_dir))
+    
+    def tearDown(self):
+        """Clean up test fixtures."""
+        shutil.rmtree(self.test_dir)
+    
+    def test_project_id_rejects_path_traversal(self):
+        """Ensure path traversal attempts are blocked."""
+        malicious_ids = [
+            "../../../etc/passwd",
+            "project-1/../../../etc",
+            "project-1/../../secret",
+            "..\\..\\windows\\system32",
+            "..",
+            "../",
+            "project-1/..",
+        ]
+        
+        for bad_id in malicious_ids:
+            with self.assertRaises(ValueError, msg=f"Should reject: {bad_id}"):
+                self.state_manager._validate_project_id(bad_id)
+    
+    def test_project_id_rejects_command_injection(self):
+        """Ensure command injection attempts are blocked."""
+        malicious_ids = [
+            'project-1; rm -rf /',
+            'project-1 && echo pwned',
+            'project-1`whoami`',
+            'project-1$(cat /etc/passwd)',
+            'my-project"; rm -rf /; echo "',
+            'project-1|cat /etc/passwd',
+            'project-1\nrm -rf /',
+        ]
+        
+        for bad_id in malicious_ids:
+            with self.assertRaises(ValueError, msg=f"Should reject: {bad_id}"):
+                self.state_manager._validate_project_id(bad_id)
+    
+    def test_project_id_rejects_special_characters(self):
+        """Ensure special characters are blocked."""
+        malicious_ids = [
+            'project-1/subdir',
+            'project-1\\subdir',
+            'project@123',
+            'project#123',
+            'project 123',  # spaces
+            'project\t123',  # tabs
+            'project\n123',  # newlines
+        ]
+        
+        for bad_id in malicious_ids:
+            with self.assertRaises(ValueError, msg=f"Should reject: {bad_id}"):
+                self.state_manager._validate_project_id(bad_id)
+    
+    def test_project_id_accepts_valid_format(self):
+        """Ensure valid project IDs are accepted."""
+        valid_ids = [
+            "project-1",
+            "project-123",
+            "project-999999",
+            "project-0",
+        ]
+        
+        for good_id in valid_ids:
+            try:
+                result = self.state_manager._validate_project_id(good_id)
+                self.assertTrue(result, f"Should accept: {good_id}")
+            except ValueError as e:
+                self.fail(f"Valid ID rejected: {good_id} - {e}")
+    
+    def test_path_construction_prevents_escape(self):
+        """Verify path construction stays within project directory."""
+        # Valid path should work
+        path = self.state_manager._get_safe_project_path("project-123")
+        self.assertIn(self.test_dir, str(path))
+        self.assertTrue(str(path).startswith(str(Path(self.test_dir).resolve())))
+        
+        # Invalid IDs should fail during validation
+        with self.assertRaises(ValueError):
+            self.state_manager._get_safe_project_path("../escape")
+        
+        with self.assertRaises(ValueError):
+            self.state_manager._get_safe_project_path("project-1; rm -rf /")
+    
+    def test_safe_path_resolution(self):
+        """Test that _get_safe_project_path resolves paths correctly."""
+        project_id = "project-456"
+        
+        # Get the safe path
+        safe_path = self.state_manager._get_safe_project_path(project_id)
+        
+        # Verify it's a resolved absolute path
+        self.assertTrue(safe_path.is_absolute())
+        
+        # Verify it's within the base directory
+        base_path = Path(self.test_dir).resolve()
+        self.assertTrue(str(safe_path).startswith(str(base_path)))
+        
+        # Verify it ends with the project_id
+        self.assertTrue(str(safe_path).endswith(project_id))
+    
+    def test_project_id_empty_string(self):
+        """Ensure empty strings are rejected."""
+        with self.assertRaises(ValueError):
+            self.state_manager._validate_project_id("")
+    
+    def test_project_id_only_numbers(self):
+        """Ensure project IDs must have 'project-' prefix."""
+        with self.assertRaises(ValueError):
+            self.state_manager._validate_project_id("123")
+    
+    def test_project_id_wrong_prefix(self):
+        """Ensure only 'project-' prefix is accepted."""
+        invalid_ids = [
+            "proj-123",
+            "PROJECT-123",  # uppercase
+            "project_123",  # underscore instead of hyphen
+            "projects-123",
+        ]
+        
+        for bad_id in invalid_ids:
+            with self.assertRaises(ValueError, msg=f"Should reject: {bad_id}"):
+                self.state_manager._validate_project_id(bad_id)
+    
+    def test_initialize_project_with_malicious_title(self):
+        """Verify that malicious titles don't cause issues."""
+        project_id = "project-999"
+        
+        # Titles with potential injection attempts
+        malicious_titles = [
+            'My Project"; rm -rf /; echo "pwned',
+            'Project $(cat /etc/passwd)',
+            'Project `whoami`',
+            'Project && echo hacked',
+            'Project || rm -rf /',
+        ]
+        
+        for title in malicious_titles:
+            # Should successfully initialize without injection
+            try:
+                state = self.state_manager.initialize_project(
+                    project_id=project_id,
+                    issue_number=999,
+                    title=title
+                )
+                
+                # Verify the state was created
+                self.assertEqual(state["project_id"], project_id)
+                
+                # Clean up for next iteration
+                project_dir = Path(self.test_dir) / project_id
+                if project_dir.exists():
+                    shutil.rmtree(project_dir)
+                    
+            except Exception as e:
+                self.fail(f"Initialization failed with title '{title}': {e}")
+
+
 if __name__ == '__main__':
     unittest.main()
