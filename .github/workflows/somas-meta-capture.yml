@@ -242,17 +242,97 @@ jobs:
             if (backlogItems.length > 0) {
               const backlogPath = '.somas/backlog.md';
               let backlogContent = fs.readFileSync(backlogPath, 'utf8');
+
+              // Simple keyword-based category detection with safe default.
+              // @copilot-context: This helps align backlog categorization with review content.
+              function detectCategoryFromText(text) {
+                if (!text || typeof text !== 'string') {
+                  return 'Process Improvement';
+                }
+                const lower = text.toLowerCase();
+
+                // Security-related
+                if (
+                  lower.includes('security') ||
+                  lower.includes('xss') ||
+                  lower.includes('csrf') ||
+                  lower.includes('injection') ||
+                  lower.includes('authn') ||
+                  lower.includes('authz') ||
+                  lower.includes('authorization') ||
+                  lower.includes('authentication') ||
+                  lower.includes('encryption')
+                ) {
+                  return 'Security';
+                }
+
+                // Testing-related
+                if (
+                  lower.includes('test ') ||
+                  lower.includes(' tests') ||
+                  lower.includes('testing') ||
+                  lower.includes('unit test') ||
+                  lower.includes('integration test') ||
+                  lower.includes('e2e test') ||
+                  lower.includes('coverage')
+                ) {
+                  return 'Testing';
+                }
+
+                // Architecture / design-related
+                if (
+                  lower.includes('architecture') ||
+                  lower.includes('architectural') ||
+                  lower.includes('design pattern') ||
+                  lower.includes('system design') ||
+                  lower.includes('module boundary') ||
+                  lower.includes('coupling') ||
+                  lower.includes('cohesion')
+                ) {
+                  return 'Architecture';
+                }
+
+                // Performance-related
+                if (
+                  lower.includes('performance') ||
+                  lower.includes('latency') ||
+                  lower.includes('throughput') ||
+                  lower.includes('optimiz') || // matches optimize/optimization
+                  lower.includes('profiling')
+                ) {
+                  return 'Performance';
+                }
+
+                // Documentation-related
+                if (
+                  lower.includes('documentation') ||
+                  lower.includes('docs') ||
+                  lower.includes('readme') ||
+                  lower.includes('comment') ||
+                  lower.includes('docstring')
+                ) {
+                  return 'Documentation';
+                }
+
+                // Default when no specific category is detected
+                return 'Process Improvement';
+              }
               
               // Find appropriate section (using "Should Consider" items -> Process Improvements)
               const sectionMarker = '## Process Improvements\n\n### Items';
               if (backlogContent.includes(sectionMarker)) {
                 let itemsText = '\n';
                 for (const item of backlogItems) {
+                  const inferredCategory =
+                    item && typeof item.category === 'string' && item.category.trim() !== ''
+                      ? item.category.trim()
+                      : detectCategoryFromText(item && item.title ? item.title : '');
+
                   itemsText += `\n### ${item.title}\n`;
                   itemsText += `**Source:** [PR #${prNumber}](${item.url})  \n`;
                   itemsText += `**Added:** ${item.date}  \n`;
                   itemsText += `**Added By:** @${item.author}  \n`;
-                  itemsText += `**Category:** Process Improvement  \n`;
+                  itemsText += `**Category:** ${inferredCategory}  \n`;
                   itemsText += `**Effort Estimate:** Unknown  \n\n`;
                   itemsText += `**Description:**\n${item.title}\n\n`;
                   itemsText += `**Rationale:**\nCaptured from PR review as a "Should Consider" item.\n\n`;
