@@ -1,0 +1,34 @@
+# Circuit breaker limits for autonomous pipeline safety
+version: "1.0.0"
+
+limits:
+  # Per-issue limits
+  max_agent_invocations_per_issue: 20
+  max_comments_per_hour: 10
+  max_retry_attempts: 3
+  
+  # Per-PR limits  
+  max_issues_created_per_pr: 5
+  max_review_cycles: 3
+  
+  # Global limits
+  max_concurrent_pipelines: 5
+
+escalation:
+  # When circuit breaker trips, notify these users
+  notify: ["scotlaclair"]
+  # Label to apply when tripped
+  label: "somas:circuit-breaker"
+
+# Stages must progress in this order (no backward transitions)
+stage_order:
+  - triage
+  - planner
+  - specifier
+  - simulator
+  - architect
+  - implementer
+  - tester
+  - reviewer
+  - security
+  - complete
