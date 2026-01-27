@@ -160,6 +160,13 @@ checkpointing:
       max_retries: 2
       backoff_minutes: 5
 
+# State Manager Configuration
+# @copilot-context: Controls state.json checkpoint rotation to prevent unbounded growth
+# Keeps only the N most recent checkpoints to avoid performance degradation
+
+state_manager:
+  max_checkpoints: 20  # Number of checkpoints to retain (oldest are pruned)
+
 # Agent Configuration
 # @copilot-delegate: Agent configurations define AI provider mappings
 # Updated 2026 Frontier Tier models for optimal performance:
