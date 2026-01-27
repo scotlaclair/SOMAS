@@ -37,7 +37,7 @@ jobs:
             
             // Extract the "SOMAS Agent Assignments" section
             // This section contains checkboxes for agent reviews
-            const agentSectionRegex = /##\s*SOMAS Agent Assignments\s*\n([\s\S]*?)(?=\n##|\n---|\z)/i;
+            const agentSectionRegex = /##\s*SOMAS Agent Assignments\s*\n([\s\S]*?)(?=\n##|\n---|$)/i;
             const match = prBody.match(agentSectionRegex);
             
             if (!match) {
