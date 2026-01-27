@@ -166,7 +166,7 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             
-            const recommendations = JSON.parse('${{ steps.scan.outputs.recommendations }}');
+            const recommendations = ${{ fromJSON(steps.scan.outputs.recommendations) }};
             const prNumber = '${{ steps.scan.outputs.pr_number }}';
             const prTitle = '${{ steps.scan.outputs.pr_title }}';
             const prUrl = '${{ steps.scan.outputs.pr_url }}';
