@@ -14,6 +14,12 @@ permissions:
   issues: write
   pull-requests: write
 
+# Prevent concurrent runs for the same issue to avoid duplicate triage comments
+# when multiple label events fire simultaneously (e.g., issue created with multiple labels)
+concurrency:
+  group: somas-orchestrator-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 jobs:
   # Triage incoming change/enhance/question/bug requests
   triage:
