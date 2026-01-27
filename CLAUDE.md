@@ -211,14 +211,15 @@ with lock:
 
 ### Unit Tests
 ```python
+import unittest
+import tempfile
+import shutil
 class TestFeature(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         # Setup test fixtures
-
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
-
     def test_specific_behavior(self):
         # Arrange
         input_data = {...}
