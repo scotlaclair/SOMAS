@@ -1,0 +1,325 @@
+name: PR Checklist Completion Detector
+
+# Detects when all agent review checkboxes in the "SOMAS Agent Assignments" section
+# of a PR description are completed. When all boxes are checked, automatically adds
+# the "auto-merge-approved" label to enable auto-merge workflows.
+#
+# This ensures only PRs reviewed by all required agents progress to auto-merge,
+# maintaining quality gates without manual verification overhead.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-agent-assignments:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check Agent Assignment Checklist
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const prBody = context.payload.pull_request.body || '';
+            
+            core.info('='.repeat(60));
+            core.info('PR Checklist Completion Detector');
+            core.info('='.repeat(60));
+            core.info(`PR #${prNumber}`);
+            core.info(`PR Body length: ${prBody.length} characters`);
+            
+            // Extract the "SOMAS Agent Assignments" section
+            // This section contains checkboxes for agent reviews
+            const agentSectionRegex = /##\s*SOMAS Agent Assignments\s*\n([\s\S]*?)(?=\n##|\n---|$)/i;
+            const match = prBody.match(agentSectionRegex);
+            
+            if (!match) {
+              core.info('❌ No "SOMAS Agent Assignments" section found in PR body');
+              core.info('This workflow only applies to SOMAS-generated PRs with agent assignments');
+              core.setOutput('has_section', 'false');
+              core.setOutput('skip', 'true');
+              return;
+            }
+            
+            const agentSection = match[1];
+            core.info('✓ Found "SOMAS Agent Assignments" section');
+            core.info(`Section length: ${agentSection.length} characters`);
+            
+            // Count unchecked boxes: [ ]
+            // Count checked boxes: [x] or [X]
+            const uncheckedBoxes = (agentSection.match(/- \[ \]/g) || []).length;
+            const checkedBoxes = (agentSection.match(/- \[[xX]\]/g) || []).length;
+            const totalBoxes = uncheckedBoxes + checkedBoxes;
+            
+            core.info('');
+            core.info('Checklist Status:');
+            core.info(`  Total boxes: ${totalBoxes}`);
+            core.info(`  Checked: ${checkedBoxes}`);
+            core.info(`  Unchecked: ${uncheckedBoxes}`);
+            
+            if (totalBoxes === 0) {
+              core.info('⚠️  No checkboxes found in agent assignments section');
+              core.setOutput('has_section', 'true');
+              core.setOutput('has_checkboxes', 'false');
+              core.setOutput('skip', 'true');
+              return;
+            }
+            
+            const allChecked = uncheckedBoxes === 0;
+            core.info('');
+            core.info(`Status: ${allChecked ? '✅ ALL CHECKS COMPLETE' : '⏳ PENDING REVIEWS'}`);
+            
+            // Get current labels on the PR
+            const currentLabels = context.payload.pull_request.labels.map(l => l.name);
+            const hasAutoMergeLabel = currentLabels.includes('auto-merge-approved');
+            
+            core.info('');
+            core.info(`Current "auto-merge-approved" label: ${hasAutoMergeLabel ? 'PRESENT' : 'ABSENT'}`);
+            
+            core.setOutput('has_section', 'true');
+            core.setOutput('has_checkboxes', 'true');
+            core.setOutput('skip', 'false');
+            core.setOutput('all_checked', allChecked.toString());
+            core.setOutput('has_auto_merge_label', hasAutoMergeLabel.toString());
+            core.setOutput('checked_count', checkedBoxes);
+            core.setOutput('unchecked_count', uncheckedBoxes);
+            core.setOutput('total_count', totalBoxes);
+            
+            core.info('='.repeat(60));
+      
+      - name: Add Auto-Merge Approval Label
+        if: |
+          steps.check.outputs.skip != 'true' &&
+          steps.check.outputs.all_checked == 'true' &&
+          steps.check.outputs.has_auto_merge_label != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const checkedCount = '${{ steps.check.outputs.checked_count }}';
+            
+            core.info(`✅ All ${checkedCount} agent reviews completed!`);
+            
+            // Try to add label
+            try {
+              core.info('Adding "auto-merge-approved" label...');
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['auto-merge-approved']
+              });
+              core.info('✓ Label added successfully');
+            } catch (error) {
+              core.warning(`Could not add label: ${error.message}`);
+              core.info('This is expected for PRs from forks or when workflow lacks label permissions');
+            }
+            
+            // Try to post a comment on the PR
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: '## ✅ All Agent Reviews Complete\n\n' +
+                      `All ${checkedCount} required agent reviews have been checked off in the **SOMAS Agent Assignments** section.\n\n` +
+                      '**Status:** Auto-merge approved\n' +
+                      '**Label:** `auto-merge-approved` has been automatically added\n\n' +
+                      'This PR is now eligible for automatic merging if all other required checks pass and branch protection rules permit.\n\n' +
+                      '---\n' +
+                      '*Automated by PR Checklist Completion Detector*'
+              });
+              core.info('✓ Status comment posted');
+            } catch (error) {
+              core.warning(`Could not post comment: ${error.message}`);
+              core.info('This is expected for PRs from forks or when workflow lacks comment permissions');
+            }
+      
+      - name: Enable Auto-Merge
+        if: |
+          steps.check.outputs.skip != 'true' &&
+          steps.check.outputs.all_checked == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const prNodeId = context.payload.pull_request.node_id;
+            
+            core.info('Attempting to enable auto-merge...');
+            
+            try {
+              // Enable auto-merge with squash merge method
+              // This requires the PR to pass all required status checks
+              // and branch protection rules before it will actually merge
+              const mutation = `
+                mutation($pullRequestId: ID!) {
+                  enablePullRequestAutoMerge(input: {
+                    pullRequestId: $pullRequestId,
+                    mergeMethod: SQUASH
+                  }) {
+                    pullRequest {
+                      autoMergeRequest {
+                        enabledAt
+                        enabledBy {
+                          login
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+              
+              const result = await github.graphql(mutation, {
+                pullRequestId: prNodeId
+              });
+              
+              core.info('✓ Auto-merge enabled successfully');
+              core.info(`Enabled at: ${result.enablePullRequestAutoMerge.pullRequest.autoMergeRequest.enabledAt}`);
+              core.info('PR will auto-merge when all required checks pass and branch protections are satisfied');
+              
+              // Post a follow-up comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: '🤖 **Auto-merge has been enabled** for this PR.\n\n' +
+                      'The PR will automatically merge when:\n' +
+                      '- All required status checks pass\n' +
+                      '- All branch protection rules are satisfied\n' +
+                      '- No merge conflicts exist\n\n' +
+                      '_Merge method: Squash_'
+              });
+              
+            } catch (error) {
+              // Auto-merge might fail if:
+              // - Repository doesn't have auto-merge enabled
+              // - PR doesn't meet merge requirements yet
+              // - User doesn't have permission
+              core.warning(`Could not enable auto-merge: ${error.message}`);
+              core.info('This is expected if auto-merge is not available for this repository or PR');
+              core.info('The auto-merge-approved label has still been added for manual or other automation use');
+            }
+      
+      - name: Remove Auto-Merge Approval Label
+        if: |
+          steps.check.outputs.skip != 'true' &&
+          steps.check.outputs.all_checked != 'true' &&
+          steps.check.outputs.has_auto_merge_label == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const uncheckedCount = '${{ steps.check.outputs.unchecked_count }}';
+            const checkedCount = '${{ steps.check.outputs.checked_count }}';
+            const totalCount = '${{ steps.check.outputs.total_count }}';
+            
+            core.info(`⏳ Agent reviews incomplete: ${checkedCount}/${totalCount} completed`);
+            
+            // Try to remove label
+            try {
+              core.info('Removing "auto-merge-approved" label...');
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                name: 'auto-merge-approved'
+              });
+              core.info('✓ Label removed successfully');
+            } catch (error) {
+              if (error.status === 404) {
+                core.info('Label was already removed, no action needed');
+              } else {
+                core.warning(`Could not remove label: ${error.message}`);
+                core.info('This is expected for PRs from forks or when workflow lacks label permissions');
+              }
+            }
+            
+            // Try to post a comment on the PR
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: '## ⏳ Agent Reviews Incomplete\n\n' +
+                      'The agent review checklist has been updated and is no longer complete.\n\n' +
+                      `**Status:** ${checkedCount}/${totalCount} reviews completed (${uncheckedCount} remaining)\n` +
+                      '**Label:** `auto-merge-approved` has been automatically removed\n\n' +
+                      'Please ensure all required agent reviews are completed before this PR can be auto-merged.\n\n' +
+                      '---\n' +
+                      '*Automated by PR Checklist Completion Detector*'
+              });
+              core.info('✓ Status comment posted');
+            } catch (error) {
+              core.warning(`Could not post comment: ${error.message}`);
+              core.info('This is expected for PRs from forks or when workflow lacks comment permissions');
+            }
+      
+      - name: Disable Auto-Merge
+        if: |
+          steps.check.outputs.skip != 'true' &&
+          steps.check.outputs.all_checked != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const prNodeId = context.payload.pull_request.node_id;
+            
+            core.info('Attempting to disable auto-merge...');
+            
+            try {
+              // Disable auto-merge since checklist is no longer complete
+              const mutation = `
+                mutation($pullRequestId: ID!) {
+                  disablePullRequestAutoMerge(input: {
+                    pullRequestId: $pullRequestId
+                  }) {
+                    pullRequest {
+                      number
+                    }
+                  }
+                }
+              `;
+              
+              const result = await github.graphql(mutation, {
+                pullRequestId: prNodeId
+              });
+              
+              core.info('✓ Auto-merge disabled successfully');
+              
+              // Post a follow-up comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: '🔴 **Auto-merge has been disabled** for this PR.\n\n' +
+                      'The checklist is no longer complete. Auto-merge will be re-enabled automatically when all agent reviews are checked off.'
+              });
+              
+            } catch (error) {
+              core.warning(`Could not disable auto-merge: ${error.message}`);
+              core.info('Auto-merge may not have been enabled or may have already been disabled');
+            }
+      
+      - name: Log Completion
+        if: steps.check.outputs.skip != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const allChecked = '${{ steps.check.outputs.all_checked }}' === 'true';
+            const checkedCount = '${{ steps.check.outputs.checked_count }}';
+            const totalCount = '${{ steps.check.outputs.total_count }}';
+            
+            core.info('');
+            core.info('='.repeat(60));
+            core.info('Final Status');
+            core.info('='.repeat(60));
+            core.info(`Checklist: ${checkedCount}/${totalCount} completed`);
+            core.info(`Auto-merge approved: ${allChecked ? 'YES' : 'NO'}`);
+            core.info('='.repeat(60));
