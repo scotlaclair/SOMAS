@@ -94,7 +94,7 @@ create_label() {
         return 0
     else
         # Check if it's a "label already exists" error when not using force mode
-        if [[ $exit_code -eq 1 ]] && [[ "$force" == "false" ]] && echo "$output" | grep -q "already exists"; then
+        if [[ $exit_code -eq 1 ]] && [[ "$force" == "false" ]] && [[ "$output" == *"already exists"* ]]; then
             echo -e "  ${YELLOW}○${NC} $name (already exists)"
             ((SKIPPED++))
         else
