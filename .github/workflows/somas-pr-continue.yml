@@ -118,12 +118,7 @@ jobs:
           script: |
             const issueNumber = parseInt('${{ steps.extract.outputs.issue_number }}');
             const prNumber = parseInt('${{ steps.extract.outputs.pr_number }}');
-            // Properly escape prTitle for use in template literal
-            const prTitleRaw = '${{ steps.extract.outputs.pr_title }}';
-            const prTitle = prTitleRaw
-              .replace(/\\/g, '\\\\')  // Escape backslashes first
-              .replace(/`/g, '\\`')     // Escape backticks
-              .replace(/\$/g, '\\$');   // Escape dollar signs
+            const prTitle = context.payload.pull_request.title;
             const prUrl = context.payload.pull_request.html_url;
             
             await github.rest.issues.createComment({
