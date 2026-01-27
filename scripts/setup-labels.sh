@@ -65,7 +65,8 @@ echo -e "Force mode: $FORCE_MODE"
 echo ""
 
 # Parse YAML and create labels
-# This uses a simple approach - for production, consider using yq or python
+# Note: Labels are hardcoded below for simplicity and portability.
+# For dynamic YAML parsing, consider using yq or a Python script.
 echo -e "${BLUE}Creating labels...${NC}"
 echo ""
 
