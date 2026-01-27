@@ -333,6 +333,47 @@ SOMAS learns from each run:
 
 ---
 
+## 📋 Meta-Capture: Preserving Institutional Knowledge
+
+SOMAS automatically captures and routes valuable recommendations from PR reviews to ensure insights don't get lost:
+
+### Structured Recommendations
+
+When reviewing PRs, use this format in comments:
+
+```markdown
+## Recommendations
+
+### Must Address Soon
+- Critical items needing immediate follow-up
+
+### Should Consider
+- Improvements worth adding to backlog
+
+### Future Enhancement
+- Long-term strategic improvements
+```
+
+### Automatic Processing
+
+On PR merge, SOMAS:
+1. 🎯 **Scans** merged PRs for structured recommendations
+2. 📝 **Creates Issues** for "Must Address Soon" items with `somas:follow-up` label
+3. 📚 **Updates Backlog** (`.somas/backlog.md`) with "Should Consider" items
+4. 🗺️ **Updates Roadmap** (`.somas/roadmap.md`) with "Future Enhancement" items
+5. 🏛️ **Generates ADRs** for architectural decisions in `.somas/architecture/ADRs/`
+
+### Benefits
+
+- **Preserves Knowledge**: High-value insights preserved beyond PR comments
+- **Enables Follow-up**: Recommendations become actionable issues
+- **Improves Traceability**: Links back to source PR and context
+- **Supports Planning**: Roadmap reflects actual feedback and evolution
+
+Learn more: [Meta-Capture Process Documentation](docs/somas/meta-capture-process.md)
+
+---
+
 ## 🤔 FAQ
 
 **Q: How long does a project take?**  
