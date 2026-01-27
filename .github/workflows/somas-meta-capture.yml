@@ -397,6 +397,9 @@ jobs:
                       roadmapContent = roadmapContent.substring(0, nextSection) + 
                                      itemsText + 
                                      roadmapContent.substring(nextSection);
+                    } else {
+                      core.warning('Could not find next section marker, appending to end of file');
+                      roadmapContent += itemsText;
                     }
                   }
                 }
