@@ -65,6 +65,41 @@ class StateManager:
         self._validate_project_id(project_id)
         return self.projects_dir / project_id
     
+    def _get_safe_project_path(self, project_id: str) -> Path:
+        """
+        Safely construct project path with validation and path traversal protection.
+        
+        This method provides defense-in-depth security by:
+        1. Validating project ID format (via _validate_project_id)
+        2. Resolving the full path to detect symbolic links and relative paths
+        3. Verifying the resolved path stays within the base directory
+        
+        Args:
+            project_id: Project identifier
+            
+        Returns:
+            Resolved Path to project directory
+            
+        Raises:
+            ValueError: If project_id is invalid or path traversal is detected
+        
+        Security:
+            This prevents path traversal attacks like:
+            - "../../../etc/passwd"
+            - "project-1/../../secret"
+            - Symbolic link escapes
+        """
+        self._validate_project_id(project_id)
+        
+        base_path = Path(self.projects_dir).resolve()
+        project_path = (base_path / project_id).resolve()
+        
+        # Verify path stays within base directory (prevent traversal)
+        if not str(project_path).startswith(str(base_path)):
+            raise ValueError(f"Path traversal attempt detected: {project_id}")
+        
+        return project_path
+    
     def _get_state_path(self, project_id: str) -> Path:
         """Get path to state.json file."""
         return self._get_project_dir(project_id) / "state.json"

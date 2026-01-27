@@ -88,15 +88,36 @@ SOMAS is an AI-first SDLC that orchestrates multiple AI agents. Our security mod
 
 1. **Input Validation**
    ```python
-   # ✅ GOOD: Validate project IDs
+   # ✅ GOOD: Validate project IDs with strict pattern
    import re
+   from pathlib import Path
    
    def validate_project_id(project_id: str) -> bool:
-       if not re.match(r'^[a-zA-Z0-9_-]+$', project_id):
-           raise ValueError("Invalid project ID format")
-       if '..' in project_id or '/' in project_id:
-           raise ValueError("Path traversal detected")
+       """
+       Validate project ID to prevent path traversal and injection attacks.
+       
+       SECURITY: Project IDs must match pattern 'project-\\d+' only.
+       This prevents:
+       - Path traversal (../../../etc/passwd)
+       - Command injection (project-1; rm -rf /)
+       - Directory escape (project-1/../../)
+       """
+       if not re.match(r'^project-\d+$', project_id):
+           raise ValueError(f"Invalid project ID format: {project_id}")
        return True
+   
+   def get_safe_project_path(project_id: str, base_dir: Path) -> Path:
+       """Safely construct project path with validation."""
+       validate_project_id(project_id)
+       
+       base_path = Path(base_dir).resolve()
+       project_path = (base_path / project_id).resolve()
+       
+       # Verify path stays within base directory (prevent traversal)
+       if not str(project_path).startswith(str(base_path)):
+           raise ValueError(f"Path traversal attempt detected: {project_id}")
+       
+       return project_path
    ```
 
    ```python
@@ -140,6 +161,74 @@ SOMAS is an AI-first SDLC that orchestrates multiple AI agents. Our security mod
    # ❌ BAD: Using jq in bash (harder to validate)
    echo "$INPUT" | jq '.field'  # Risky
    ```
+
+5. **Safe Environment Variable Usage in Workflows**
+   ```yaml
+   # ✅ GOOD: Use Python for safe processing of user input
+   - name: Safe Shell Usage
+     env:
+       USER_INPUT: ${{ github.event.issue.title }}
+     run: |
+       # Use Python to safely process user input
+       python3 <<'PYTHON'
+       import os
+       import json
+       title = os.environ.get("USER_INPUT", "")
+       # Now title is a safe Python string, not shell-interpolated
+       print(f"Title: {json.dumps(title)}")
+       PYTHON
+   ```
+
+   ```yaml
+   # ❌ BAD: Direct shell interpolation
+   - name: Unsafe Shell Usage
+     env:
+       TITLE: ${{ github.event.issue.title }}
+     run: |
+       echo "Title: $TITLE"  # Shell injection possible
+   ```
+
+## Input Validation Security
+
+### Project ID Validation
+
+All project IDs MUST match the pattern `^project-\d+$`. This is enforced by 
+`StateManager._validate_project_id()` in `somas/core/state_manager.py`.
+
+**Never** use raw user input (issue titles, PR descriptions, comments) for:
+- File paths or directory names
+- Shell command arguments without proper escaping
+- Branch names without sanitization
+
+### Safe Patterns
+
+| Context | Unsafe | Safe |
+|---------|--------|------|
+| Shell | `echo $TITLE` | Use Python with `os.environ` |
+| Python | `os.system(f"cmd {title}")` | `subprocess.run(["cmd", title])` |
+| Paths | `Path(user_input)` | `validate_project_id(input)` then `_get_safe_project_path()` |
+| JSON | String concatenation | `json.dumps(value)` |
+| Workflow | `${{ github.event.issue.title }}` in shell | Pass as env var, process with Python |
+
+### Defense-in-Depth Strategy
+
+SOMAS implements multiple layers of security:
+
+1. **Validation Layer**: Strict regex validation of project IDs (`^project-\d+$`)
+2. **Path Resolution Layer**: Resolve symlinks and relative paths to absolute paths
+3. **Boundary Check Layer**: Verify resolved paths stay within base directory
+4. **Safe Processing Layer**: Use Python for JSON/environment variable processing
+
+### Audit Checklist
+
+When reviewing code or workflows:
+
+- [ ] All `github.event.issue.title` usages pass through safe processing
+- [ ] All `github.event.issue.body` usages pass through safe processing
+- [ ] All environment variables with user input are processed via Python
+- [ ] Project ID validation called before path construction
+- [ ] Path traversal check after path construction (use `_get_safe_project_path()`)
+- [ ] No direct shell interpolation of user input
 
 ### Security Checklist for PRs
 
