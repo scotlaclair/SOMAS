@@ -19,6 +19,28 @@
 
 ---
 
+## SOMAS Pipeline Status
+
+### 11-Stage Neurology-Inspired Pipeline Progress
+
+| # | Stage      | Code       | Agent        | Status | Label            |
+|---|------------|------------|--------------|--------|------------------|
+| 1 | Intake     | SIGNAL     | planner      | ⏳     | stage:signal     |
+| 2 | Specify    | DESIGN     | specifier    | ⏳     | stage:design     |
+| 3 | Plan       | GRID       | simulator    | ⏳     | stage:grid       |
+| 4 | Decompose  | LINE       | decomposer   | ⏳     | stage:line       |
+| 5 | Implement  | MCP        | coder        | ⏳     | stage:mcp        |
+| 6 | Verify     | PULSE      | validator    | ⏳     | stage:pulse      |
+| 7 | Integrate  | SYNAPSE    | merger       | ⏳     | stage:synapse    |
+| 8 | Harden     | OVERLOAD   | tester       | ⏳     | stage:overload   |
+| 9 | Release    | VELOCITY   | deployer     | ⏳     | stage:velocity   |
+| 10| Operate    | VIBE       | operator     | ⏳     | stage:vibe       |
+| 11| Learn      | WHOLE      | analyzer     | ⏳     | stage:whole      |
+
+**Status Legend:** ⏳ Pending | 🔄 In Progress | ✅ Complete | ❌ Failed
+
+---
+
 ## Summary of Changes
 
 [Describe what this PR does]
@@ -33,4 +55,5 @@
 
 ---
 
-<!-- SOMAS PR Template v1.0 -->
+<!-- SOMAS PR Template v2.0 - 11-Stage Neurology-Inspired Pipeline -->
+
