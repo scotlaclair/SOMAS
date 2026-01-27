@@ -5,34 +5,50 @@
   "updated_at": "[ISO-8601-TIMESTAMP]",
   "issue_number": 0,
   "branch": "somas/[PROJECT-ID]",
-  "current_stage": "ideation",
+  "current_stage": "signal",
   "status": "initializing",
   "stages": {
-    "ideation": {
+    "signal": {
       "status": "pending",
       "retry_count": 0
     },
-    "specification": {
+    "design": {
       "status": "pending",
       "retry_count": 0
     },
-    "simulation": {
+    "grid": {
       "status": "pending",
       "retry_count": 0
     },
-    "architecture": {
+    "line": {
       "status": "pending",
       "retry_count": 0
     },
-    "implementation": {
+    "mcp": {
       "status": "pending",
       "retry_count": 0
     },
-    "validation": {
+    "pulse": {
       "status": "pending",
       "retry_count": 0
     },
-    "staging": {
+    "synapse": {
+      "status": "pending",
+      "retry_count": 0
+    },
+    "overload": {
+      "status": "pending",
+      "retry_count": 0
+    },
+    "velocity": {
+      "status": "pending",
+      "retry_count": 0
+    },
+    "vibe": {
+      "status": "pending",
+      "retry_count": 0
+    },
+    "whole": {
       "status": "pending",
       "retry_count": 0
     }
@@ -53,6 +69,6 @@
   "recovery_info": {
     "last_successful_checkpoint": null,
     "can_resume": true,
-    "resume_from_stage": "ideation"
+    "resume_from_stage": "signal"
   }
 }
