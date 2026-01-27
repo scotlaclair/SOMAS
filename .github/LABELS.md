@@ -214,7 +214,7 @@ Automatically creates and assigns milestones based on stage labels:
 - Automatically creates milestones if they don't exist
 - Assigns issue/PR to appropriate milestone when stage label is added
 - Enforces one milestone per issue/PR (latest label wins)
-- Removes milestone when stage label is removed (if applicable)
+- Removes milestone when the last `stage:*` label is removed; if other `stage:*` labels remain, the existing milestone is left unchanged
 - Enables milestone-based progress tracking, burndown charts, and filtering
 - Supports future expansion for version/release milestones
 
