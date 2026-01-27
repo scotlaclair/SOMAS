@@ -76,7 +76,7 @@ jobs:
                   issueNumber = potentialIssue;
                   core.info(`Found issue via branch name pattern: #${issueNumber}`);
                 } catch (e) {
-                  // Issue doesn't exist, skip
+                  if (e.status !== 404) throw e; // Only ignore if not found, rethrow otherwise
                   core.info(`Branch pattern matched ${potentialIssue} but issue doesn't exist`);
                 }
               }

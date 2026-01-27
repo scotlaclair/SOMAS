@@ -425,7 +425,7 @@ class StateManager:
             # Reload state to get updated checkpoint
             state = self.get_state(project_id)
         
-        # Log transition
+        # Log transition (outside lock)
         self.log_transition(
             project_id=project_id,
             event_type="stage_completed",
@@ -507,7 +507,7 @@ class StateManager:
             # Reload state to get updated metrics
             state = self.get_state(project_id)
         
-        # Log transition
+        # Log transition (outside lock)
         self.log_transition(
             project_id=project_id,
             event_type="stage_failed",
@@ -622,6 +622,7 @@ class StateManager:
         """
         state_path = self._get_state_path(project_id)
         dead_letters_path = self._get_dead_letters_path(project_id)
+        state_path = self._get_state_path(project_id)
         
         # Use coordinated locking for both files to prevent race conditions
         # Lock both files in consistent order to prevent deadlocks

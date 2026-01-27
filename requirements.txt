@@ -1,0 +1,7 @@
+# SOMAS Python Dependencies
+
+# File locking for concurrent state file access
+filelock>=3.12.0
+
+# YAML parsing (used by workflows and agents)
+pyyaml
