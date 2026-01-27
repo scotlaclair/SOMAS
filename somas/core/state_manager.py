@@ -25,42 +25,58 @@ from filelock import FileLock
 import yaml
 
 
-def _load_max_checkpoints() -> int:
-    """
-    Load max_checkpoints from config or return default.
-    
-    Returns:
-        Maximum number of checkpoints to retain (default: 20)
-    """
-    config_path = Path(".somas/config.yml")
-    if config_path.exists():
-        try:
-            with open(config_path) as f:
-                config = yaml.safe_load(f) or {}
-                return config.get("state_manager", {}).get("max_checkpoints", 20)
-        except Exception:
-            # If config is invalid or can't be read, use default
-            return 20
-    return 20
-
-
-# Maximum checkpoints to retain (prevents unbounded state.json growth)
-MAX_CHECKPOINTS = _load_max_checkpoints()
+# Default maximum checkpoints to retain (prevents unbounded state.json growth)
+DEFAULT_MAX_CHECKPOINTS = 20
 
 
 class StateManager:
     """Manages persistent JSON state for SOMAS pipeline projects."""
     
-    def __init__(self, projects_dir: Path = None):
+    def __init__(self, projects_dir: Path = None, config_path: Path = None):
         """
         Initialize state manager.
         
         Args:
             projects_dir: Root directory for projects (default: .somas/projects)
+            config_path: Path to config file (default: .somas/config.yml)
         """
         if projects_dir is None:
             projects_dir = Path(".somas/projects")
         self.projects_dir = Path(projects_dir)
+        
+        if config_path is None:
+            config_path = Path(".somas/config.yml")
+        self.config_path = Path(config_path)
+        
+        # Lazy-loaded configuration
+        self._max_checkpoints = None
+    
+    def _get_max_checkpoints(self) -> int:
+        """
+        Get max_checkpoints from config or return default.
+        Lazy-loaded and cached.
+        
+        Returns:
+            Maximum number of checkpoints to retain
+        """
+        if self._max_checkpoints is not None:
+            return self._max_checkpoints
+        
+        if self.config_path.exists():
+            try:
+                with open(self.config_path) as f:
+                    config = yaml.safe_load(f) or {}
+                    self._max_checkpoints = config.get("state_manager", {}).get("max_checkpoints", DEFAULT_MAX_CHECKPOINTS)
+                    return self._max_checkpoints
+            except (yaml.YAMLError, FileNotFoundError, IOError, PermissionError) as e:
+                # If config is invalid or can't be read, use default
+                # Log the error but don't fail
+                print(f"Warning: Could not load max_checkpoints from config: {e}", file=sys.stderr)
+                self._max_checkpoints = DEFAULT_MAX_CHECKPOINTS
+                return self._max_checkpoints
+        
+        self._max_checkpoints = DEFAULT_MAX_CHECKPOINTS
+        return self._max_checkpoints
         
     def _validate_project_id(self, project_id: str) -> bool:
         """
@@ -631,8 +647,9 @@ class StateManager:
             state["checkpoints"].append(checkpoint)
             
             # ROTATION: Keep only the N most recent checkpoints
-            if len(state["checkpoints"]) > MAX_CHECKPOINTS:
-                state["checkpoints"] = state["checkpoints"][-MAX_CHECKPOINTS:]
+            max_checkpoints = self._get_max_checkpoints()
+            if len(state["checkpoints"]) > max_checkpoints:
+                state["checkpoints"] = state["checkpoints"][-max_checkpoints:]
             
             # Update recovery info
             if status == "success":
