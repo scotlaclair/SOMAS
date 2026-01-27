@@ -1,74 +1,129 @@
 # SOMAS Configuration
 # @copilot-context: Main configuration for Self-Sovereign Orchestrated Multi-Agent System
-# This file defines the 7-stage pipeline, AI agent providers, and optimization settings
+# This file defines the 11-stage Neurology-inspired pipeline, AI agent providers, and optimization settings
+# Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
 # @copilot-review: Verify security settings when modifying agent configurations
 
 version: "1.0.0"
 name: "Self-Sovereign Orchestrated Multi-Agent System"
 description: "Configuration for AI-driven software development pipeline"
 
-# Pipeline Stages
+# Pipeline Stages - 11-Stage Neurology-Inspired Architecture
 
 pipeline:
   stages:
-    - id: "ideation"
+    - id: "signal"
       order: 1
+      code_name: "SIGNAL"
+      description: "Intake - Catch the initial request"
       enabled: true
       agent: "planner"
       human_gate: false
       auto_proceed: true
       timeout_hours: 2
       
-    - id: "specification"
+    - id: "design"
       order: 2
+      code_name: "DESIGN"
+      description: "Specify - Expand into requirements"
       enabled: true
       agent: "specifier"
-      human_gate: false  # Changed: Autonomous in dev
+      human_gate: false
       timeout_hours: 24
       
-    - id: "simulation"
+    - id: "grid"
       order: 3
+      code_name: "GRID"
+      description: "Plan - Map components & strategy"
       enabled: true
       agent: "simulator"
       human_gate: false
       auto_proceed: true
       timeout_hours: 2
-      feedback_loop_enabled: true  # New: Can send back to specification
+      feedback_loop_enabled: true
       max_feedback_iterations: 3
       
-    - id: "architecture"
+    - id: "line"
       order: 4
+      code_name: "LINE"
+      description: "Decompose - Break into atomic tasks"
       enabled: true
-      agent: "architect"
+      agent: "decomposer"
       human_gate: false
       auto_proceed: true
-      timeout_hours: 12
+      timeout_hours: 4
       
-    - id: "implementation"
+    - id: "mcp"
       order: 5
+      code_name: "MCP"
+      description: "Implement - Generate code via AI agents"
       enabled: true
       agent: "coder"
       human_gate: false
       auto_proceed: true
       timeout_hours: 48
-      execution_mode: "single_shot"  # New: Single-shot implementation
+      execution_mode: "single_shot"
       
-    - id: "validation"
+    - id: "pulse"
       order: 6
+      code_name: "PULSE"
+      description: "Verify - Run tests, check heartbeat"
       enabled: true
       agent: "validator"
       human_gate: false
       auto_proceed: true
       timeout_hours: 12
-      max_retries: 3  # Auto-retry validation failures up to 3 times
+      max_retries: 3
       
-    - id: "staging"
+    - id: "synapse"
       order: 7
+      code_name: "SYNAPSE"
+      description: "Integrate - Connect & merge"
+      enabled: true
+      agent: "merger"
+      human_gate: false
+      auto_proceed: true
+      timeout_hours: 8
+      
+    - id: "overload"
+      order: 8
+      code_name: "OVERLOAD"
+      description: "Harden - Stress test & document"
+      enabled: true
+      agent: "tester"
+      human_gate: false
+      auto_proceed: true
+      timeout_hours: 16
+      
+    - id: "velocity"
+      order: 9
+      code_name: "VELOCITY"
+      description: "Release - Deploy at speed"
       enabled: true
       agent: "deployer"
-      human_gate: false  # Changed: Autonomous in dev
+      human_gate: false
       timeout_hours: 24
-      auto_merge_to_dev: true  # New: Auto-merge in dev environment
+      auto_merge_to_dev: true
+      
+    - id: "vibe"
+      order: 10
+      code_name: "VIBE"
+      description: "Operate - Monitor SLOs"
+      enabled: true
+      agent: "operator"
+      human_gate: false
+      auto_proceed: true
+      timeout_hours: 8
+      
+    - id: "whole"
+      order: 11
+      code_name: "WHOLE"
+      description: "Learn - Analyze & loop back"
+      enabled: true
+      agent: "analyzer"
+      human_gate: false
+      auto_proceed: true
+      timeout_hours: 4
 
 # Environment Configuration
 # @copilot-context: Defines behavior for dev vs prod environments
@@ -159,6 +214,13 @@ checkpointing:
       enabled: true
       max_retries: 2
       backoff_minutes: 5
+
+# State Manager Configuration
+# @copilot-context: Controls state.json checkpoint rotation to prevent unbounded growth
+# Keeps only the N most recent checkpoints to avoid performance degradation
+
+state_manager:
+  max_checkpoints: 20  # Number of checkpoints to retain (oldest are pruned)
 
 # Agent Configuration
 # @copilot-delegate: Agent configurations define AI provider mappings
@@ -371,6 +433,30 @@ agents:
       fallback: "claude_haiku_4_5"
       config_file: ".somas/agents/triage.yml"
       description: "Request triage and routing with low latency"
+      
+    decomposer:
+      provider: "claude_sonnet_4_5"
+      fallback: "gpt_5_2"
+      config_file: ".somas/agents/decomposer.yml"
+      description: "Task decomposition with coding intelligence"
+      
+    merger:
+      provider: "claude_sonnet_4_5"
+      fallback: "grok_code_fast_1"
+      config_file: ".somas/agents/merger.yml"
+      description: "Code integration and merge conflict resolution"
+      
+    operator:
+      provider: "gemini_3_pro"
+      fallback: "claude_sonnet_4_5"
+      config_file: ".somas/agents/operator.yml"
+      description: "Operational monitoring and SLO tracking"
+      
+    analyzer:
+      provider: "claude_opus_4_5"
+      fallback: "gemini_3_pro"
+      config_file: ".somas/agents/analyzer.yml"
+      description: "Post-mortem analysis and learning loop"
 
 # Optimization Configuration
 

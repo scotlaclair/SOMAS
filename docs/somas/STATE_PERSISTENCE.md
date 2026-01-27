@@ -141,6 +141,58 @@ Complete snapshot of project state including:
 }
 ```
 
+## Checkpoint Rotation
+
+To prevent unbounded growth of `state.json`, the StateManager implements 
+checkpoint rotation. Only the **N most recent checkpoints** are retained.
+
+### Configuration
+
+Default: `20` checkpoints
+
+Override in `.somas/config.yml`:
+```yaml
+state_manager:
+  max_checkpoints: 50  # Increase for projects with many stages
+```
+
+### Behavior
+
+- When a new checkpoint is created and the array exceeds `max_checkpoints`, 
+  the oldest checkpoints are pruned.
+- `last_successful_checkpoint` in `recovery_info` always points to a valid 
+  checkpoint within the retained set.
+- Pruned checkpoints are permanently removed (not archived).
+
+### Recommendations
+
+| Project Size | Recommended max_checkpoints |
+|--------------|----------------------------|
+| Small (<10 stages) | 10-15 |
+| Medium (10-50 stages) | 20 (default) |
+| Large (50+ stages) | 30-50 |
+
+### Example
+
+```python
+# Create 30 checkpoints
+for i in range(30):
+    manager.create_checkpoint(
+        project_id="project-123",
+        stage=f"stage-{i}",
+        status="success"
+    )
+
+# Only the most recent 20 are retained
+state = manager.get_state("project-123")
+assert len(state["checkpoints"]) == 20
+
+# Oldest checkpoints (stage-0 through stage-9) are pruned
+checkpoint_stages = [c["stage"] for c in state["checkpoints"]]
+assert "stage-0" not in checkpoint_stages  # Pruned
+assert "stage-29" in checkpoint_stages     # Retained
+```
+
 #### 2. `dead_letters.json` - Failed Execution Contexts
 
 Records every failure with full context for forensics, replay, and recovery:

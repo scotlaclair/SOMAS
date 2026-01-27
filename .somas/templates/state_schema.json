@@ -35,7 +35,7 @@
     },
     "current_stage": {
       "type": "string",
-      "enum": ["ideation", "specification", "simulation", "architecture", "implementation", "validation", "staging", "completed", "failed"],
+      "enum": ["signal", "design", "grid", "line", "mcp", "pulse", "synapse", "overload", "velocity", "vibe", "whole", "completed", "failed"],
       "description": "Current pipeline stage"
     },
     "status": {
@@ -47,25 +47,37 @@
       "type": "object",
       "description": "Status of each pipeline stage",
       "properties": {
-        "ideation": {
+        "signal": {
           "$ref": "#/definitions/stageStatus"
         },
-        "specification": {
+        "design": {
           "$ref": "#/definitions/stageStatus"
         },
-        "simulation": {
+        "grid": {
           "$ref": "#/definitions/stageStatus"
         },
-        "architecture": {
+        "line": {
           "$ref": "#/definitions/stageStatus"
         },
-        "implementation": {
+        "mcp": {
           "$ref": "#/definitions/stageStatus"
         },
-        "validation": {
+        "pulse": {
           "$ref": "#/definitions/stageStatus"
         },
-        "staging": {
+        "synapse": {
+          "$ref": "#/definitions/stageStatus"
+        },
+        "overload": {
+          "$ref": "#/definitions/stageStatus"
+        },
+        "velocity": {
+          "$ref": "#/definitions/stageStatus"
+        },
+        "vibe": {
+          "$ref": "#/definitions/stageStatus"
+        },
+        "whole": {
           "$ref": "#/definitions/stageStatus"
         }
       }

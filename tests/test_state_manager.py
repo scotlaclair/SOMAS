@@ -289,12 +289,13 @@ class TestConcurrentAccess(unittest.TestCase):
         # Assertions
         self.assertEqual(len(errors), 0, f"Errors during concurrent access: {errors}")
         
-        # Verify state integrity
+        # Verify state integrity - with rotation, should have max_checkpoints
         state = self.state_manager.get_state(project_id)
-        self.assertEqual(len(state["checkpoints"]), 50, 
-                         f"Expected 50 checkpoints but got {len(state['checkpoints'])}")
+        max_checkpoints = self.state_manager._get_max_checkpoints()
+        self.assertEqual(len(state["checkpoints"]), max_checkpoints, 
+                         f"Expected {max_checkpoints} checkpoints (due to rotation) but got {len(state['checkpoints'])}")
         
-        # Verify all checkpoint IDs are unique
+        # Verify all checkpoint IDs created were unique (even though only max_checkpoints are retained)
         self.assertEqual(len(set(checkpoints_created)), 50,
                         "Not all checkpoint IDs are unique")
     

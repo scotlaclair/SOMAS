@@ -22,21 +22,78 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 import re
 from filelock import FileLock
+import yaml
+
+
+# Default maximum checkpoints to retain (prevents unbounded state.json growth)
+DEFAULT_MAX_CHECKPOINTS = 20
+
+
+# 11-Stage Neurology-Inspired Pipeline Stages
+# Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
+VALID_STAGES = [
+    "signal",      # Stage 1: SIGNAL (Intake) - Catch the initial request
+    "design",      # Stage 2: DESIGN (Specify) - Expand into requirements
+    "grid",        # Stage 3: GRID (Plan) - Map components & strategy
+    "line",        # Stage 4: LINE (Decompose) - Break into atomic tasks
+    "mcp",         # Stage 5: MCP (Implement) - Generate code via AI agents
+    "pulse",       # Stage 6: PULSE (Verify) - Run tests, check heartbeat
+    "synapse",     # Stage 7: SYNAPSE (Integrate) - Connect & merge
+    "overload",    # Stage 8: OVERLOAD (Harden) - Stress test & document
+    "velocity",    # Stage 9: VELOCITY (Release) - Deploy at speed
+    "vibe",        # Stage 10: VIBE (Operate) - Monitor SLOs
+    "whole",       # Stage 11: WHOLE (Learn) - Analyze & loop back
+]
 
 
 class StateManager:
     """Manages persistent JSON state for SOMAS pipeline projects."""
     
-    def __init__(self, projects_dir: Path = None):
+    def __init__(self, projects_dir: Path = None, config_path: Path = None):
         """
         Initialize state manager.
         
         Args:
             projects_dir: Root directory for projects (default: .somas/projects)
+            config_path: Path to config file (default: .somas/config.yml)
         """
         if projects_dir is None:
             projects_dir = Path(".somas/projects")
         self.projects_dir = Path(projects_dir)
+        
+        if config_path is None:
+            config_path = Path(".somas/config.yml")
+        self.config_path = Path(config_path)
+        
+        # Lazy-loaded configuration
+        self._max_checkpoints = None
+    
+    def _get_max_checkpoints(self) -> int:
+        """
+        Get max_checkpoints from config or return default.
+        Lazy-loaded and cached.
+        
+        Returns:
+            Maximum number of checkpoints to retain
+        """
+        if self._max_checkpoints is not None:
+            return self._max_checkpoints
+        
+        if self.config_path.exists():
+            try:
+                with open(self.config_path) as f:
+                    config = yaml.safe_load(f) or {}
+                    self._max_checkpoints = config.get("state_manager", {}).get("max_checkpoints", DEFAULT_MAX_CHECKPOINTS)
+                    return self._max_checkpoints
+            except (yaml.YAMLError, IOError, PermissionError) as e:
+                # If config is invalid or can't be read, use default
+                # Log the error but don't fail
+                print(f"Warning: Could not load max_checkpoints from config: {e}", file=sys.stderr)
+                self._max_checkpoints = DEFAULT_MAX_CHECKPOINTS
+                return self._max_checkpoints
+        
+        self._max_checkpoints = DEFAULT_MAX_CHECKPOINTS
+        return self._max_checkpoints
         
     def _validate_project_id(self, project_id: str) -> bool:
         """
@@ -198,14 +255,11 @@ class StateManager:
             "updated_at": now,
             "issue_number": issue_number,
             "branch": branch,
-            "current_stage": "ideation",
+            "current_stage": "signal",
             "status": "initializing",
             "stages": {
                 stage: {"status": "pending", "retry_count": 0}
-                for stage in [
-                    "ideation", "specification", "simulation",
-                    "architecture", "implementation", "validation", "staging"
-                ]
+                for stage in VALID_STAGES
             },
             "checkpoints": [],
             "labels": {
@@ -223,7 +277,7 @@ class StateManager:
             "recovery_info": {
                 "last_successful_checkpoint": None,
                 "can_resume": True,
-                "resume_from_stage": "ideation"
+                "resume_from_stage": "signal"
             }
         }
         
@@ -605,6 +659,11 @@ class StateManager:
             if "checkpoints" not in state:
                 state["checkpoints"] = []
             state["checkpoints"].append(checkpoint)
+            
+            # ROTATION: Keep only the N most recent checkpoints
+            max_checkpoints = self._get_max_checkpoints()
+            if len(state["checkpoints"]) > max_checkpoints:
+                state["checkpoints"] = state["checkpoints"][-max_checkpoints:]
             
             # Update recovery info
             if status == "success":
