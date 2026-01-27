@@ -91,7 +91,7 @@ All use color 🔵 BFDADC except `state:complete` which uses C5DEF5.
 
 | Label | Description | Color | Used By | Status |
 |-------|-------------|-------|---------|--------|
-| `stage:*` (7 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml | ✅ Active |
+| `stage:*` (7 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml, sync-stage-milestones.yml | ✅ Active |
 
 Track the current pipeline stage:
 
@@ -105,7 +105,9 @@ Track the current pipeline stage:
 
 All use color 🔴 E99695.
 
-Referenced by `somas-project-sync.yml` for dynamic stage tracking.
+Referenced by:
+- `somas-project-sync.yml` for dynamic stage tracking
+- `sync-stage-milestones.yml` for automatic milestone creation and assignment
 
 ### Quality Labels
 
@@ -196,6 +198,27 @@ Uses these labels:
 
 Uses these labels:
 - `stage:*` - Syncs project stage with issue labels
+
+### sync-stage-milestones.yml
+
+Automatically creates and assigns milestones based on stage labels:
+- `stage:ideation` → Creates/assigns "Ideation" milestone
+- `stage:specification` → Creates/assigns "Specification" milestone
+- `stage:simulation` → Creates/assigns "Simulation" milestone
+- `stage:architecture` → Creates/assigns "Architecture" milestone
+- `stage:implementation` → Creates/assigns "Implementation" milestone
+- `stage:validation` → Creates/assigns "Validation" milestone
+- `stage:staging` → Creates/assigns "Staging" milestone
+
+**Features:**
+- Automatically creates milestones if they don't exist
+- Assigns issue/PR to appropriate milestone when stage label is added
+- Enforces one milestone per issue/PR (latest label wins)
+- Reassigns to remaining stage label's milestone when a stage label is removed (if other stage labels exist)
+- Removes milestone when the last `stage:*` label is removed
+- Includes concurrency control to prevent race conditions on rapid label changes
+- Enables milestone-based progress tracking, burndown charts, and filtering
+- Supports future expansion for version/release milestones
 
 ## Label Management Best Practices
 
