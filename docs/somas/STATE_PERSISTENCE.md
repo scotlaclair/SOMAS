@@ -453,6 +453,82 @@ The system maintains backward compatibility:
 4. **Query smartly**: Use filters when querying transitions to avoid loading entire logs
 5. **Monitor metrics**: Track dead letter counts and retry counts to detect systemic issues
 
+## Concurrency and File Locking
+
+### Thread-Safe Operations
+
+The StateManager uses file-based locking to ensure thread-safe concurrent access to state files. This prevents race conditions when multiple workflow jobs or processes interact with the same project's state simultaneously.
+
+**Locking Strategy:**
+
+- **Low-level locks**: Applied to `_atomic_write_json()` and `_append_jsonl()` for basic file writes
+- **High-level locks**: Applied to read-modify-write cycles in methods like `create_checkpoint()`, `update_state()`, `start_stage()`, `complete_stage()`, and `fail_stage()`
+- **Coordinated locks**: Applied to `add_dead_letter()` which updates both state.json and dead_letters.json
+
+**Lock Behavior:**
+
+- **Timeout**: 30 seconds (configurable in code)
+- **Lock files**: Created as `{file_path}.lock` (e.g., `state.json.lock`)
+- **Automatic cleanup**: Lock files are automatically released by the FileLock context manager
+- **Lock ordering**: State locks are acquired before dead letter locks to prevent deadlocks
+
+**Example concurrent usage:**
+
+```python
+import threading
+from somas.core.state_manager import StateManager
+
+state_manager = StateManager()
+
+# Multiple threads can safely create checkpoints concurrently
+def create_checkpoint_worker(worker_id):
+    for i in range(10):
+        checkpoint_id = state_manager.create_checkpoint(
+            project_id="project-123",
+            stage=f"stage-{worker_id}",
+            status="success"
+        )
+        print(f"Worker {worker_id} created checkpoint {checkpoint_id}")
+
+threads = [threading.Thread(target=create_checkpoint_worker, args=(i,)) for i in range(5)]
+for t in threads:
+    t.start()
+for t in threads:
+    t.join()
+
+# State integrity is guaranteed - all 50 checkpoints will be recorded
+state = state_manager.get_state("project-123")
+assert len(state["checkpoints"]) == 50
+```
+
+**Lock Timeout Handling:**
+
+If a lock cannot be acquired within 30 seconds, a `filelock.Timeout` exception is raised. This typically indicates:
+
+1. Another process is holding the lock for an unusually long time
+2. A process crashed while holding the lock (stale lock file)
+3. System resource contention
+
+To handle lock timeouts:
+
+```python
+from filelock import Timeout
+
+try:
+    state_manager.create_checkpoint(...)
+except Timeout:
+    # Log timeout error
+    print("Failed to acquire lock within timeout period")
+    # Retry or fail gracefully
+```
+
+**Performance Considerations:**
+
+- Lock contention is minimal under normal pipeline operation
+- Parallel stage transitions are serialized at the file level but execute quickly
+- The append-only transitions.jsonl file uses separate locks to minimize contention
+- Lock files are small (typically <100 bytes) and have negligible storage impact
+
 ## Troubleshooting
 
 ### State file not found
