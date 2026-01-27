@@ -30,12 +30,13 @@ SOMAS is an AI-first Software Development Life Cycle (SDLC) that transforms proj
 
 ### Key Concepts
 
-- **Fully Autonomous**: AI agents handle all 7 pipeline stages with minimal human intervention
-- **12 Specialized Agents**: Each with domain expertise and optimal AI model selection
+- **Fully Autonomous**: AI agents handle all 11 pipeline stages with minimal human intervention
+- **15 Specialized Agents**: Each with domain expertise and optimal AI model selection
 - **Self-Healing**: Automatic retry and debugging for validation failures
 - **Simulation-Based Optimization**: Monte Carlo analysis for optimal task sequencing
 - **Bounded Autonomy**: Human engagement only for final merge approval and unrecoverable failures
 - **Quality First**: 80%+ test coverage, security scanning, and comprehensive code review
+- **Neurology-Inspired**: 11-stage pipeline based on Energy, Frequency, Vibration, Sound principles
 
 ---
 
@@ -45,7 +46,7 @@ SOMAS is an AI-first Software Development Life Cycle (SDLC) that transforms proj
 
 ```
 Issue created with somas-project label →
-Pipeline initializes (7 stages) →
+Pipeline initializes (11 stages) →
 All stages execute autonomously →
 PR created for human review →
 Human approves and merges
@@ -61,10 +62,10 @@ Human approves and merges
 2. **Project Initialization**
    - Creates project directory structure
    - Generates project metadata
-   - Initializes all 7 pipeline stages
+   - Initializes all 11 pipeline stages
 
 3. **Autonomous Execution**
-   - Stages 1-6 execute without human intervention
+   - Stages 1-10 execute without human intervention
    - Each stage invokes specialized AI agents via issue comments
    - Agents generate artifacts and commit results
    - Progress tracked in issue comments
@@ -74,12 +75,17 @@ Human approves and merges
    - Debugger agent investigates and fixes issues
    - Only escalates to human after retries exhausted
 
-5. **Staging & Human Review**
-   - Stage 7 creates pull request with all artifacts
+5. **Release & Human Review**
+   - Stage 9 (VELOCITY) creates pull request with all artifacts
    - Human reviews generated code (ONLY human touchpoint)
    - Approves and merges when ready
 
-6. **Completion**
+6. **Learning Loop**
+   - Stage 11 (WHOLE) analyzes entire pipeline execution
+   - Extracts lessons learned and optimization opportunities
+   - Updates knowledge base for continuous improvement
+
+7. **Completion**
    - Code merged to main branch
    - Project artifacts archived
    - Metrics recorded for continuous learning

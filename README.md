@@ -28,41 +28,55 @@ SOMAS is an AI-first Software Development Life Cycle (SDLC) that orchestrates sp
 
 ## 🏗️ Architecture
 
-SOMAS operates through a **7-stage autonomous pipeline**:
+SOMAS operates through an **11-stage Neurology-inspired autonomous pipeline**:
+
+Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
 
 ```
-┌──────────┐   ┌──────────────┐   ┌────────────┐   ┌──────────────┐
-│ Ideation │ → │Specification │ → │ Simulation │ → │ Architecture │
-│(Planner) │   │ (Specifier)  │   │(Simulator) │   │ (Architect)  │
-└──────────┘   └──────────────┘   └────────────┘   └──────────────┘
-                                                            ↓
-┌──────────┐   ┌────────────┐   ┌────────────────────────┐
-│ Staging  │ ← │ Validation │ ← │   Implementation       │
-│(Merger)  │   │ (Tester+   │   │ (Implementer+Tester+   │
-│          │   │  Reviewer+ │   │  Security+Optimizer)   │
-│          │   │  Security) │   │                        │
-└──────────┘   └────────────┘   └────────────────────────┘
+┌─────────┐   ┌─────────┐   ┌─────────┐   ┌──────────┐
+│ SIGNAL  │ → │ DESIGN  │ → │  GRID   │ → │  LINE    │
+│(Intake) │   │(Specify)│   │ (Plan)  │   │(Decompose│
+│Planner  │   │Specifier│   │Simulator│   │Decomposer│
+└─────────┘   └─────────┘   └─────────┘   └──────────┘
+                                                  ↓
+┌─────────┐   ┌─────────┐   ┌──────────┐   ┌─────────┐
+│ WHOLE   │ ← │  VIBE   │ ← │ VELOCITY │ ← │OVERLOAD │
+│(Learn)  │   │(Operate)│   │(Release) │   │(Harden) │
+│Analyzer │   │Operator │   │Deployer  │   │ Tester  │
+└─────────┘   └─────────┘   └──────────┘   └─────────┘
+                                                  ↑
+                            ┌──────────┐   ┌─────────┐   ┌─────────┐
+                            │ SYNAPSE  │ ← │  PULSE  │ ← │   MCP   │
+                            │(Integrate│   │(Verify) │   │(Implement│
+                            │  Merger  │   │Validator│   │  Coder  │
+                            └──────────┘   └─────────┘   └─────────┘
 ```
 
-### 12 Specialized AI Agents
+### 15 Specialized AI Agents
 
 SOMAS leverages the best 2026 Frontier Tier models for each task:
 
-| Agent | Model | Role |
-|-------|-------|------|
-| **Orchestrator** | Grok Code Fast 1 | Pipeline coordination and state management |
-| **Planner** | GPT-5.2 | Requirements analysis and roadmap creation |
-| **Specifier** | GPT-5.2 | Complete specification generation |
-| **Simulator** | GPT-5.2 | Monte Carlo simulation for task optimization |
-| **Architect** | Claude Opus 4.5 | System architecture and design |
-| **Implementer** | GPT-5.2-Codex | Production-ready code generation |
-| **Tester** | Claude Sonnet 4.5 | Comprehensive test suites (80%+ coverage) |
-| **Reviewer** | Claude Sonnet 4.5 | Code quality and architecture reviews |
-| **Security** | GPT-5.2 | Security vulnerability scanning |
-| **Optimizer** | Claude Sonnet 4.5 | Performance optimization |
-| **Debugger** | Claude Haiku 4.5 | Bug investigation and fixes |
-| **Documenter** | Gemini 3 Pro | Documentation and API references |
-| **Merger** | Claude Opus 4.5 | Merge preparation and conflict resolution |
+| Agent | Stage | Model | Role |
+|-------|-------|-------|------|
+| **Orchestrator** | - | Grok Code Fast 1 | Pipeline coordination and state management |
+| **Triage** | 0 | Grok Code Fast 1 | Request classification and routing |
+| **Planner** | 1 (SIGNAL) | GPT-5.2 | Requirements analysis and initial planning |
+| **Specifier** | 2 (DESIGN) | Claude Sonnet 4.5 | Complete specification generation |
+| **Simulator** | 3 (GRID) | Claude Sonnet 4.5 | Monte Carlo simulation for task optimization |
+| **Decomposer** | 4 (LINE) | Claude Sonnet 4.5 | Break into atomic parallelizable tasks |
+| **Coder** | 5 (MCP) | Claude Sonnet 4.5 | Production-ready code generation |
+| **Implementer** | 5 (MCP) | Claude Sonnet 4.5 | Alternative implementation agent |
+| **Validator** | 6 (PULSE) | Claude Sonnet 4.5 | Comprehensive validation and testing |
+| **Merger** | 7 (SYNAPSE) | Claude Sonnet 4.5 | Code integration and merge conflict resolution |
+| **Tester** | 8 (OVERLOAD) | Claude Sonnet 4.5 | Stress testing and hardening |
+| **Deployer** | 9 (VELOCITY) | Claude Opus 4.5 | Deployment preparation and release |
+| **Operator** | 10 (VIBE) | Gemini 3 Pro | Operational monitoring and SLO tracking |
+| **Analyzer** | 11 (WHOLE) | Claude Opus 4.5 | Post-mortem analysis and learning loop |
+| **Architect** | Legacy | Claude Opus 4.5 | System architecture and design (legacy) |
+| **Reviewer** | Legacy | Claude Sonnet 4.5 | Code quality reviews (legacy) |
+| **Security** | - | GPT-5.2 | Security vulnerability scanning |
+| **Documenter** | - | Gemini 3 Pro | Documentation and API references |
+| **Advisor** | - | Claude Opus 4.5 | Strategic guidance and recommendations |
 
 ---
 
@@ -84,14 +98,21 @@ Add the `somas-project` label to your issue. SOMAS will automatically:
 
 ### 3. Monitor Progress
 
-Watch the pipeline progress through stages:
-- 🎯 **Ideation** - Requirements analysis and planning
-- 📋 **Specification** - Complete specification document
-- 🔬 **Simulation** - Monte Carlo optimization of task sequence
-- 🏗️ **Architecture** - System design and component definition
-- ⚙️ **Implementation** - Code generation with tests
-- ✅ **Validation** - Quality assurance and security review (auto-retry on failure)
-- 📝 **Staging** - PR creation and merge preparation
+Watch the pipeline progress through 11 stages:
+
+| # | Code | Stage | Description |
+|---|------|-------|-------------|
+| 1 | 🎯 **SIGNAL** | Intake | Catch the initial request |
+| 2 | 📐 **DESIGN** | Specify | Expand into requirements |
+| 3 | 🗺️ **GRID** | Plan | Map components & strategy |
+| 4 | 📏 **LINE** | Decompose | Break into atomic tasks |
+| 5 | ⚙️ **MCP** | Implement | Generate code via AI agents |
+| 6 | 💓 **PULSE** | Verify | Run tests, check heartbeat |
+| 7 | 🔗 **SYNAPSE** | Integrate | Connect & merge |
+| 8 | 🏋️ **OVERLOAD** | Harden | Stress test & document |
+| 9 | 🚀 **VELOCITY** | Release | Deploy at speed |
+| 10 | 🎵 **VIBE** | Operate | Monitor SLOs |
+| 11 | 🧠 **WHOLE** | Learn | Analyze & loop back |
 
 ### 4. Review and Approve
 
