@@ -271,11 +271,22 @@ Stage-specific configurations in [`.somas/stages/`](.somas/stages/):
 - Quality gates
 - Timeout settings
 
+### Label System
+
+SOMAS uses a comprehensive label system for workflow triggers, triage, and state machine orchestration. See [`.github/LABELS.md`](.github/LABELS.md) for:
+- Complete label definitions
+- Automated setup instructions
+- Workflow integration details
+- Label management best practices
+
+Quick setup: Run `./scripts/setup-labels.sh` to create all labels at once.
+
 ---
 
 ## 📚 Documentation
 
 - **[System Documentation](docs/somas/README.md)** - Complete SOMAS architecture
+- **[Label System](.github/LABELS.md)** - Workflow labels and state machine setup
 - **[Optimization Guide](docs/somas/optimization-guide.md)** - Advanced optimization techniques
 - **[Copilot Integration](docs/somas/COPILOT_GUIDE.md)** - GitHub Copilot usage guide
 - **[Troubleshooting](docs/somas/TROUBLESHOOTING.md)** - Common issues and solutions
