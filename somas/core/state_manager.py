@@ -56,14 +56,16 @@ class StateManager:
         """
         Get validated project directory path.
         
+        This method now delegates to _get_safe_project_path() for enhanced security.
+        
         Args:
             project_id: Project identifier
             
         Returns:
             Path to project directory
         """
-        self._validate_project_id(project_id)
-        return self.projects_dir / project_id
+        # Use the enhanced safe path method for defense-in-depth
+        return self._get_safe_project_path(project_id)
     
     def _get_safe_project_path(self, project_id: str) -> Path:
         """
