@@ -19,6 +19,7 @@ jobs:
   triage:
     if: |
       github.event_name == 'issues' && 
+      !contains(github.event.issue.labels.*.name, 'somas:circuit-breaker') &&
       (contains(github.event.issue.labels.*.name, 'somas:change') ||
        contains(github.event.issue.labels.*.name, 'somas:enhance') ||
        contains(github.event.issue.labels.*.name, 'somas:question') ||
@@ -126,6 +127,7 @@ jobs:
   initialize:
     if: |
       github.event_name == 'issues' && 
+      !contains(github.event.issue.labels.*.name, 'somas:circuit-breaker') &&
       contains(github.event.issue.labels.*.name, 'somas:dev') &&
       !contains(github.event.issue.body, '<!-- SOMAS_INITIALIZED -->')
     runs-on: ubuntu-latest
@@ -138,48 +140,45 @@ jobs:
       
       - name: Create Project Structure
         id: init
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const issue = context.issue.number;
-            const projectId = `project-${issue}`;
-            const branchName = `somas/${projectId}`;
-            
-            // Create project directory structure
-            const fs = require('fs');
-            const path = require('path');
-            
-            const projectDir = `projects/${projectId}`;
-            const dirs = [
-              `${projectDir}/artifacts`,
-              `${projectDir}/logs`,
-              `${projectDir}/checkpoints`
-            ];
-            
-            for (const dir of dirs) {
-              await exec.exec('mkdir', ['-p', dir]);
-            }
-            
-            // Initialize metadata
-            const metadata = {
-              project_id: projectId,
-              issue_number: issue,
-              branch: branchName,
-              created_at: new Date().toISOString(),
-              stage: 'ideation',
-              status: 'in_progress'
-            };
-            
-            fs.writeFileSync(
-              `${projectDir}/metadata.json`,
-              JSON.stringify(metadata, null, 2)
-            );
-            
-            // Set outputs
-            core.setOutput('project_id', projectId);
-            core.setOutput('branch_name', branchName);
-            
-            return { projectId, branchName };
+        env:
+          ISSUE: ${{ github.event.issue.number }}
+          TITLE: ${{ github.event.issue.title }}
+        run: |
+          ISSUE="$ISSUE"
+          TITLE="$TITLE"
+          PROJECT_ID="project-${ISSUE}"
+          BRANCH_NAME="somas/${PROJECT_ID}"
+          
+          # Create project directory structure
+          mkdir -p .somas/projects/${PROJECT_ID}/{artifacts,logs}
+          
+          # Initialize project state using state manager
+          printf '%s\n' \
+            'import sys' \
+            'import os' \
+            'sys.path.insert(0, "somas")' \
+            'from core.state_manager import StateManager' \
+            '' \
+            'issue_number = int(os.environ["ISSUE"])' \
+            'title = os.environ["TITLE"]' \
+            'project_id = os.environ["PROJECT_ID"]' \
+            'branch = os.environ["BRANCH_NAME"]' \
+            '' \
+            'state_manager = StateManager()' \
+            'state = state_manager.initialize_project(' \
+            '    project_id=project_id,' \
+            '    issue_number=issue_number,' \
+            '    title=title,' \
+            '    branch=branch,' \
+            '    labels=["somas-project", "somas:dev"]' \
+            ')' \
+            'print(f"Initialized {project_id} with state persistence")' \
+            > /tmp/init_state.py
+          
+          python3 /tmp/init_state.py
+          
+          echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
       
       - name: Create Feature Branch
         run: |
@@ -189,7 +188,7 @@ jobs:
           git config user.email "somas-bot@users.noreply.github.com"
           
           git checkout -b "${BRANCH_NAME}"
-          git add projects/
+          git add .somas/projects/
           git commit -m "Initialize project ${{ steps.init.outputs.project_id }}"
           git push -u origin "${BRANCH_NAME}"
       
@@ -246,6 +245,7 @@ jobs:
   orchestrate:
     if: |
       github.event_name == 'issue_comment' &&
+      !contains(github.event.issue.labels.*.name, 'somas:circuit-breaker') &&
       contains(github.event.comment.body, '@copilot somas-') &&
       (github.event.comment.user.login == 'github-copilot[bot]' || github.event.comment.user.login == 'copilot[bot]')
     runs-on: ubuntu-latest
@@ -433,8 +433,62 @@ jobs:
           git commit -m "[${PROJECT_ID}] ${AGENT_NAME} stage complete" || echo "No changes to commit"
           git push origin "${BRANCH_NAME}"
       
-      - name: Invoke Next Agent
+      - name: Circuit Breaker Check
+        id: circuit_check
         if: steps.parse.outputs.skip != 'true' && steps.parse.outputs.next_agent != 'complete'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            // Count agent invocations
+            const invocations = comments.data.filter(c => 
+              c.body.includes('@copilot somas-') && 
+              !['copilot[bot]', 'Copilot'].includes(c.user.login)
+            ).length;
+            
+            const MAX_INVOCATIONS = 20;
+            
+            if (invocations >= MAX_INVOCATIONS) {
+              // Trip circuit breaker
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: \`## ⚠️ Circuit Breaker Triggered
+                
+                <!-- SOMAS_CIRCUIT_BREAKER:max_invocations -->
+                
+                **Reason:** Maximum agent invocations (\${MAX_INVOCATIONS}) reached
+                **Issue:** #\${context.issue.number}
+                
+                @scotlaclair - Human intervention required.
+                
+                The autonomous pipeline has been paused to prevent runaway automation.
+                Please review the situation and manually continue if appropriate.
+                
+                **To resume:** Remove the \\\`somas:circuit-breaker\\\` label after addressing the issue.\`
+              });
+              
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['somas:circuit-breaker']
+              });
+              
+              core.setOutput('tripped', 'true');
+              return;
+            }
+            
+            core.setOutput('tripped', 'false');
+      
+      - name: Invoke Next Agent
+        if: steps.parse.outputs.skip != 'true' && steps.parse.outputs.next_agent != 'complete' && steps.circuit_check.outputs.tripped != 'true'
         uses: actions/github-script@v7
         with:
           script: |

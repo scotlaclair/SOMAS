@@ -75,32 +75,36 @@ jobs:
           mkdir -p .somas/projects/${PROJECT_ID}/{artifacts,logs}
           
           # @copilot-context: Using Python for JSON encoding prevents shell injection
-          # Create project metadata using Python for safe JSON encoding
+          # Initialize project state using Python and state manager
           printf '%s\n' \
-            'import json' \
+            'import sys' \
             'import os' \
-            'from datetime import datetime' \
+            'sys.path.insert(0, "somas")' \
+            'from core.state_manager import StateManager' \
             '' \
             'project_id = os.environ["PROJECT_ID"]' \
             'issue_number = int(os.environ["ISSUE_NUMBER"])' \
             'title = os.environ["ISSUE_TITLE"]' \
-            'created_at = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")' \
             '' \
-            'metadata = {' \
-            '    "project_id": project_id,' \
-            '    "issue_number": issue_number,' \
-            '    "title": title,' \
-            '    "created_at": created_at,' \
-            '    "status": "initializing",' \
-            '    "current_stage": "ideation",' \
-            '    "stages_completed": []' \
-            '}' \
+            '# Initialize state manager' \
+            'state_manager = StateManager()' \
             '' \
-            'with open(f".somas/projects/{project_id}/metadata.json", "w") as f:' \
-            '    json.dump(metadata, f, indent=2)' \
-            > /tmp/create_metadata.py
+            '# Initialize project with state persistence' \
+            'state = state_manager.initialize_project(' \
+            '    project_id=project_id,' \
+            '    issue_number=issue_number,' \
+            '    title=title,' \
+            '    branch=f"somas/{project_id}",' \
+            '    labels=["somas-project", "somas:dev"]' \
+            ')' \
+            '' \
+            'print(f"Initialized project {project_id} with state persistence")' \
+            'print(f"  - state.json: Created")' \
+            'print(f"  - dead_letters.json: Created")' \
+            'print(f"  - transitions.jsonl: Initialized")' \
+            > /tmp/init_project.py
           
-          python3 /tmp/create_metadata.py
+          python3 /tmp/init_project.py
           
           export PROJECT_ID="${PROJECT_ID}"
           echo "Initialized project: ${PROJECT_ID}"
@@ -152,6 +156,30 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+      
+      - name: Start Ideation Stage
+        env:
+          PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
+        run: |
+          # Mark stage as started in state
+          printf '%s\n' \
+            'import sys' \
+            'import os' \
+            'sys.path.insert(0, "somas")' \
+            'from core.state_manager import StateManager' \
+            '' \
+            'project_id = os.environ["PROJECT_ID"]' \
+            'state_manager = StateManager()' \
+            '' \
+            'state_manager.start_stage(' \
+            '    project_id=project_id,' \
+            '    stage="ideation",' \
+            '    agent="planner"' \
+            ')' \
+            'print(f"Started ideation stage for {project_id}")' \
+            > /tmp/start_stage.py
+          
+          python3 /tmp/start_stage.py
       
       - name: Run Ideation Stage
         # Invoke @copilot somas-requirements agent via issue comment
@@ -207,6 +235,76 @@ jobs:
           else
             echo "artifact_ready=false" >> $GITHUB_OUTPUT
             echo "::warning::Artifact not generated within timeout, proceeding anyway"
+          fi
+      
+      - name: Complete Ideation Stage
+        if: steps.wait_artifact.outputs.artifact_ready == 'true'
+        env:
+          PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
+        run: |
+          # Mark stage as completed in state
+          printf '%s\n' \
+            'import sys' \
+            'import os' \
+            'sys.path.insert(0, "somas")' \
+            'from core.state_manager import StateManager' \
+            '' \
+            'project_id = os.environ["PROJECT_ID"]' \
+            'state_manager = StateManager()' \
+            '' \
+            'state_manager.complete_stage(' \
+            '    project_id=project_id,' \
+            '    stage="ideation",' \
+            '    artifacts=["artifacts/initial_plan.md"],' \
+            '    create_checkpoint=True' \
+            ')' \
+            'print(f"Completed ideation stage for {project_id}")' \
+            > /tmp/complete_stage.py
+          
+          python3 /tmp/complete_stage.py
+      
+      - name: Record Stage Failure
+        if: steps.wait_artifact.outputs.artifact_ready != 'true'
+        env:
+          PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
+        run: |
+          # Record failure in dead letter vault
+          printf '%s\n' \
+            'import sys' \
+            'import os' \
+            'sys.path.insert(0, "somas")' \
+            'from core.state_manager import StateManager' \
+            '' \
+            'project_id = os.environ["PROJECT_ID"]' \
+            'state_manager = StateManager()' \
+            '' \
+            'error = {' \
+            '    "type": "TimeoutError",' \
+            '    "message": "Artifact not generated within timeout"' \
+            '}' \
+            '' \
+            'state_manager.fail_stage(' \
+            '    project_id=project_id,' \
+            '    stage="ideation",' \
+            '    agent="planner",' \
+            '    error=error,' \
+            '    create_dead_letter=True' \
+            ')' \
+            'print(f"Recorded failure for ideation stage in {project_id}")' \
+            > /tmp/fail_stage.py
+          
+          python3 /tmp/fail_stage.py
+      
+      - name: Commit State Updates
+        run: |
+          git config user.name "SOMAS Bot"
+          git config user.email "somas-bot@users.noreply.github.com"
+          
+          # Check if there are state changes to commit
+          if git status --porcelain .somas/projects/ | grep . >/dev/null; then
+            git add .somas/projects/
+            git commit -m "Update state for ideation stage"
+            git push
           fi
   
   stage-2-specification:

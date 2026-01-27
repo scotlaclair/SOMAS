@@ -1,0 +1,224 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SOMAS Pipeline State",
+  "description": "Schema for pipeline state persistence in .somas/projects/{project_id}/state.json",
+  "type": "object",
+  "required": ["project_id", "version", "created_at", "updated_at", "current_stage", "status"],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "pattern": "^project-\\d+$",
+      "description": "Unique project identifier"
+    },
+    "version": {
+      "type": "string",
+      "description": "State schema version",
+      "default": "1.0.0"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when project was created"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when state was last updated"
+    },
+    "issue_number": {
+      "type": "integer",
+      "description": "GitHub issue number that initiated this project"
+    },
+    "branch": {
+      "type": "string",
+      "description": "Git branch for this project"
+    },
+    "current_stage": {
+      "type": "string",
+      "enum": ["ideation", "specification", "simulation", "architecture", "implementation", "validation", "staging", "completed", "failed"],
+      "description": "Current pipeline stage"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["initializing", "in_progress", "waiting", "retrying", "paused", "completed", "failed", "cancelled"],
+      "description": "Overall project status"
+    },
+    "stages": {
+      "type": "object",
+      "description": "Status of each pipeline stage",
+      "properties": {
+        "ideation": {
+          "$ref": "#/definitions/stageStatus"
+        },
+        "specification": {
+          "$ref": "#/definitions/stageStatus"
+        },
+        "simulation": {
+          "$ref": "#/definitions/stageStatus"
+        },
+        "architecture": {
+          "$ref": "#/definitions/stageStatus"
+        },
+        "implementation": {
+          "$ref": "#/definitions/stageStatus"
+        },
+        "validation": {
+          "$ref": "#/definitions/stageStatus"
+        },
+        "staging": {
+          "$ref": "#/definitions/stageStatus"
+        }
+      }
+    },
+    "checkpoints": {
+      "type": "array",
+      "description": "Recoverable checkpoints in the pipeline",
+      "items": {
+        "type": "object",
+        "required": ["id", "stage", "timestamp", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique checkpoint identifier"
+          },
+          "stage": {
+            "type": "string",
+            "description": "Stage when checkpoint was created"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["success", "failure", "partial"]
+          },
+          "artifacts": {
+            "type": "array",
+            "description": "List of artifacts created at this checkpoint",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional checkpoint metadata"
+          }
+        }
+      }
+    },
+    "labels": {
+      "type": "object",
+      "description": "GitHub labels and custom metadata labels",
+      "properties": {
+        "github": {
+          "type": "array",
+          "description": "GitHub issue labels",
+          "items": {
+            "type": "string"
+          }
+        },
+        "custom": {
+          "type": "object",
+          "description": "Custom key-value labels",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Pipeline execution metrics",
+      "properties": {
+        "total_duration_seconds": {
+          "type": "number",
+          "description": "Total execution time in seconds"
+        },
+        "stage_durations": {
+          "type": "object",
+          "description": "Duration of each stage in seconds",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "retry_count": {
+          "type": "integer",
+          "description": "Number of retries across all stages"
+        },
+        "agent_invocations": {
+          "type": "integer",
+          "description": "Total number of agent invocations"
+        },
+        "artifacts_generated": {
+          "type": "integer",
+          "description": "Number of artifacts generated"
+        },
+        "dead_letters": {
+          "type": "integer",
+          "description": "Number of failures recorded in dead letter vault"
+        }
+      }
+    },
+    "recovery_info": {
+      "type": "object",
+      "description": "Information for pipeline recovery",
+      "properties": {
+        "last_successful_checkpoint": {
+          "type": "string",
+          "description": "ID of last successful checkpoint"
+        },
+        "can_resume": {
+          "type": "boolean",
+          "description": "Whether pipeline can be resumed"
+        },
+        "resume_from_stage": {
+          "type": "string",
+          "description": "Stage to resume from"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "stageStatus": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in_progress", "completed", "failed", "skipped", "retrying"]
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "duration_seconds": {
+          "type": "number"
+        },
+        "agent": {
+          "type": "string",
+          "description": "Agent that executed this stage"
+        },
+        "retry_count": {
+          "type": "integer",
+          "default": 0
+        },
+        "artifacts": {
+          "type": "array",
+          "description": "Artifacts generated by this stage",
+          "items": {
+            "type": "string"
+          }
+        },
+        "error": {
+          "type": "string",
+          "description": "Error message if stage failed"
+        }
+      }
+    }
+  }
+}

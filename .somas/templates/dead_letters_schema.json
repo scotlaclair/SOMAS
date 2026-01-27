@@ -1,0 +1,211 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SOMAS Dead Letter Vault",
+  "description": "Schema for failed agent contexts in .somas/projects/{project_id}/dead_letters.json",
+  "type": "object",
+  "required": ["project_id", "version", "entries"],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "pattern": "^project-\\d+$",
+      "description": "Unique project identifier"
+    },
+    "version": {
+      "type": "string",
+      "description": "Dead letter schema version",
+      "default": "1.0.0"
+    },
+    "entries": {
+      "type": "array",
+      "description": "List of dead letter entries (failed executions)",
+      "items": {
+        "type": "object",
+        "required": ["id", "timestamp", "stage", "agent", "error"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique dead letter identifier (UUID)"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the failure occurred"
+          },
+          "stage": {
+            "type": "string",
+            "description": "Pipeline stage where failure occurred"
+          },
+          "agent": {
+            "type": "string",
+            "description": "Agent that failed"
+          },
+          "attempt_number": {
+            "type": "integer",
+            "description": "Which retry attempt this was",
+            "minimum": 1
+          },
+          "error": {
+            "type": "object",
+            "required": ["type", "message"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Error type or class"
+              },
+              "message": {
+                "type": "string",
+                "description": "Error message"
+              },
+              "stack_trace": {
+                "type": "string",
+                "description": "Stack trace if available"
+              },
+              "exit_code": {
+                "type": "integer",
+                "description": "Process exit code if applicable"
+              }
+            }
+          },
+          "context": {
+            "type": "object",
+            "description": "Execution context at time of failure",
+            "properties": {
+              "inputs": {
+                "type": "object",
+                "description": "Agent input parameters",
+                "additionalProperties": true
+              },
+              "environment": {
+                "type": "object",
+                "description": "Environment variables and settings",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "artifacts": {
+                "type": "array",
+                "description": "Artifacts that existed at time of failure",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "state_snapshot": {
+                "type": "object",
+                "description": "Pipeline state at time of failure",
+                "additionalProperties": true
+              }
+            }
+          },
+          "request": {
+            "type": "object",
+            "description": "Agent request details",
+            "properties": {
+              "task": {
+                "type": "string",
+                "description": "Task that was requested"
+              },
+              "parameters": {
+                "type": "object",
+                "description": "Request parameters",
+                "additionalProperties": true
+              },
+              "timeout_seconds": {
+                "type": "number",
+                "description": "Timeout setting"
+              }
+            }
+          },
+          "trace": {
+            "type": "array",
+            "description": "Execution trace/breadcrumbs leading to failure",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "event": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels at time of failure",
+            "properties": {
+              "github": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "custom": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "recovery_attempted": {
+            "type": "boolean",
+            "description": "Whether recovery was attempted",
+            "default": false
+          },
+          "recovery_result": {
+            "type": "string",
+            "enum": ["success", "failure", "skipped", "pending"],
+            "description": "Result of recovery attempt"
+          },
+          "replay_count": {
+            "type": "integer",
+            "description": "Number of times this failure has been replayed",
+            "default": 0
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes about the failure"
+          }
+        }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "description": "Dead letter vault statistics",
+      "properties": {
+        "total_entries": {
+          "type": "integer",
+          "description": "Total number of dead letter entries"
+        },
+        "by_stage": {
+          "type": "object",
+          "description": "Failures grouped by stage",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "by_agent": {
+          "type": "object",
+          "description": "Failures grouped by agent",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "recovered": {
+          "type": "integer",
+          "description": "Number of successfully recovered failures"
+        },
+        "unrecovered": {
+          "type": "integer",
+          "description": "Number of unrecovered failures"
+        }
+      }
+    }
+  }
+}

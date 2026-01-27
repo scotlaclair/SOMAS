@@ -1,0 +1,12 @@
+{
+  "project_id": "[PROJECT-ID]",
+  "version": "1.0.0",
+  "entries": [],
+  "statistics": {
+    "total_entries": 0,
+    "by_stage": {},
+    "by_agent": {},
+    "recovered": 0,
+    "unrecovered": 0
+  }
+}
