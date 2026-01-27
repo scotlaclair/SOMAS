@@ -148,6 +148,8 @@ All use color 🔵 C5DEF5.
 | `somas:system` | SOMAS system changes | 🔵 1D76DB |
 | `needs-human-review` | Human review required | 🟡 FBCA04 |
 | `auto-merge-approved` | Auto-merge approved | 🟢 C2E0C6 |
+| `somas:ready-for-review` | PR ready for review | 🟢 0E8A16 |
+| `somas-generated` | SOMAS-generated content | 🔵 1D76DB |
 
 ## Label Usage in Workflows
 
