@@ -82,18 +82,26 @@ create_label() {
     local color="$3"
     local force="$4"
     
-    if gh label create "$name" --description "$description" --color "$color" --force="$force" 2>&1; then
+    # Capture output and exit code
+    local output
+    local exit_code
+    output=$(gh label create "$name" --description "$description" --color "$color" --force="$force" 2>&1)
+    exit_code=$?
+    
+    if [[ $exit_code -eq 0 ]]; then
         echo -e "  ${GREEN}✓${NC} $name"
         ((CREATED++))
         return 0
     else
-        local exit_code=$?
         # Check if it's a "label already exists" error when not using force mode
-        if [[ $exit_code -eq 1 ]] && [[ "$force" == "false" ]]; then
+        if [[ $exit_code -eq 1 ]] && [[ "$force" == "false" ]] && echo "$output" | grep -q "already exists"; then
             echo -e "  ${YELLOW}○${NC} $name (already exists)"
             ((SKIPPED++))
         else
             echo -e "  ${RED}✗${NC} $name (failed)"
+            if [[ -n "$output" ]]; then
+                echo "$output" | sed 's/^/    /' # Indent error message
+            fi
             ((FAILED++))
         fi
         return $exit_code
