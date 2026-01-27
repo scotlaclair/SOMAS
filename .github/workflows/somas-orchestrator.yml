@@ -2,12 +2,38 @@ name: SOMAS Agent Orchestrator
 
 # Comment-driven orchestration that invokes agents via GitHub Copilot
 # and parses their responses to extract artifacts
+#
+# IMPORTANT: GitHub Copilot does not auto-respond to @mentions in comments.
+# For autonomous operation, either:
+# 1. Manually assign Copilot to issues after initialization
+# 2. Use workflow_dispatch to manually advance stages
+# 3. Post responses manually in the expected YAML format
+#
+# See docs/somas/AUTONOMOUS_MODE.md for details.
 
 on:
   issues:
     types: [opened, labeled]
   issue_comment:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to process'
+        required: true
+        type: number
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options:
+          - assign-copilot
+          - advance-stage
+          - skip-to-implementation
+      stage_output:
+        description: 'Optional: YAML output for stage (base64 encoded)'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -905,3 +931,113 @@ jobs:
             } catch (error) {
               core.setFailed(\`Failed to create PR: \${error.message}\`);
             }
+
+  # Manual dispatch handler for advancing stages without waiting for Copilot
+  manual-dispatch:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Process Manual Action
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = parseInt('${{ github.event.inputs.issue_number }}');
+            const action = '${{ github.event.inputs.action }}';
+            const stageOutput = '${{ github.event.inputs.stage_output }}';
+
+            core.info(`Processing manual action: ${action} for issue #${issueNumber}`);
+
+            // Get issue details
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+
+            if (action === 'assign-copilot') {
+              // Post a comment explaining next steps
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `🤖 **Manual Copilot Assignment Requested**
+
+            To assign GitHub Copilot to this issue:
+
+            1. Click "Assignees" in the right sidebar
+            2. Search for and select \`@copilot\`
+            3. Copilot will analyze the issue and create a PR
+
+            **Note:** GitHub Copilot Coding Agent does not respond to @mentions in comments.
+            It must be assigned to issues to work on them.
+
+            ---
+            *Triggered via workflow dispatch*`
+              });
+
+              core.info('Posted Copilot assignment instructions');
+
+            } else if (action === 'advance-stage') {
+              // Decode stage output if provided
+              let output = '';
+              if (stageOutput) {
+                try {
+                  output = Buffer.from(stageOutput, 'base64').toString('utf-8');
+                  core.info(`Decoded stage output: ${output.substring(0, 100)}...`);
+                } catch (e) {
+                  core.warning(`Failed to decode stage output: ${e.message}`);
+                }
+              }
+
+              // Post advancement comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `⏭️ **Manual Stage Advancement**
+
+            Stage has been manually advanced via workflow dispatch.
+
+            ${output ? `**Provided Output:**\n\`\`\`yaml\n${output}\n\`\`\`` : '*No output provided - using defaults*'}
+
+            ---
+            *Triggered via workflow dispatch*`
+              });
+
+            } else if (action === 'skip-to-implementation') {
+              // Add implementation label and post comment
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  labels: ['stage:mcp']
+                });
+              } catch (e) {
+                core.info('Label may already exist or not be configured');
+              }
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `⚡ **Skipping to Implementation Stage**
+
+            Bypassing planning stages and going directly to implementation.
+
+            **To proceed:**
+            1. Assign Copilot to this issue
+            2. Or manually implement and create a PR
+
+            ---
+            *Triggered via workflow dispatch*`
+              });
+            }
+
+            core.info(`Completed action: ${action}`);
