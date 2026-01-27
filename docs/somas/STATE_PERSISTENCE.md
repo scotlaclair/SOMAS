@@ -21,7 +21,7 @@ The StateManager uses file-based locking (`filelock` library) to ensure safe con
 
 **Timeout Behavior**: Lock operations timeout after 30 seconds if the lock cannot be acquired. This prevents indefinite blocking while still allowing concurrent operations to complete.
 
-**Lock Files**: Lock files (`.lock` suffix) are automatically created and cleaned up. They are transient and should not be committed to version control.
+**Lock Files**: Lock files (`.lock` suffix) are automatically created when acquiring a lock, and the lock is automatically released, but the `.lock` file itself may remain on disk (often empty). These files are transient implementation details, should be excluded from version control, and can be safely removed manually when you are certain no SOMAS processes are running for that project.
 
 **Multi-File Coordination**: Operations that modify multiple files (e.g., `add_dead_letter` modifying both `state.json` and `dead_letters.json`) acquire locks in a consistent order to prevent deadlocks.
 
