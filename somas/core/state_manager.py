@@ -21,6 +21,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import re
+from filelock import FileLock
 
 
 class StateManager:
@@ -78,36 +79,42 @@ class StateManager:
     
     def _atomic_write_json(self, path: Path, data: Dict[str, Any]) -> None:
         """
-        Atomically write JSON to file using temporary file.
+        Atomically write JSON to file using temporary file with file locking.
         
         Args:
             path: Target file path
             data: Data to write
         """
         path.parent.mkdir(parents=True, exist_ok=True)
-        tmp_path = path.with_suffix('.tmp')
         
-        try:
-            with open(tmp_path, 'w') as f:
-                json.dump(data, f, indent=2)
-            tmp_path.replace(path)
-        except Exception as e:
-            if tmp_path.exists():
-                tmp_path.unlink()
-            raise
+        # Use file locking to prevent concurrent write conflicts
+        with FileLock(f"{path}.lock", timeout=30):
+            tmp_path = path.with_suffix('.tmp')
+            
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(data, f, indent=2)
+                tmp_path.replace(path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
     
     def _append_jsonl(self, path: Path, entry: Dict[str, Any]) -> None:
         """
-        Append JSON entry to JSONL file.
+        Append JSON entry to JSONL file with file locking.
         
         Args:
             path: JSONL file path
             entry: Entry to append
         """
         path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, 'a') as f:
-            json.dump(entry, f)
-            f.write('\n')
+        
+        # Use file locking to prevent concurrent append conflicts
+        with FileLock(f"{path}.lock", timeout=30):
+            with open(path, 'a') as f:
+                json.dump(entry, f)
+                f.write('\n')
     
     def initialize_project(
         self,
@@ -233,7 +240,7 @@ class StateManager:
         log_transition: bool = True
     ) -> Dict[str, Any]:
         """
-        Update project state.
+        Update project state with file locking for read-modify-write.
         
         Args:
             project_id: Project identifier
@@ -243,20 +250,33 @@ class StateManager:
         Returns:
             Updated state dictionary
         """
-        state = self.get_state(project_id)
+        state_path = self._get_state_path(project_id)
         
-        # Store old values for transition logging
-        old_status = state.get("status")
-        old_stage = state.get("current_stage")
+        # Lock the entire read-modify-write cycle
+        with FileLock(f"{state_path}.lock", timeout=30):
+            state = self.get_state(project_id)
+            
+            # Store old values for transition logging
+            old_status = state.get("status")
+            old_stage = state.get("current_stage")
+            
+            # Apply updates
+            state.update(updates)
+            state["updated_at"] = datetime.utcnow().isoformat() + 'Z'
+            
+            # Write updated state (bypass lock since we're already holding it)
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp_path = state_path.with_suffix('.tmp')
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(state, f, indent=2)
+                tmp_path.replace(state_path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
         
-        # Apply updates
-        state.update(updates)
-        state["updated_at"] = datetime.utcnow().isoformat() + 'Z'
-        
-        # Write updated state
-        self._atomic_write_json(self._get_state_path(project_id), state)
-        
-        # Log transition if requested
+        # Log transition if requested (outside lock)
         if log_transition:
             self.log_transition(
                 project_id=project_id,
@@ -278,7 +298,7 @@ class StateManager:
         agent: str
     ) -> Dict[str, Any]:
         """
-        Mark a pipeline stage as started.
+        Mark a pipeline stage as started with file locking for read-modify-write.
         
         Args:
             project_id: Project identifier
@@ -288,35 +308,48 @@ class StateManager:
         Returns:
             Updated state
         """
-        state = self.get_state(project_id)
+        state_path = self._get_state_path(project_id)
         now = datetime.utcnow().isoformat() + 'Z'
         
-        # Update stage status
-        if "stages" not in state:
-            state["stages"] = {}
-        if stage not in state["stages"]:
-            state["stages"][stage] = {}
+        # Lock the entire read-modify-write cycle
+        with FileLock(f"{state_path}.lock", timeout=30):
+            state = self.get_state(project_id)
             
-        state["stages"][stage].update({
-            "status": "in_progress",
-            "started_at": now,
-            "agent": agent
-        })
+            # Update stage status
+            if "stages" not in state:
+                state["stages"] = {}
+            if stage not in state["stages"]:
+                state["stages"][stage] = {}
+                
+            state["stages"][stage].update({
+                "status": "in_progress",
+                "started_at": now,
+                "agent": agent
+            })
+            
+            # Update overall state
+            state["current_stage"] = stage
+            state["status"] = "in_progress"
+            state["updated_at"] = now
+            
+            # Increment agent invocation count
+            if "metrics" not in state:
+                state["metrics"] = {}
+            state["metrics"]["agent_invocations"] = state["metrics"].get("agent_invocations", 0) + 1
+            
+            # Write state (bypass lock since we're already holding it)
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp_path = state_path.with_suffix('.tmp')
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(state, f, indent=2)
+                tmp_path.replace(state_path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
         
-        # Update overall state
-        state["current_stage"] = stage
-        state["status"] = "in_progress"
-        state["updated_at"] = now
-        
-        # Increment agent invocation count
-        if "metrics" not in state:
-            state["metrics"] = {}
-        state["metrics"]["agent_invocations"] = state["metrics"].get("agent_invocations", 0) + 1
-        
-        # Write state
-        self._atomic_write_json(self._get_state_path(project_id), state)
-        
-        # Log transition
+        # Log transition (outside lock)
         self.log_transition(
             project_id=project_id,
             event_type="stage_started",
@@ -335,7 +368,7 @@ class StateManager:
         create_checkpoint: bool = True
     ) -> Dict[str, Any]:
         """
-        Mark a pipeline stage as completed.
+        Mark a pipeline stage as completed with file locking for read-modify-write.
         
         Args:
             project_id: Project identifier
@@ -346,37 +379,50 @@ class StateManager:
         Returns:
             Updated state
         """
-        state = self.get_state(project_id)
+        state_path = self._get_state_path(project_id)
         now = datetime.utcnow().isoformat() + 'Z'
         
-        # Calculate duration
-        stage_info = state.get("stages", {}).get(stage, {})
-        started_at = stage_info.get("started_at")
-        duration = 0
-        if started_at:
-            start_time = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
-            end_time = datetime.fromisoformat(now.replace('Z', '+00:00'))
-            duration = (end_time - start_time).total_seconds()
+        # Lock the entire read-modify-write cycle
+        with FileLock(f"{state_path}.lock", timeout=30):
+            state = self.get_state(project_id)
+            
+            # Calculate duration
+            stage_info = state.get("stages", {}).get(stage, {})
+            started_at = stage_info.get("started_at")
+            duration = 0
+            if started_at:
+                start_time = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
+                end_time = datetime.fromisoformat(now.replace('Z', '+00:00'))
+                duration = (end_time - start_time).total_seconds()
+            
+            # Update stage status
+            state["stages"][stage].update({
+                "status": "completed",
+                "completed_at": now,
+                "duration_seconds": duration,
+                "artifacts": artifacts or []
+            })
+            
+            # Update metrics
+            if "stage_durations" not in state["metrics"]:
+                state["metrics"]["stage_durations"] = {}
+            state["metrics"]["stage_durations"][stage] = duration
+            state["metrics"]["artifacts_generated"] = state["metrics"].get("artifacts_generated", 0) + len(artifacts or [])
+            
+            # Write state (bypass lock since we're already holding it)
+            state["updated_at"] = now
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp_path = state_path.with_suffix('.tmp')
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(state, f, indent=2)
+                tmp_path.replace(state_path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
         
-        # Update stage status
-        state["stages"][stage].update({
-            "status": "completed",
-            "completed_at": now,
-            "duration_seconds": duration,
-            "artifacts": artifacts or []
-        })
-        
-        # Update metrics
-        if "stage_durations" not in state["metrics"]:
-            state["metrics"]["stage_durations"] = {}
-        state["metrics"]["stage_durations"][stage] = duration
-        state["metrics"]["artifacts_generated"] = state["metrics"].get("artifacts_generated", 0) + len(artifacts or [])
-        
-        # Write state
-        state["updated_at"] = now
-        self._atomic_write_json(self._get_state_path(project_id), state)
-        
-        # Create checkpoint if requested
+        # Create checkpoint if requested (outside state lock)
         checkpoint_id = None
         if create_checkpoint:
             checkpoint_id = self.create_checkpoint(
@@ -388,7 +434,7 @@ class StateManager:
             # Reload state to get updated checkpoint
             state = self.get_state(project_id)
         
-        # Log transition
+        # Log transition (outside lock)
         self.log_transition(
             project_id=project_id,
             event_type="stage_completed",
@@ -413,7 +459,7 @@ class StateManager:
         create_dead_letter: bool = True
     ) -> Dict[str, Any]:
         """
-        Mark a pipeline stage as failed.
+        Mark a pipeline stage as failed with file locking for read-modify-write.
         
         Args:
             project_id: Project identifier
@@ -426,25 +472,38 @@ class StateManager:
         Returns:
             Updated state
         """
-        state = self.get_state(project_id)
+        state_path = self._get_state_path(project_id)
         now = datetime.utcnow().isoformat() + 'Z'
         
-        # Update stage status
-        retry_count = state["stages"][stage].get("retry_count", 0)
-        state["stages"][stage].update({
-            "status": "failed",
-            "error": error.get("message", "Unknown error"),
-            "retry_count": retry_count
-        })
+        # Lock the entire read-modify-write cycle
+        with FileLock(f"{state_path}.lock", timeout=30):
+            state = self.get_state(project_id)
+            
+            # Update stage status
+            retry_count = state["stages"][stage].get("retry_count", 0)
+            state["stages"][stage].update({
+                "status": "failed",
+                "error": error.get("message", "Unknown error"),
+                "retry_count": retry_count
+            })
+            
+            # Update overall status
+            state["status"] = "failed"
+            state["updated_at"] = now
+            
+            # Write state (bypass lock since we're already holding it)
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp_path = state_path.with_suffix('.tmp')
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(state, f, indent=2)
+                tmp_path.replace(state_path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
         
-        # Update overall status
-        state["status"] = "failed"
-        state["updated_at"] = now
-        
-        # Write state (before dead letter)
-        self._atomic_write_json(self._get_state_path(project_id), state)
-        
-        # Create dead letter if requested
+        # Create dead letter if requested (outside lock)
         dead_letter_id = None
         if create_dead_letter:
             dead_letter_id = self.add_dead_letter(
@@ -458,7 +517,7 @@ class StateManager:
             # Reload state to get updated metrics
             state = self.get_state(project_id)
         
-        # Log transition
+        # Log transition (outside lock)
         self.log_transition(
             project_id=project_id,
             event_type="stage_failed",
@@ -482,7 +541,7 @@ class StateManager:
         metadata: Dict[str, Any] = None
     ) -> str:
         """
-        Create a recovery checkpoint.
+        Create a recovery checkpoint with file locking for read-modify-write.
         
         Args:
             project_id: Project identifier
@@ -494,32 +553,47 @@ class StateManager:
         Returns:
             Checkpoint ID
         """
-        state = self.get_state(project_id)
+        state_path = self._get_state_path(project_id)
         now = datetime.utcnow().isoformat() + 'Z'
-        
         checkpoint_id = f"chk-{uuid.uuid4().hex[:8]}"
-        checkpoint = {
-            "id": checkpoint_id,
-            "stage": stage,
-            "timestamp": now,
-            "status": status,
-            "artifacts": artifacts or [],
-            "metadata": metadata or {}
-        }
         
-        # Add checkpoint to state
-        if "checkpoints" not in state:
-            state["checkpoints"] = []
-        state["checkpoints"].append(checkpoint)
+        # Lock the entire read-modify-write cycle
+        with FileLock(f"{state_path}.lock", timeout=30):
+            state = self.get_state(project_id)
+            
+            checkpoint = {
+                "id": checkpoint_id,
+                "stage": stage,
+                "timestamp": now,
+                "status": status,
+                "artifacts": artifacts or [],
+                "metadata": metadata or {}
+            }
+            
+            # Add checkpoint to state
+            if "checkpoints" not in state:
+                state["checkpoints"] = []
+            state["checkpoints"].append(checkpoint)
+            
+            # Update recovery info
+            if status == "success":
+                state["recovery_info"]["last_successful_checkpoint"] = checkpoint_id
+            
+            state["updated_at"] = now
+            
+            # Write state (bypass lock since we're already holding it)
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp_path = state_path.with_suffix('.tmp')
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(state, f, indent=2)
+                tmp_path.replace(state_path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
         
-        # Update recovery info
-        if status == "success":
-            state["recovery_info"]["last_successful_checkpoint"] = checkpoint_id
-        
-        state["updated_at"] = now
-        self._atomic_write_json(self._get_state_path(project_id), state)
-        
-        # Log transition
+        # Log transition (outside lock)
         self.log_transition(
             project_id=project_id,
             event_type="checkpoint_created",
@@ -542,7 +616,7 @@ class StateManager:
         attempt_number: int = 1
     ) -> str:
         """
-        Add a dead letter entry for a failed execution.
+        Add a dead letter entry for a failed execution with coordinated locking.
         
         Args:
             project_id: Project identifier
@@ -558,85 +632,109 @@ class StateManager:
             Dead letter ID
         """
         dead_letters_path = self._get_dead_letters_path(project_id)
+        state_path = self._get_state_path(project_id)
         
-        # Load existing dead letters
-        if dead_letters_path.exists():
-            with open(dead_letters_path, 'r') as f:
-                dead_letters = json.load(f)
-        else:
-            dead_letters = {
-                "project_id": project_id,
-                "version": "1.0.0",
-                "entries": [],
-                "statistics": {
-                    "total_entries": 0,
-                    "by_stage": {},
-                    "by_agent": {},
-                    "recovered": 0,
-                    "unrecovered": 0
+        # Use coordinated locking for multi-file update
+        # Lock state.json first, then dead_letters.json to prevent deadlocks
+        with FileLock(f"{state_path}.lock", timeout=30):
+            with FileLock(f"{dead_letters_path}.lock", timeout=30):
+                # Load existing dead letters
+                if dead_letters_path.exists():
+                    with open(dead_letters_path, 'r') as f:
+                        dead_letters = json.load(f)
+                else:
+                    dead_letters = {
+                        "project_id": project_id,
+                        "version": "1.0.0",
+                        "entries": [],
+                        "statistics": {
+                            "total_entries": 0,
+                            "by_stage": {},
+                            "by_agent": {},
+                            "recovered": 0,
+                            "unrecovered": 0
+                        }
+                    }
+                
+                # Create dead letter entry
+                dead_letter_id = str(uuid.uuid4())
+                now = datetime.utcnow().isoformat() + 'Z'
+                
+                # Get current state snapshot
+                state_snapshot = {}
+                labels = {}
+                try:
+                    state = self.get_state(project_id)
+                    state_snapshot = {
+                        "current_stage": state.get("current_stage"),
+                        "status": state.get("status"),
+                        "metrics": state.get("metrics", {})
+                    }
+                    labels = state.get("labels", {})
+                except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+                    # If state cannot be loaded, continue without snapshot
+                    print(f"Warning: Could not load state snapshot for dead letter: {e}", file=sys.stderr)
+                
+                entry = {
+                    "id": dead_letter_id,
+                    "timestamp": now,
+                    "stage": stage,
+                    "agent": agent,
+                    "attempt_number": attempt_number,
+                    "error": error,
+                    "context": context or {},
+                    "request": request or {},
+                    "trace": trace or [],
+                    "labels": labels,
+                    "recovery_attempted": False,
+                    "replay_count": 0
                 }
-            }
+                
+                # Update context with state snapshot
+                entry["context"]["state_snapshot"] = state_snapshot
+                
+                # Add entry
+                dead_letters["entries"].append(entry)
+                
+                # Update statistics
+                stats = dead_letters["statistics"]
+                stats["total_entries"] += 1
+                stats["by_stage"][stage] = stats["by_stage"].get(stage, 0) + 1
+                stats["by_agent"][agent] = stats["by_agent"].get(agent, 0) + 1
+                stats["unrecovered"] += 1
+                
+                # Write dead letters (inside lock, so we can call private method directly)
+                dead_letters_path.parent.mkdir(parents=True, exist_ok=True)
+                tmp_path = dead_letters_path.with_suffix('.tmp')
+                try:
+                    with open(tmp_path, 'w') as f:
+                        json.dump(dead_letters, f, indent=2)
+                    tmp_path.replace(dead_letters_path)
+                except Exception as e:
+                    if tmp_path.exists():
+                        tmp_path.unlink()
+                    raise
+                
+                # Update state metrics (inside lock)
+                try:
+                    state = self.get_state(project_id)
+                    state["metrics"]["dead_letters"] = stats["total_entries"]
+                    
+                    # Write state (inside lock)
+                    tmp_path = state_path.with_suffix('.tmp')
+                    try:
+                        with open(tmp_path, 'w') as f:
+                            json.dump(state, f, indent=2)
+                        tmp_path.replace(state_path)
+                    except Exception as e:
+                        if tmp_path.exists():
+                            tmp_path.unlink()
+                        raise
+                except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+                    # If state update fails, log but continue
+                    print(f"Warning: Could not update state metrics: {e}", file=sys.stderr)
         
-        # Create dead letter entry
-        dead_letter_id = str(uuid.uuid4())
-        now = datetime.utcnow().isoformat() + 'Z'
-        
-        # Get current state snapshot
-        state_snapshot = {}
-        labels = {}
-        try:
-            state = self.get_state(project_id)
-            state_snapshot = {
-                "current_stage": state.get("current_stage"),
-                "status": state.get("status"),
-                "metrics": state.get("metrics", {})
-            }
-            labels = state.get("labels", {})
-        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
-            # If state cannot be loaded, continue without snapshot
-            print(f"Warning: Could not load state snapshot for dead letter: {e}", file=sys.stderr)
-        
-        entry = {
-            "id": dead_letter_id,
-            "timestamp": now,
-            "stage": stage,
-            "agent": agent,
-            "attempt_number": attempt_number,
-            "error": error,
-            "context": context or {},
-            "request": request or {},
-            "trace": trace or [],
-            "labels": labels,
-            "recovery_attempted": False,
-            "replay_count": 0
-        }
-        
-        # Update context with state snapshot
-        entry["context"]["state_snapshot"] = state_snapshot
-        
-        # Add entry
-        dead_letters["entries"].append(entry)
-        
-        # Update statistics
-        stats = dead_letters["statistics"]
-        stats["total_entries"] += 1
-        stats["by_stage"][stage] = stats["by_stage"].get(stage, 0) + 1
-        stats["by_agent"][agent] = stats["by_agent"].get(agent, 0) + 1
-        stats["unrecovered"] += 1
-        
-        # Write dead letters
-        self._atomic_write_json(dead_letters_path, dead_letters)
-        
-        # Update state metrics
-        try:
-            state = self.get_state(project_id)
-            state["metrics"]["dead_letters"] = stats["total_entries"]
-            self._atomic_write_json(self._get_state_path(project_id), state)
-        except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
-            # If state update fails, log but continue
-            print(f"Warning: Could not update state metrics: {e}", file=sys.stderr)
-        
-        # Log transition
+        # Log transition (outside locks to avoid holding locks during append)
         self.log_transition(
             project_id=project_id,
             event_type="error_recorded",
