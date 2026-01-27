@@ -757,6 +757,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # Use the branch ref (from initialize-pipeline if available) and ensure we have the latest commits
+          ref: ${{ needs.initialize-pipeline.outputs.branch_ref || github.ref }}
+          fetch-depth: 0
       
       - name: Start Architecture Stage
         env:
