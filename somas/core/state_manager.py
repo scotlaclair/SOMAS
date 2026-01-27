@@ -89,16 +89,27 @@ class StateManager:
         
         # Use file locking to prevent concurrent write conflicts
         with FileLock(f"{path}.lock", timeout=30):
-            tmp_path = path.with_suffix('.tmp')
-            
-            try:
-                with open(tmp_path, 'w') as f:
-                    json.dump(data, f, indent=2)
-                tmp_path.replace(path)
-            except Exception as e:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-                raise
+            self._atomic_write_json_unlocked(path, data)
+    
+    def _atomic_write_json_unlocked(self, path: Path, data: Dict[str, Any]) -> None:
+        """
+        Atomically write JSON to file without locking (for use inside locked sections).
+        
+        Args:
+            path: Target file path
+            data: Data to write
+        """
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = path.with_suffix('.tmp')
+        
+        try:
+            with open(tmp_path, 'w') as f:
+                json.dump(data, f, indent=2)
+            tmp_path.replace(path)
+        except Exception as e:
+            if tmp_path.exists():
+                tmp_path.unlink()
+            raise
     
     def _append_jsonl(self, path: Path, entry: Dict[str, Any]) -> None:
         """
@@ -264,17 +275,8 @@ class StateManager:
             state.update(updates)
             state["updated_at"] = datetime.utcnow().isoformat() + 'Z'
             
-            # Write updated state (bypass lock since we're already holding it)
-            state_path.parent.mkdir(parents=True, exist_ok=True)
-            tmp_path = state_path.with_suffix('.tmp')
-            try:
-                with open(tmp_path, 'w') as f:
-                    json.dump(state, f, indent=2)
-                tmp_path.replace(state_path)
-            except Exception as e:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-                raise
+            # Write updated state (use unlocked version since we hold the lock)
+            self._atomic_write_json_unlocked(state_path, state)
         
         # Log transition if requested (outside lock)
         if log_transition:
@@ -337,17 +339,8 @@ class StateManager:
                 state["metrics"] = {}
             state["metrics"]["agent_invocations"] = state["metrics"].get("agent_invocations", 0) + 1
             
-            # Write state (bypass lock since we're already holding it)
-            state_path.parent.mkdir(parents=True, exist_ok=True)
-            tmp_path = state_path.with_suffix('.tmp')
-            try:
-                with open(tmp_path, 'w') as f:
-                    json.dump(state, f, indent=2)
-                tmp_path.replace(state_path)
-            except Exception as e:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-                raise
+            # Write state (use unlocked version since we hold the lock)
+            self._atomic_write_json_unlocked(state_path, state)
         
         # Log transition (outside lock)
         self.log_transition(
@@ -409,18 +402,9 @@ class StateManager:
             state["metrics"]["stage_durations"][stage] = duration
             state["metrics"]["artifacts_generated"] = state["metrics"].get("artifacts_generated", 0) + len(artifacts or [])
             
-            # Write state (bypass lock since we're already holding it)
+            # Write state (use unlocked version since we hold the lock)
             state["updated_at"] = now
-            state_path.parent.mkdir(parents=True, exist_ok=True)
-            tmp_path = state_path.with_suffix('.tmp')
-            try:
-                with open(tmp_path, 'w') as f:
-                    json.dump(state, f, indent=2)
-                tmp_path.replace(state_path)
-            except Exception as e:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-                raise
+            self._atomic_write_json_unlocked(state_path, state)
         
         # Create checkpoint if requested (outside state lock)
         checkpoint_id = None
@@ -491,17 +475,8 @@ class StateManager:
             state["status"] = "failed"
             state["updated_at"] = now
             
-            # Write state (bypass lock since we're already holding it)
-            state_path.parent.mkdir(parents=True, exist_ok=True)
-            tmp_path = state_path.with_suffix('.tmp')
-            try:
-                with open(tmp_path, 'w') as f:
-                    json.dump(state, f, indent=2)
-                tmp_path.replace(state_path)
-            except Exception as e:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-                raise
+            # Write state (use unlocked version since we hold the lock)
+            self._atomic_write_json_unlocked(state_path, state)
         
         # Create dead letter if requested (outside lock)
         dead_letter_id = None
@@ -581,17 +556,8 @@ class StateManager:
             
             state["updated_at"] = now
             
-            # Write state (bypass lock since we're already holding it)
-            state_path.parent.mkdir(parents=True, exist_ok=True)
-            tmp_path = state_path.with_suffix('.tmp')
-            try:
-                with open(tmp_path, 'w') as f:
-                    json.dump(state, f, indent=2)
-                tmp_path.replace(state_path)
-            except Exception as e:
-                if tmp_path.exists():
-                    tmp_path.unlink()
-                raise
+            # Write state (use unlocked version since we hold the lock)
+            self._atomic_write_json_unlocked(state_path, state)
         
         # Log transition (outside lock)
         self.log_transition(
@@ -703,33 +669,14 @@ class StateManager:
                 stats["by_agent"][agent] = stats["by_agent"].get(agent, 0) + 1
                 stats["unrecovered"] += 1
                 
-                # Write dead letters (inside lock, so we can call private method directly)
-                dead_letters_path.parent.mkdir(parents=True, exist_ok=True)
-                tmp_path = dead_letters_path.with_suffix('.tmp')
-                try:
-                    with open(tmp_path, 'w') as f:
-                        json.dump(dead_letters, f, indent=2)
-                    tmp_path.replace(dead_letters_path)
-                except Exception as e:
-                    if tmp_path.exists():
-                        tmp_path.unlink()
-                    raise
+                # Write dead letters (use unlocked version since we hold the lock)
+                self._atomic_write_json_unlocked(dead_letters_path, dead_letters)
                 
-                # Update state metrics (inside lock)
+                # Update state metrics (use unlocked version since we hold the lock)
                 try:
                     state = self.get_state(project_id)
                     state["metrics"]["dead_letters"] = stats["total_entries"]
-                    
-                    # Write state (inside lock)
-                    tmp_path = state_path.with_suffix('.tmp')
-                    try:
-                        with open(tmp_path, 'w') as f:
-                            json.dump(state, f, indent=2)
-                        tmp_path.replace(state_path)
-                    except Exception as e:
-                        if tmp_path.exists():
-                            tmp_path.unlink()
-                        raise
+                    self._atomic_write_json_unlocked(state_path, state)
                 except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
                     # If state update fails, log but continue
                     print(f"Warning: Could not update state metrics: {e}", file=sys.stderr)
