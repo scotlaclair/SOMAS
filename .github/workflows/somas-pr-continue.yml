@@ -1,0 +1,165 @@
+name: SOMAS PR Continue
+
+# When a PR is created by Copilot coding agent or SOMAS pipeline,
+# post a comment back on the originating Issue to continue the review pipeline
+# through the orchestrator workflow.
+#
+# This unifies Issues as the single orchestration hub, ensuring
+# review agents chain automatically after PR creation.
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  continue-on-issue:
+    # Only for SOMAS-related PRs (created by Copilot or containing SOMAS markers)
+    if: |
+      github.event.pull_request.user.login == 'copilot[bot]' ||
+      contains(github.event.pull_request.body, 'SOMAS') ||
+      contains(github.event.pull_request.body, 'somas-') ||
+      startsWith(github.event.pull_request.head.ref, 'somas/') ||
+      startsWith(github.event.pull_request.head.ref, 'copilot/')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Extract Linked Issue
+        id: extract
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prBody = context.payload.pull_request.body || '';
+            const prNumber = context.payload.pull_request.number;
+            const prTitle = context.payload.pull_request.title;
+            const prBranch = context.payload.pull_request.head.ref;
+            
+            // Try to find linked issue from:
+            // 1. "Fixes #XX" or "Closes #XX" pattern
+            // 2. Project ID pattern like "project-XX"
+            // 3. Branch name pattern like "copilot/..." or "somas/project-XX"
+            
+            let issueNumber = null;
+            
+            // Pattern 1: Fixes/Closes #XX
+            const fixesMatch = prBody.match(/(?:fixes|closes|resolves)\s+#(\d+)/i);
+            if (fixesMatch) {
+              issueNumber = parseInt(fixesMatch[1]);
+              core.info(`Found issue via Fixes/Closes pattern: #${issueNumber}`);
+            }
+            
+            // Pattern 2: Project ID in body
+            if (!issueNumber) {
+              const projectMatch = prBody.match(/project-(\d+)/i);
+              if (projectMatch) {
+                issueNumber = parseInt(projectMatch[1]);
+                core.info(`Found issue via project ID pattern: #${issueNumber}`);
+              }
+            }
+            
+            // Pattern 3: Branch name
+            if (!issueNumber) {
+              const branchMatch = prBranch.match(/(?:somas\/project-|copilot\/).*?(\d+)/);
+              if (branchMatch) {
+                // This might be issue number or just a sequence, verify issue exists
+                const potentialIssue = parseInt(branchMatch[1]);
+                try {
+                  await github.rest.issues.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: potentialIssue
+                  });
+                  issueNumber = potentialIssue;
+                  core.info(`Found issue via branch name pattern: #${issueNumber}`);
+                } catch (e) {
+                  // Issue doesn't exist, skip
+                  core.info(`Branch pattern matched ${potentialIssue} but issue doesn't exist`);
+                }
+              }
+            }
+            
+            if (!issueNumber) {
+              core.info('No linked issue found, skipping continuation');
+              core.setOutput('skip', 'true');
+              return;
+            }
+            
+            // Verify we haven't already posted a continuation comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+            
+            const alreadyContinued = comments.data.some(c => 
+              c.body.includes('<!-- SOMAS_PR_CONTINUE -->') &&
+              c.body.includes(`#${prNumber}`)
+            );
+            
+            if (alreadyContinued) {
+              core.info('Continuation already posted, skipping');
+              core.setOutput('skip', 'true');
+              return;
+            }
+            
+            core.setOutput('skip', 'false');
+            core.setOutput('issue_number', issueNumber);
+            core.setOutput('pr_number', prNumber);
+            core.setOutput('pr_title', prTitle);
+      
+      - name: Continue Pipeline on Issue
+        if: steps.extract.outputs.skip != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = parseInt('${{ steps.extract.outputs.issue_number }}');
+            const prNumber = parseInt('${{ steps.extract.outputs.pr_number }}');
+            const prTitle = context.payload.pull_request.title;
+            const prUrl = context.payload.pull_request.html_url;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `<!-- SOMAS_PR_CONTINUE -->
+              ## 🔗 PR Ready for Review: #${prNumber}
+              
+              **PR:** [${prTitle}](${prUrl})
+              **Stage:** Implementation Complete → Review Pipeline
+              
+              The implementation PR is ready. Starting the review pipeline.
+              
+              ---
+              
+              @copilot somas-architect
+              
+              Please review the architecture of PR #${prNumber} for this change request.
+              
+              **Review Context:**
+              - PR: #${prNumber}
+              - Issue: #${issueNumber}
+              
+              **Review Focus:**
+              - Verify implementation aligns with SOMAS architecture patterns
+              - Check for proper separation of concerns
+              - Validate integration points with existing pipeline
+              - Confirm backward compatibility
+              
+              **Required Output:** Architecture review with approval recommendation or specific changes needed.`
+            });
+            
+            // Also add a label to track that review pipeline started
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: ['somas:ready-for-review']
+              });
+            } catch (e) {
+              core.info('Could not add label, may not exist: ' + e.message);
+            }
