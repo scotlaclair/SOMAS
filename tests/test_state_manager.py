@@ -306,17 +306,20 @@ class TestConcurrentAccess(unittest.TestCase):
         
         errors = []
         lock = threading.Lock()
+        stage_started = threading.Event()
         
         def start_worker():
             try:
                 self.state_manager.start_stage(project_id, "ideation", "planner")
+                stage_started.set()  # Signal that stage has started
             except Exception as e:
                 with lock:
                     errors.append(f"start_worker: {str(e)}")
         
         def complete_worker():
             try:
-                time.sleep(0.01)  # Slight delay
+                # Wait for stage to be started before completing
+                stage_started.wait(timeout=1.0)
                 self.state_manager.complete_stage(project_id, "ideation", artifacts=["test.md"])
             except Exception as e:
                 with lock:

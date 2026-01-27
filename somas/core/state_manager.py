@@ -660,9 +660,10 @@ class StateManager:
                 dead_letter_id = str(uuid.uuid4())
                 now = datetime.utcnow().isoformat() + 'Z'
                 
-                # Get current state snapshot
+                # Get current state snapshot (load state once and reuse)
                 state_snapshot = {}
                 labels = {}
+                state = None
                 try:
                     state = self.get_state(project_id)
                     state_snapshot = {
@@ -716,23 +717,23 @@ class StateManager:
                         tmp_dl_path.unlink()
                     raise
                 
-                # Update state metrics
-                try:
-                    state = self.get_state(project_id)
-                    state["metrics"]["dead_letters"] = stats["total_entries"]
-                    # Write state directly (we already have the lock)
-                    tmp_state_path = state_path.with_suffix('.tmp')
+                # Update state metrics (reuse previously loaded state)
+                if state is not None:
                     try:
-                        with open(tmp_state_path, 'w') as f:
-                            json.dump(state, f, indent=2)
-                        tmp_state_path.replace(state_path)
-                    except Exception as e:
-                        if tmp_state_path.exists():
-                            tmp_state_path.unlink()
-                        raise
-                except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
-                    # If state update fails, log but continue
-                    print(f"Warning: Could not update state metrics: {e}", file=sys.stderr)
+                        state["metrics"]["dead_letters"] = stats["total_entries"]
+                        # Write state directly (we already have the lock)
+                        tmp_state_path = state_path.with_suffix('.tmp')
+                        try:
+                            with open(tmp_state_path, 'w') as f:
+                                json.dump(state, f, indent=2)
+                            tmp_state_path.replace(state_path)
+                        except Exception as e:
+                            if tmp_state_path.exists():
+                                tmp_state_path.unlink()
+                            raise
+                    except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+                        # If state update fails, log but continue
+                        print(f"Warning: Could not update state metrics: {e}", file=sys.stderr)
         
         # Log transition (outside the locks)
         self.log_transition(
