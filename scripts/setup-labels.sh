@@ -14,8 +14,9 @@
 # Options:
 #   --force    Delete existing labels with the same name before creating
 # 
-# The script reads label definitions from .github/labels.yml and creates
-# them in the current repository.
+# The script uses hardcoded label definitions (for portability) and creates
+# them in the current repository, using .github/labels.yml as the reference
+# specification for those labels.
 
 set -e  # Exit on error
 
