@@ -60,12 +60,15 @@ jobs:
           script: |
             const milestoneName = '${{ steps.check-label.outputs.milestone_name }}';
             
-            // Get all milestones
-            const { data: milestones } = await github.rest.issues.listMilestones({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open'
-            });
+            // Get all milestones (open and closed), with pagination to avoid missing any
+            const milestones = await github.paginate(
+              github.rest.issues.listMilestones,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'all'
+              }
+            );
             
             // Check if milestone exists
             let milestone = milestones.find(m => m.title === milestoneName);
