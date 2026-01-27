@@ -89,36 +89,53 @@
   color: "C5DEF5"
 
 # ============================================================================
-# STAGE LABELS
+# STAGE LABELS - 11-Stage Neurology-Inspired Pipeline
 # Track which pipeline stage is currently active
+# Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
 # ============================================================================
 
-- name: "stage:ideation"
-  description: "Ideation stage - initial planning"
+- name: "stage:signal"
+  description: "Stage 1: SIGNAL (Intake) - Catch the initial request"
   color: "E99695"
 
-- name: "stage:specification"
-  description: "Specification stage - requirements definition"
+- name: "stage:design"
+  description: "Stage 2: DESIGN (Specify) - Expand into requirements"
   color: "E99695"
 
-- name: "stage:simulation"
-  description: "Simulation stage - Monte Carlo optimization"
+- name: "stage:grid"
+  description: "Stage 3: GRID (Plan) - Map components & strategy"
   color: "E99695"
 
-- name: "stage:architecture"
-  description: "Architecture stage - system design"
+- name: "stage:line"
+  description: "Stage 4: LINE (Decompose) - Break into atomic tasks"
   color: "E99695"
 
-- name: "stage:implementation"
-  description: "Implementation stage - code generation"
+- name: "stage:mcp"
+  description: "Stage 5: MCP (Implement) - Generate code via AI agents"
   color: "E99695"
 
-- name: "stage:validation"
-  description: "Validation stage - testing and quality checks"
+- name: "stage:pulse"
+  description: "Stage 6: PULSE (Verify) - Run tests, check heartbeat"
   color: "E99695"
 
-- name: "stage:staging"
-  description: "Staging stage - deployment preparation"
+- name: "stage:synapse"
+  description: "Stage 7: SYNAPSE (Integrate) - Connect & merge"
+  color: "E99695"
+
+- name: "stage:overload"
+  description: "Stage 8: OVERLOAD (Harden) - Stress test & document"
+  color: "E99695"
+
+- name: "stage:velocity"
+  description: "Stage 9: VELOCITY (Release) - Deploy at speed"
+  color: "E99695"
+
+- name: "stage:vibe"
+  description: "Stage 10: VIBE (Operate) - Monitor SLOs"
+  color: "E99695"
+
+- name: "stage:whole"
+  description: "Stage 11: WHOLE (Learn) - Analyze & loop back"
   color: "E99695"
 
 # ============================================================================

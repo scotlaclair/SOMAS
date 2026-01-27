@@ -29,6 +29,23 @@ import yaml
 DEFAULT_MAX_CHECKPOINTS = 20
 
 
+# 11-Stage Neurology-Inspired Pipeline Stages
+# Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
+VALID_STAGES = [
+    "signal",      # Stage 1: SIGNAL (Intake) - Catch the initial request
+    "design",      # Stage 2: DESIGN (Specify) - Expand into requirements
+    "grid",        # Stage 3: GRID (Plan) - Map components & strategy
+    "line",        # Stage 4: LINE (Decompose) - Break into atomic tasks
+    "mcp",         # Stage 5: MCP (Implement) - Generate code via AI agents
+    "pulse",       # Stage 6: PULSE (Verify) - Run tests, check heartbeat
+    "synapse",     # Stage 7: SYNAPSE (Integrate) - Connect & merge
+    "overload",    # Stage 8: OVERLOAD (Harden) - Stress test & document
+    "velocity",    # Stage 9: VELOCITY (Release) - Deploy at speed
+    "vibe",        # Stage 10: VIBE (Operate) - Monitor SLOs
+    "whole",       # Stage 11: WHOLE (Learn) - Analyze & loop back
+]
+
+
 class StateManager:
     """Manages persistent JSON state for SOMAS pipeline projects."""
     
@@ -238,14 +255,11 @@ class StateManager:
             "updated_at": now,
             "issue_number": issue_number,
             "branch": branch,
-            "current_stage": "ideation",
+            "current_stage": "signal",
             "status": "initializing",
             "stages": {
                 stage: {"status": "pending", "retry_count": 0}
-                for stage in [
-                    "ideation", "specification", "simulation",
-                    "architecture", "implementation", "validation", "staging"
-                ]
+                for stage in VALID_STAGES
             },
             "checkpoints": [],
             "labels": {
@@ -263,7 +277,7 @@ class StateManager:
             "recovery_info": {
                 "last_successful_checkpoint": None,
                 "can_resume": True,
-                "resume_from_stage": "ideation"
+                "resume_from_stage": "signal"
             }
         }
         

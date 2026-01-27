@@ -1,22 +1,28 @@
 # @copilot-context: SOMAS main pipeline workflow
-# This workflow orchestrates the 7-stage AI development pipeline
-# Each stage is handled by specialized AI agents (Codex, Copilot, Gemini)
+# This workflow orchestrates the 11-stage Neurology-inspired AI development pipeline
+# Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
+# Each stage is handled by specialized AI agents (Claude, GPT, Gemini, Grok)
 # 
-# GitHub Copilot Custom Agents:
-#   - @copilot somas-requirements (Ideation → Specification)
-#   - @copilot somas-architect (Architecture)
-#   - @copilot somas-implementer (Implementation)
-#   - @copilot somas-tester (Implementation → Validation)
-#   - @copilot somas-reviewer (Implementation → Validation)
-#   - @copilot somas-security (All stages)
-#   - @copilot somas-optimizer (Implementation)
-#   - @copilot somas-documenter (All stages)
-#   - @copilot somas-debugger (Validation)
-#   - @copilot somas-merger (Staging)
+# GitHub Copilot Custom Agents (11-Stage Pipeline):
+#   - @copilot somas-planner (Stage 1: SIGNAL - Intake)
+#   - @copilot somas-specifier (Stage 2: DESIGN - Specify)
+#   - @copilot somas-simulator (Stage 3: GRID - Plan)
+#   - @copilot somas-decomposer (Stage 4: LINE - Decompose)
+#   - @copilot somas-implementer / somas-coder (Stage 5: MCP - Implement)
+#   - @copilot somas-validator (Stage 6: PULSE - Verify)
+#   - @copilot somas-merger (Stage 7: SYNAPSE - Integrate)
+#   - @copilot somas-tester (Stage 8: OVERLOAD - Harden)
+#   - @copilot somas-deployer (Stage 9: VELOCITY - Release)
+#   - @copilot somas-operator (Stage 10: VIBE - Operate)
+#   - @copilot somas-analyzer (Stage 11: WHOLE - Learn)
+#   
+# Support Agents:
+#   - @copilot somas-security (Security scanning)
+#   - @copilot somas-documenter (Documentation)
 #   - @copilot somas-orchestrator (Coordination)
 #   - @copilot somas-advisor (Strategic planning)
 # 
-# See .github/agents/README.md for complete agent documentation
+# See .somas/agents/*.yml for complete agent documentation
 # 
 # @copilot-review: Ensure security measures are maintained in all stages
 name: SOMAS Pipeline
@@ -36,13 +42,17 @@ on:
         type: choice
         options:
           - all
-          - ideation
-          - specification
-          - simulation
-          - architecture
-          - implementation
-          - validation
-          - staging
+          - signal
+          - design
+          - grid
+          - line
+          - mcp
+          - pulse
+          - synapse
+          - overload
+          - velocity
+          - vibe
+          - whole
 
 permissions:
   contents: write
