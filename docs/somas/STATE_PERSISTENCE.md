@@ -7,8 +7,54 @@ The SOMAS State Persistence System provides robust JSON-based state management f
 - **State Tracking**: Complete pipeline state in `state.json`
 - **Fault Recovery**: Failed contexts in `dead_letters.json`
 - **Audit Trail**: Chronological transitions in `transitions.jsonl`
+- **Concurrent Safety**: File-based locking to prevent race conditions
 
 This system is modeled after MathProtocol's "Dead Letter Vault" and MerkleAuditChain for high-assurance autonomous environments.
+
+## Concurrency Safety
+
+### File Locking Strategy
+
+The StateManager uses file-based locking (`filelock` library) to ensure safe concurrent access:
+
+**Lock Acquisition**: All read-modify-write operations acquire an exclusive lock on the target file before reading, modifying, or writing state.
+
+**Timeout Behavior**: Lock operations timeout after 30 seconds if the lock cannot be acquired. This prevents indefinite blocking while still allowing concurrent operations to complete.
+
+**Lock Files**: Lock files (`.lock` suffix) are automatically created and cleaned up. They are transient and should not be committed to version control.
+
+**Multi-File Coordination**: Operations that modify multiple files (e.g., `add_dead_letter` modifying both `state.json` and `dead_letters.json`) acquire locks in a consistent order to prevent deadlocks.
+
+### Methods Using File Locking
+
+| Method | Lock Scope | Description |
+|--------|-----------|-------------|
+| `_atomic_write_json()` | Single file | Low-level write with atomic replacement |
+| `_append_jsonl()` | Single file | Append-only log writes |
+| `update_state()` | state.json | General state updates |
+| `start_stage()` | state.json | Stage transition to in_progress |
+| `complete_stage()` | state.json | Stage transition to completed |
+| `fail_stage()` | state.json | Stage transition to failed |
+| `create_checkpoint()` | state.json | Add recovery checkpoint |
+| `add_dead_letter()` | state.json + dead_letters.json | Coordinated multi-file update |
+
+### Lock Guarantees
+
+**Atomicity**: All read-modify-write cycles execute atomically under a lock, preventing lost updates.
+
+**Consistency**: Multi-file operations maintain consistency by acquiring all necessary locks before modifications.
+
+**Isolation**: Concurrent operations on the same project are serialized, preventing race conditions.
+
+**No Deadlocks**: Locks are acquired in a consistent order and held for minimal duration.
+
+### Performance Considerations
+
+**Lock Contention**: Under normal operation, lock contention is negligible. The 30-second timeout provides ample time for operations to complete.
+
+**Scalability**: File locking is appropriate for the expected concurrency levels (typically 1-10 concurrent operations per project).
+
+**Lock-Free Reads**: The `get_state()` method does not acquire locks, allowing concurrent reads. However, readers may see stale data during concurrent writes.
 
 ## Architecture
 
@@ -19,8 +65,11 @@ Each project has three persistent state files in `.somas/projects/{project_id}/`
 ```
 .somas/projects/project-123/
 ├── state.json           # Current pipeline state
+├── state.json.lock      # Lock file (transient)
 ├── dead_letters.json    # Failed execution contexts
+├── dead_letters.json.lock  # Lock file (transient)
 └── transitions.jsonl    # Audit log (JSON Lines)
+    └── transitions.jsonl.lock  # Lock file (transient)
 ```
 
 ### State Files

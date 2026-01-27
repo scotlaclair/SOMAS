@@ -1,6 +1,9 @@
 # SOMAS project artifacts (should not be committed to main repo)
 .somas/projects/*/
 
+# Lock files (transient)
+*.lock
+
 # Python cache
 __pycache__/
 *.py[cod]
