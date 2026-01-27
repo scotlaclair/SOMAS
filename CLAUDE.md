@@ -143,6 +143,7 @@ except json.JSONDecodeError as e:
 
 ### Input Validation
 ```python
+import re
 # Project IDs must match pattern: project-\d+
 PROJECT_ID_PATTERN = re.compile(r'^project-\d+$')
 
