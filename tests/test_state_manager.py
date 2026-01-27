@@ -289,12 +289,13 @@ class TestConcurrentAccess(unittest.TestCase):
         # Assertions
         self.assertEqual(len(errors), 0, f"Errors during concurrent access: {errors}")
         
-        # Verify state integrity
+        # Verify state integrity - with rotation, should have max_checkpoints
         state = self.state_manager.get_state(project_id)
-        self.assertEqual(len(state["checkpoints"]), 50, 
-                         f"Expected 50 checkpoints but got {len(state['checkpoints'])}")
+        max_checkpoints = self.state_manager._get_max_checkpoints()
+        self.assertEqual(len(state["checkpoints"]), max_checkpoints, 
+                         f"Expected {max_checkpoints} checkpoints (due to rotation) but got {len(state['checkpoints'])}")
         
-        # Verify all checkpoint IDs are unique
+        # Verify all checkpoint IDs created were unique (even though only max_checkpoints are retained)
         self.assertEqual(len(set(checkpoints_created)), 50,
                         "Not all checkpoint IDs are unique")
     
@@ -558,6 +559,150 @@ class TestSecurityValidation(unittest.TestCase):
                     
             except Exception as e:
                 self.fail(f"Initialization failed with title '{title}': {e}")
+
+
+class TestCheckpointRotation(unittest.TestCase):
+    """Test cases for checkpoint rotation functionality."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.test_dir = tempfile.mkdtemp()
+        self.state_manager = StateManager(projects_dir=Path(self.test_dir))
+    
+    def tearDown(self):
+        """Clean up test fixtures."""
+        shutil.rmtree(self.test_dir)
+    
+    def test_checkpoint_rotation_limits_array_size(self):
+        """Verify checkpoints are rotated when exceeding max_checkpoints."""
+        project_id = "project-9001"
+        self.state_manager.initialize_project(project_id, 9001, "Rotation Test")
+        
+        # Get the configured max checkpoints
+        max_checkpoints = self.state_manager._get_max_checkpoints()
+        
+        # Create more checkpoints than the limit
+        num_checkpoints = 30
+        for i in range(num_checkpoints):
+            self.state_manager.create_checkpoint(
+                project_id,
+                stage=f"stage-{i}",
+                status="success"
+            )
+        
+        state = self.state_manager.get_state(project_id)
+        
+        # Should not exceed max_checkpoints
+        self.assertLessEqual(len(state["checkpoints"]), max_checkpoints,
+                            f"Expected at most {max_checkpoints} checkpoints but got {len(state['checkpoints'])}")
+        
+        # Oldest checkpoints should be pruned (first ones created)
+        # The remaining checkpoints should be the most recent
+        checkpoint_stages = [c["stage"] for c in state["checkpoints"]]
+        self.assertNotIn("stage-0", checkpoint_stages, "Oldest checkpoint should be pruned")
+        self.assertIn("stage-29", checkpoint_stages, "Most recent checkpoint should be kept")
+    
+    def test_checkpoint_rotation_preserves_recovery_info(self):
+        """Verify last_successful_checkpoint remains valid after rotation."""
+        project_id = "project-9002"
+        self.state_manager.initialize_project(project_id, 9002, "Recovery Test")
+        
+        # Create checkpoints up to limit
+        for i in range(25):
+            chk_id = self.state_manager.create_checkpoint(
+                project_id,
+                stage=f"stage-{i}",
+                status="success"
+            )
+        
+        state = self.state_manager.get_state(project_id)
+        
+        # Recovery info should point to most recent successful checkpoint
+        last_chk = state["recovery_info"]["last_successful_checkpoint"]
+        checkpoint_ids = [c["id"] for c in state["checkpoints"]]
+        
+        # Last successful checkpoint should still exist in array
+        self.assertIn(last_chk, checkpoint_ids,
+                     "Last successful checkpoint should exist in retained checkpoints")
+    
+    def test_checkpoint_rotation_with_failed_checkpoints(self):
+        """Verify rotation works correctly with mixed success/failed checkpoints."""
+        project_id = "project-9003"
+        self.state_manager.initialize_project(project_id, 9003, "Mixed Test")
+        
+        # Create mix of successful and failed checkpoints
+        for i in range(25):
+            status = "success" if i % 3 == 0 else "failed"
+            self.state_manager.create_checkpoint(
+                project_id,
+                stage=f"stage-{i}",
+                status=status
+            )
+        
+        state = self.state_manager.get_state(project_id)
+        
+        # Should not exceed max_checkpoints
+        max_checkpoints = self.state_manager._get_max_checkpoints()
+        self.assertLessEqual(len(state["checkpoints"]), max_checkpoints)
+        
+        # Verify mix of statuses is preserved in recent checkpoints
+        statuses = [c["status"] for c in state["checkpoints"]]
+        self.assertIn("success", statuses, "Should have successful checkpoints")
+        self.assertIn("failed", statuses, "Should have failed checkpoints")
+    
+    def test_checkpoint_no_rotation_below_limit(self):
+        """Verify no rotation occurs when below MAX_CHECKPOINTS."""
+        project_id = "project-9004"
+        self.state_manager.initialize_project(project_id, 9004, "Small Test")
+        
+        # Create fewer checkpoints than the limit
+        num_checkpoints = 10
+        for i in range(num_checkpoints):
+            self.state_manager.create_checkpoint(
+                project_id,
+                stage=f"stage-{i}",
+                status="success"
+            )
+        
+        state = self.state_manager.get_state(project_id)
+        
+        # All checkpoints should be retained
+        self.assertEqual(len(state["checkpoints"]), num_checkpoints,
+                        f"Expected {num_checkpoints} checkpoints, got {len(state['checkpoints'])}")
+        
+        # All stages should be present
+        checkpoint_stages = [c["stage"] for c in state["checkpoints"]]
+        for i in range(num_checkpoints):
+            self.assertIn(f"stage-{i}", checkpoint_stages,
+                         f"Stage {i} should be present")
+    
+    def test_checkpoint_rotation_keeps_most_recent(self):
+        """Verify rotation keeps the most recent N checkpoints in order."""
+        project_id = "project-9005"
+        self.state_manager.initialize_project(project_id, 9005, "Order Test")
+        
+        # Get the configured max checkpoints
+        max_checkpoints = self.state_manager._get_max_checkpoints()
+        
+        # Create exactly max_checkpoints + 5 checkpoints
+        num_checkpoints = max_checkpoints + 5
+        for i in range(num_checkpoints):
+            self.state_manager.create_checkpoint(
+                project_id,
+                stage=f"stage-{i:02d}",  # Zero-padded for easier verification
+                status="success"
+            )
+        
+        state = self.state_manager.get_state(project_id)
+        
+        # Should have exactly max_checkpoints checkpoints
+        self.assertEqual(len(state["checkpoints"]), max_checkpoints)
+        
+        # Verify it's the last max_checkpoints (stages 5-24 for default 20)
+        checkpoint_stages = [c["stage"] for c in state["checkpoints"]]
+        expected_stages = [f"stage-{i:02d}" for i in range(5, num_checkpoints)]
+        self.assertEqual(checkpoint_stages, expected_stages,
+                        f"Should keep the most recent {max_checkpoints} checkpoints in order")
 
 
 if __name__ == '__main__':
