@@ -158,7 +158,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                labels: ['somas:reviewing']
+                labels: ['somas:ready-for-review']
               });
             } catch (e) {
               core.info('Could not add label, may not exist: ' + e.message);
