@@ -18,7 +18,7 @@
 # them in the current repository, using .github/labels.yml as the reference
 # specification for those labels.
 
-set -e  # Exit on error
+# Note: set -e is NOT used to allow proper error handling per label
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -75,109 +75,104 @@ CREATED=0
 SKIPPED=0
 FAILED=0
 
+# Helper function to create labels with proper error handling
+create_label() {
+    local name="$1"
+    local description="$2"
+    local color="$3"
+    local force="$4"
+    
+    if gh label create "$name" --description "$description" --color "$color" --force="$force" 2>&1; then
+        echo -e "  ${GREEN}✓${NC} $name"
+        ((CREATED++))
+        return 0
+    else
+        local exit_code=$?
+        # Check if it's a "label already exists" error when not using force mode
+        if [[ $exit_code -eq 1 ]] && [[ "$force" == "false" ]]; then
+            echo -e "  ${YELLOW}○${NC} $name (already exists)"
+            ((SKIPPED++))
+        else
+            echo -e "  ${RED}✗${NC} $name (failed)"
+            ((FAILED++))
+        fi
+        return $exit_code
+    fi
+}
+
 # Core Pipeline Labels
 echo -e "${YELLOW}[Core Pipeline Labels]${NC}"
-gh label create "somas:dev" --description "Trigger SOMAS autonomous pipeline in development mode" --color "0E8A16" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} somas:dev" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} somas:dev (already exists)" && ((SKIPPED++)); }
-gh label create "somas-project" --description "New SOMAS project - triggers project initialization" --color "1D76DB" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} somas-project" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} somas-project (already exists)" && ((SKIPPED++)); }
+create_label "somas:dev" "Trigger SOMAS autonomous pipeline in development mode" "0E8A16" "$FORCE_MODE"
+create_label "somas-project" "New SOMAS project - triggers project initialization" "1D76DB" "$FORCE_MODE"
 
 # Triage Labels
 echo -e "\n${YELLOW}[Triage Labels]${NC}"
-gh label create "somas:change" --description "Change request - modification to existing functionality" --color "FBCA04" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} somas:change" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} somas:change (already exists)" && ((SKIPPED++)); }
-gh label create "somas:enhance" --description "Enhancement suggestion - new feature or improvement" --color "A2EEEF" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} somas:enhance" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} somas:enhance (already exists)" && ((SKIPPED++)); }
-gh label create "somas:question" --description "Question or research request" --color "D876E3" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} somas:question" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} somas:question (already exists)" && ((SKIPPED++)); }
-gh label create "somas:bug" --description "Bug report - defect in existing functionality" --color "D73A4A" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} somas:bug" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} somas:bug (already exists)" && ((SKIPPED++)); }
-gh label create "somas:triaged" --description "Request has been triaged by automation" --color "C2E0C6" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} somas:triaged" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} somas:triaged (already exists)" && ((SKIPPED++)); }
+create_label "somas:change" "Change request - modification to existing functionality" "FBCA04" "$FORCE_MODE"
+create_label "somas:enhance" "Enhancement suggestion - new feature or improvement" "A2EEEF" "$FORCE_MODE"
+create_label "somas:question" "Question or research request" "D876E3" "$FORCE_MODE"
+create_label "somas:bug" "Bug report - defect in existing functionality" "D73A4A" "$FORCE_MODE"
+create_label "somas:triaged" "Request has been triaged by automation" "C2E0C6" "$FORCE_MODE"
 
 # State Machine Labels
 echo -e "\n${YELLOW}[State Machine Labels]${NC}"
-gh label create "state:pending-planner" --description "Planner agent is pending or in progress" --color "BFDADC" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} state:pending-planner" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} state:pending-planner (already exists)" && ((SKIPPED++)); }
-gh label create "state:pending-specifier" --description "Specifier agent is pending or in progress" --color "BFDADC" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} state:pending-specifier" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} state:pending-specifier (already exists)" && ((SKIPPED++)); }
-gh label create "state:pending-simulator" --description "Simulator agent is pending or in progress" --color "BFDADC" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} state:pending-simulator" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} state:pending-simulator (already exists)" && ((SKIPPED++)); }
-gh label create "state:pending-architect" --description "Architect agent is pending or in progress" --color "BFDADC" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} state:pending-architect" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} state:pending-architect (already exists)" && ((SKIPPED++)); }
-gh label create "state:pending-implementer" --description "Implementer agent is pending or in progress" --color "BFDADC" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} state:pending-implementer" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} state:pending-implementer (already exists)" && ((SKIPPED++)); }
-gh label create "state:pending-tester" --description "Tester/validator agent is pending or in progress" --color "BFDADC" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} state:pending-tester" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} state:pending-tester (already exists)" && ((SKIPPED++)); }
-gh label create "state:pending-deployer" --description "Deployer/staging agent is pending or in progress" --color "BFDADC" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} state:pending-deployer" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} state:pending-deployer (already exists)" && ((SKIPPED++)); }
-gh label create "state:complete" --description "Pipeline execution complete - ready for review" --color "C5DEF5" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} state:complete" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} state:complete (already exists)" && ((SKIPPED++)); }
+create_label "state:pending-planner" "Planner agent is pending or in progress" "BFDADC" "$FORCE_MODE"
+create_label "state:pending-specifier" "Specifier agent is pending or in progress" "BFDADC" "$FORCE_MODE"
+create_label "state:pending-simulator" "Simulator agent is pending or in progress" "BFDADC" "$FORCE_MODE"
+create_label "state:pending-architect" "Architect agent is pending or in progress" "BFDADC" "$FORCE_MODE"
+create_label "state:pending-implementer" "Implementer agent is pending or in progress" "BFDADC" "$FORCE_MODE"
+create_label "state:pending-tester" "Tester/validator agent is pending or in progress" "BFDADC" "$FORCE_MODE"
+create_label "state:pending-deployer" "Deployer/staging agent is pending or in progress" "BFDADC" "$FORCE_MODE"
+create_label "state:complete" "Pipeline execution complete - ready for review" "C5DEF5" "$FORCE_MODE"
 
 # Stage Labels
 echo -e "\n${YELLOW}[Stage Labels]${NC}"
-gh label create "stage:ideation" --description "Ideation stage - initial planning" --color "E99695" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} stage:ideation" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} stage:ideation (already exists)" && ((SKIPPED++)); }
-gh label create "stage:specification" --description "Specification stage - requirements definition" --color "E99695" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} stage:specification" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} stage:specification (already exists)" && ((SKIPPED++)); }
-gh label create "stage:simulation" --description "Simulation stage - Monte Carlo optimization" --color "E99695" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} stage:simulation" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} stage:simulation (already exists)" && ((SKIPPED++)); }
-gh label create "stage:architecture" --description "Architecture stage - system design" --color "E99695" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} stage:architecture" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} stage:architecture (already exists)" && ((SKIPPED++)); }
-gh label create "stage:implementation" --description "Implementation stage - code generation" --color "E99695" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} stage:implementation" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} stage:implementation (already exists)" && ((SKIPPED++)); }
-gh label create "stage:validation" --description "Validation stage - testing and quality checks" --color "E99695" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} stage:validation" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} stage:validation (already exists)" && ((SKIPPED++)); }
-gh label create "stage:staging" --description "Staging stage - deployment preparation" --color "E99695" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} stage:staging" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} stage:staging (already exists)" && ((SKIPPED++)); }
+create_label "stage:ideation" "Ideation stage - initial planning" "E99695" "$FORCE_MODE"
+create_label "stage:specification" "Specification stage - requirements definition" "E99695" "$FORCE_MODE"
+create_label "stage:simulation" "Simulation stage - Monte Carlo optimization" "E99695" "$FORCE_MODE"
+create_label "stage:architecture" "Architecture stage - system design" "E99695" "$FORCE_MODE"
+create_label "stage:implementation" "Implementation stage - code generation" "E99695" "$FORCE_MODE"
+create_label "stage:validation" "Validation stage - testing and quality checks" "E99695" "$FORCE_MODE"
+create_label "stage:staging" "Staging stage - deployment preparation" "E99695" "$FORCE_MODE"
 
 # Quality Labels
 echo -e "\n${YELLOW}[Quality Labels]${NC}"
-gh label create "quality:blocked" --description "Blocked by quality gate failure" --color "E4E669" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} quality:blocked" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} quality:blocked (already exists)" && ((SKIPPED++)); }
-gh label create "quality:passed" --description "Quality gate passed successfully" --color "C2E0C6" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} quality:passed" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} quality:passed (already exists)" && ((SKIPPED++)); }
-gh label create "quality:review-needed" --description "Manual quality review needed" --color "FBCA04" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} quality:review-needed" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} quality:review-needed (already exists)" && ((SKIPPED++)); }
+create_label "quality:blocked" "Blocked by quality gate failure" "E4E669" "$FORCE_MODE"
+create_label "quality:passed" "Quality gate passed successfully" "C2E0C6" "$FORCE_MODE"
+create_label "quality:review-needed" "Manual quality review needed" "FBCA04" "$FORCE_MODE"
 
 # Checkpoint Labels
 echo -e "\n${YELLOW}[Checkpoint Labels]${NC}"
-gh label create "checkpoint:planner-complete" --description "Planner agent checkpoint reached" --color "E4E669" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} checkpoint:planner-complete" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} checkpoint:planner-complete (already exists)" && ((SKIPPED++)); }
-gh label create "checkpoint:specifier-complete" --description "Specifier agent checkpoint reached" --color "E4E669" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} checkpoint:specifier-complete" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} checkpoint:specifier-complete (already exists)" && ((SKIPPED++)); }
-gh label create "checkpoint:simulator-complete" --description "Simulator agent checkpoint reached" --color "E4E669" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} checkpoint:simulator-complete" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} checkpoint:simulator-complete (already exists)" && ((SKIPPED++)); }
-gh label create "checkpoint:architect-complete" --description "Architect agent checkpoint reached" --color "E4E669" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} checkpoint:architect-complete" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} checkpoint:architect-complete (already exists)" && ((SKIPPED++)); }
-gh label create "checkpoint:implementer-complete" --description "Implementer agent checkpoint reached" --color "E4E669" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} checkpoint:implementer-complete" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} checkpoint:implementer-complete (already exists)" && ((SKIPPED++)); }
-gh label create "checkpoint:tester-complete" --description "Tester/validator agent checkpoint reached" --color "E4E669" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} checkpoint:tester-complete" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} checkpoint:tester-complete (already exists)" && ((SKIPPED++)); }
-gh label create "checkpoint:deployer-complete" --description "Deployer agent checkpoint reached" --color "E4E669" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} checkpoint:deployer-complete" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} checkpoint:deployer-complete (already exists)" && ((SKIPPED++)); }
+create_label "checkpoint:planner-complete" "Planner agent checkpoint reached" "E4E669" "$FORCE_MODE"
+create_label "checkpoint:specifier-complete" "Specifier agent checkpoint reached" "E4E669" "$FORCE_MODE"
+create_label "checkpoint:simulator-complete" "Simulator agent checkpoint reached" "E4E669" "$FORCE_MODE"
+create_label "checkpoint:architect-complete" "Architect agent checkpoint reached" "E4E669" "$FORCE_MODE"
+create_label "checkpoint:implementer-complete" "Implementer agent checkpoint reached" "E4E669" "$FORCE_MODE"
+create_label "checkpoint:tester-complete" "Tester/validator agent checkpoint reached" "E4E669" "$FORCE_MODE"
+create_label "checkpoint:deployer-complete" "Deployer agent checkpoint reached" "E4E669" "$FORCE_MODE"
 
 # Agent Activity Labels
 echo -e "\n${YELLOW}[Agent Activity Labels]${NC}"
-gh label create "agent:planner-working" --description "Planner agent is currently working" --color "C5DEF5" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} agent:planner-working" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} agent:planner-working (already exists)" && ((SKIPPED++)); }
-gh label create "agent:specifier-working" --description "Specifier agent is currently working" --color "C5DEF5" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} agent:specifier-working" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} agent:specifier-working (already exists)" && ((SKIPPED++)); }
-gh label create "agent:simulator-working" --description "Simulator agent is currently working" --color "C5DEF5" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} agent:simulator-working" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} agent:simulator-working (already exists)" && ((SKIPPED++)); }
-gh label create "agent:architect-working" --description "Architect agent is currently working" --color "C5DEF5" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} agent:architect-working" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} agent:architect-working (already exists)" && ((SKIPPED++)); }
-gh label create "agent:implementer-working" --description "Implementer agent is currently working" --color "C5DEF5" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} agent:implementer-working" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} agent:implementer-working (already exists)" && ((SKIPPED++)); }
-gh label create "agent:tester-working" --description "Tester/validator agent is currently working" --color "C5DEF5" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} agent:tester-working" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} agent:tester-working (already exists)" && ((SKIPPED++)); }
-gh label create "agent:deployer-working" --description "Deployer agent is currently working" --color "C5DEF5" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} agent:deployer-working" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} agent:deployer-working (already exists)" && ((SKIPPED++)); }
+create_label "agent:planner-working" "Planner agent is currently working" "C5DEF5" "$FORCE_MODE"
+create_label "agent:specifier-working" "Specifier agent is currently working" "C5DEF5" "$FORCE_MODE"
+create_label "agent:simulator-working" "Simulator agent is currently working" "C5DEF5" "$FORCE_MODE"
+create_label "agent:architect-working" "Architect agent is currently working" "C5DEF5" "$FORCE_MODE"
+create_label "agent:implementer-working" "Implementer agent is currently working" "C5DEF5" "$FORCE_MODE"
+create_label "agent:tester-working" "Tester/validator agent is currently working" "C5DEF5" "$FORCE_MODE"
+create_label "agent:deployer-working" "Deployer agent is currently working" "C5DEF5" "$FORCE_MODE"
 
 # Circuit Breaker & Control Labels
 echo -e "\n${YELLOW}[Circuit Breaker & Control Labels]${NC}"
-gh label create "somas:circuit-breaker" --description "Disable all SOMAS automation for this issue" --color "D73A4A" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} somas:circuit-breaker" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} somas:circuit-breaker (already exists)" && ((SKIPPED++)); }
-gh label create "somas:manual" --description "Manual intervention mode - automation paused" --color "FBCA04" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} somas:manual" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} somas:manual (already exists)" && ((SKIPPED++)); }
-gh label create "somas:retry" --description "Retry the current stage after failure" --color "FBCA04" --force=$FORCE_MODE 2>/dev/null && echo -e "  ${GREEN}✓${NC} somas:retry" && ((CREATED++)) || { echo -e "  ${YELLOW}○${NC} somas:retry (already exists)" && ((SKIPPED++)); }
+create_label "somas:circuit-breaker" "Disable all SOMAS automation for this issue" "D73A4A" "$FORCE_MODE"
+create_label "somas:manual" "Manual intervention mode - automation paused" "FBCA04" "$FORCE_MODE"
+create_label "somas:retry" "Retry the current stage after failure" "FBCA04" "$FORCE_MODE"
 
 # Additional Workflow Labels
 echo -e "\n${YELLOW}[Additional Workflow Labels]${NC}"
-if gh label create "somas:system" --description "Changes to SOMAS system files" --color "1D76DB" --force=$FORCE_MODE; then
-    echo -e "  ${GREEN}✓${NC} somas:system"
-    ((CREATED++))
-else
-    echo -e "  ${RED}✗${NC} somas:system (failed - see error above)"
-    ((FAILED++))
-fi
-if gh label create "needs-human-review" --description "Requires human review before proceeding" --color "FBCA04" --force=$FORCE_MODE; then
-    echo -e "  ${GREEN}✓${NC} needs-human-review"
-    ((CREATED++))
-else
-    echo -e "  ${RED}✗${NC} needs-human-review (failed - see error above)"
-    ((FAILED++))
-fi
-if gh label create "auto-merge-approved" --description "Approved for automatic merging in dev environment" --color "C2E0C6" --force=$FORCE_MODE; then
-    echo -e "  ${GREEN}✓${NC} auto-merge-approved"
-    ((CREATED++))
-else
-    echo -e "  ${RED}✗${NC} auto-merge-approved (failed - see error above)"
-    ((FAILED++))
-fi
-if gh label create "somas:ready-for-review" --description "SOMAS-generated PR ready for human review" --color "0E8A16" --force=$FORCE_MODE; then
-    echo -e "  ${GREEN}✓${NC} somas:ready-for-review"
-    ((CREATED++))
-else
-    echo -e "  ${RED}✗${NC} somas:ready-for-review (failed - see error above)"
-    ((FAILED++))
-fi
-if gh label create "somas-generated" --description "Content generated by SOMAS automation" --color "1D76DB" --force=$FORCE_MODE; then
-    echo -e "  ${GREEN}✓${NC} somas-generated"
-    ((CREATED++))
-else
-    echo -e "  ${RED}✗${NC} somas-generated (failed - see error above)"
-    ((FAILED++))
-fi
+create_label "somas:system" "Changes to SOMAS system files" "1D76DB" "$FORCE_MODE"
+create_label "needs-human-review" "Requires human review before proceeding" "FBCA04" "$FORCE_MODE"
+create_label "auto-merge-approved" "Approved for automatic merging in dev environment" "C2E0C6" "$FORCE_MODE"
+create_label "somas:ready-for-review" "SOMAS-generated PR ready for human review" "0E8A16" "$FORCE_MODE"
+create_label "somas-generated" "Content generated by SOMAS automation" "1D76DB" "$FORCE_MODE"
 
 # Summary
 echo ""

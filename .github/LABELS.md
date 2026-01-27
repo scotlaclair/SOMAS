@@ -49,24 +49,28 @@ Use a GitHub Action to automatically sync labels from `labels.yml`. Popular opti
 
 ## Label Categories
 
+**Note on Label Usage:** This system includes both labels currently used by existing workflows (marked with ✅ below) and labels reserved for future state machine enhancements and automation features. All labels are defined now to ensure consistency and enable seamless integration as new features are added.
+
 ### Core Pipeline Labels
 
-| Label | Description | Color | Used By |
-|-------|-------------|-------|---------|
-| `somas:dev` | Trigger autonomous pipeline | 🟢 0E8A16 | somas-orchestrator.yml |
-| `somas-project` | New SOMAS project | 🔵 1D76DB | somas-pipeline.yml |
+| Label | Description | Color | Used By | Status |
+|-------|-------------|-------|---------|--------|
+| `somas:dev` | Trigger autonomous pipeline | 🟢 0E8A16 | somas-orchestrator.yml | ✅ Active |
+| `somas-project` | New SOMAS project | 🔵 1D76DB | somas-pipeline.yml | ✅ Active |
 
 ### Triage Labels
 
-| Label | Description | Color | Used By |
-|-------|-------------|-------|---------|
-| `somas:change` | Change request | 🟡 FBCA04 | somas-orchestrator.yml (triage) |
-| `somas:enhance` | Enhancement suggestion | 🔵 A2EEEF | somas-orchestrator.yml (triage) |
-| `somas:question` | Question/research | 🟣 D876E3 | somas-orchestrator.yml (triage) |
-| `somas:bug` | Bug report | 🔴 D73A4A | somas-orchestrator.yml (triage) |
-| `somas:triaged` | Triaged by automation | 🟢 C2E0C6 | somas-orchestrator.yml (triage) |
+| Label | Description | Color | Used By | Status |
+|-------|-------------|-------|----------|--------|
+| `somas:change` | Change request | 🟡 FBCA04 | somas-orchestrator.yml (triage) | ✅ Active |
+| `somas:enhance` | Enhancement suggestion | 🔵 A2EEEF | somas-orchestrator.yml (triage) | ✅ Active |
+| `somas:question` | Question/research | 🟣 D876E3 | somas-orchestrator.yml (triage) | ✅ Active |
+| `somas:bug` | Bug report | 🔴 D73A4A | somas-orchestrator.yml (triage) | ✅ Active |
+| `somas:triaged` | Triaged by automation | 🟢 C2E0C6 | somas-orchestrator.yml (triage) | ✅ Active |
 
 ### State Machine Labels
+
+**Status:** 🔮 Reserved for future state machine orchestration features
 
 Track which agent is pending or in progress:
 
@@ -81,7 +85,13 @@ Track which agent is pending or in progress:
 
 All use color 🔵 BFDADC except `state:complete` which uses C5DEF5.
 
+**Note:** These labels are defined now for future label-driven state machine transitions. Workflows can reference them once state machine features are implemented.
+
 ### Stage Labels
+
+| Label | Description | Color | Used By | Status |
+|-------|-------------|-------|---------|--------|
+| `stage:*` (7 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml | ✅ Active |
 
 Track the current pipeline stage:
 
@@ -95,9 +105,11 @@ Track the current pipeline stage:
 
 All use color 🔴 E99695.
 
-Referenced by `somas-project-sync.yml` for stage tracking.
+Referenced by `somas-project-sync.yml` for dynamic stage tracking.
 
 ### Quality Labels
+
+**Status:** 🔮 Reserved for future quality gate automation
 
 | Label | Description | Color |
 |-------|-------------|-------|
@@ -106,6 +118,8 @@ Referenced by `somas-project-sync.yml` for stage tracking.
 | `quality:review-needed` | Manual review needed | 🟡 FBCA04 |
 
 ### Checkpoint Labels
+
+**Status:** 🔮 Reserved for future checkpoint automation
 
 Mark completion of agent milestones:
 
@@ -119,7 +133,11 @@ Mark completion of agent milestones:
 
 All use color 🟡 E4E669.
 
+**Note:** These labels will be used for automatic milestone tracking once checkpoint features are implemented.
+
 ### Agent Activity Labels
+
+**Status:** 🔮 Reserved for future agent status tracking
 
 Show which agents are actively working:
 
@@ -133,23 +151,30 @@ Show which agents are actively working:
 
 All use color 🔵 C5DEF5.
 
+**Note:** These labels will enable real-time agent activity visualization in future releases.
+
 ### Control Labels
 
-| Label | Description | Color | Purpose |
-|-------|-------------|-------|---------|
-| `somas:circuit-breaker` | Disable automation | 🔴 D73A4A | Emergency stop |
-| `somas:manual` | Manual intervention | 🟡 FBCA04 | Pause automation |
-| `somas:retry` | Retry current stage | 🟡 FBCA04 | Recover from failure |
+| Label | Description | Color | Purpose | Status |
+|-------|-------------|-------|---------|--------|
+| `somas:circuit-breaker` | Disable automation | 🔴 D73A4A | Emergency stop | ✅ Active |
+| `somas:manual` | Manual intervention | 🟡 FBCA04 | Pause automation | 🔮 Reserved |
+| `somas:retry` | Retry current stage | 🟡 FBCA04 | Recover from failure | 🔮 Reserved |
 
 ### Additional Workflow Labels
 
-| Label | Description | Color |
-|-------|-------------|-------|
-| `somas:system` | SOMAS system changes | 🔵 1D76DB |
-| `needs-human-review` | Human review required | 🟡 FBCA04 |
-| `auto-merge-approved` | Auto-merge approved | 🟢 C2E0C6 |
-| `somas:ready-for-review` | PR ready for review | 🟢 0E8A16 |
-| `somas-generated` | SOMAS-generated content | 🔵 1D76DB |
+| Label | Description | Color | Status |
+|-------|-------------|-------|--------|
+| `somas:system` | SOMAS system changes | 🔵 1D76DB | 🔮 Reserved |
+| `needs-human-review` | Human review required | 🟡 FBCA04 | 🔮 Reserved |
+| `auto-merge-approved` | Auto-merge approved | 🟢 C2E0C6 | 🔮 Reserved |
+| `somas:ready-for-review` | PR ready for review | 🟢 0E8A16 | ✅ Active |
+| `somas-generated` | SOMAS-generated content | 🔵 1D76DB | ✅ Active |
+
+## Label Status Key
+
+- ✅ **Active**: Currently used by existing workflows
+- 🔮 **Reserved**: Defined for future features and state machine enhancements
 
 ## Label Usage in Workflows
 
