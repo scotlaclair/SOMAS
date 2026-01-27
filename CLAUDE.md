@@ -171,11 +171,11 @@ def validate_path(path: Path, base_dir: Path) -> bool:
 ```python
 # Use json module, never shell commands
 import json
-
+import os
+import tempfile
 # Read
 with open(filepath, 'r') as f:
     data = json.load(f)
-
 # Write atomically
 with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
     json.dump(data, tmp, indent=2)
