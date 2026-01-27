@@ -133,6 +133,72 @@ jobs:
             
             core.info('✓ Status comment posted');
       
+      - name: Enable Auto-Merge
+        if: |
+          steps.check.outputs.skip != 'true' &&
+          steps.check.outputs.all_checked == 'true' &&
+          steps.check.outputs.has_auto_merge_label != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const prNodeId = context.payload.pull_request.node_id;
+            
+            core.info('Attempting to enable auto-merge...');
+            
+            try {
+              // Enable auto-merge with squash merge method
+              // This requires the PR to pass all required status checks
+              // and branch protection rules before it will actually merge
+              const mutation = `
+                mutation($pullRequestId: ID!) {
+                  enablePullRequestAutoMerge(input: {
+                    pullRequestId: $pullRequestId,
+                    mergeMethod: SQUASH
+                  }) {
+                    pullRequest {
+                      autoMergeRequest {
+                        enabledAt
+                        enabledBy {
+                          login
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+              
+              const result = await github.graphql(mutation, {
+                pullRequestId: prNodeId
+              });
+              
+              core.info('✓ Auto-merge enabled successfully');
+              core.info(`Enabled at: ${result.enablePullRequestAutoMerge.pullRequest.autoMergeRequest.enabledAt}`);
+              core.info('PR will auto-merge when all required checks pass and branch protections are satisfied');
+              
+              // Post a follow-up comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: '🤖 **Auto-merge has been enabled** for this PR.\n\n' +
+                      'The PR will automatically merge when:\n' +
+                      '- All required status checks pass\n' +
+                      '- All branch protection rules are satisfied\n' +
+                      '- No merge conflicts exist\n\n' +
+                      '_Merge method: Squash_'
+              });
+              
+            } catch (error) {
+              // Auto-merge might fail if:
+              // - Repository doesn't have auto-merge enabled
+              // - PR doesn't meet merge requirements yet
+              // - User doesn't have permission
+              core.warning(`Could not enable auto-merge: ${error.message}`);
+              core.info('This is expected if auto-merge is not available for this repository or PR');
+              core.info('The auto-merge-approved label has still been added for manual or other automation use');
+            }
+      
       - name: Remove Auto-Merge Approval Label
         if: |
           steps.check.outputs.skip != 'true' &&
@@ -180,6 +246,53 @@ jobs:
               } else {
                 throw error;
               }
+            }
+      
+      - name: Disable Auto-Merge
+        if: |
+          steps.check.outputs.skip != 'true' &&
+          steps.check.outputs.all_checked != 'true' &&
+          steps.check.outputs.has_auto_merge_label == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const prNodeId = context.payload.pull_request.node_id;
+            
+            core.info('Attempting to disable auto-merge...');
+            
+            try {
+              // Disable auto-merge since checklist is no longer complete
+              const mutation = `
+                mutation($pullRequestId: ID!) {
+                  disablePullRequestAutoMerge(input: {
+                    pullRequestId: $pullRequestId
+                  }) {
+                    pullRequest {
+                      number
+                    }
+                  }
+                }
+              `;
+              
+              const result = await github.graphql(mutation, {
+                pullRequestId: prNodeId
+              });
+              
+              core.info('✓ Auto-merge disabled successfully');
+              
+              // Post a follow-up comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: '🔴 **Auto-merge has been disabled** for this PR.\n\n' +
+                      'The checklist is no longer complete. Auto-merge will be re-enabled automatically when all agent reviews are checked off.'
+              });
+              
+            } catch (error) {
+              core.warning(`Could not disable auto-merge: ${error.message}`);
+              core.info('Auto-merge may not have been enabled or may have already been disabled');
             }
       
       - name: Log Completion
