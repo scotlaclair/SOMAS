@@ -94,9 +94,13 @@ class StateManager:
         base_path = Path(self.projects_dir).resolve()
         project_path = (base_path / project_id).resolve()
         
-        # Verify path stays within base directory (prevent traversal)
-        if not str(project_path).startswith(str(base_path)):
-            raise ValueError(f"Path traversal attempt detected: {project_id}")
+        # Verify path stays within base directory using pathlib's relative_to
+        # This is more robust than string comparison on case-insensitive filesystems
+        try:
+            project_path.relative_to(base_path)
+        except ValueError:
+            # relative_to raises ValueError if project_path is not relative to base_path
+            raise ValueError("Path traversal attempt detected")
         
         return project_path
     

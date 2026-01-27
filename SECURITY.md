@@ -113,9 +113,12 @@ SOMAS is an AI-first SDLC that orchestrates multiple AI agents. Our security mod
        base_path = Path(base_dir).resolve()
        project_path = (base_path / project_id).resolve()
        
-       # Verify path stays within base directory (prevent traversal)
-       if not str(project_path).startswith(str(base_path)):
-           raise ValueError(f"Path traversal attempt detected: {project_id}")
+       # Verify path stays within base directory using pathlib
+       try:
+           project_path.relative_to(base_path)
+       except ValueError:
+           # Avoid logging potentially malicious input
+           raise ValueError("Path traversal attempt detected")
        
        return project_path
    ```
