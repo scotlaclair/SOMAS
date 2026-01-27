@@ -106,32 +106,41 @@ jobs:
             const checkedCount = '${{ steps.check.outputs.checked_count }}';
             
             core.info(`✅ All ${checkedCount} agent reviews completed!`);
-            core.info('Adding "auto-merge-approved" label...');
             
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              labels: ['auto-merge-approved']
-            });
+            // Try to add label
+            try {
+              core.info('Adding "auto-merge-approved" label...');
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['auto-merge-approved']
+              });
+              core.info('✓ Label added successfully');
+            } catch (error) {
+              core.warning(`Could not add label: ${error.message}`);
+              core.info('This is expected for PRs from forks or when workflow lacks label permissions');
+            }
             
-            core.info('✓ Label added successfully');
-            
-            // Post a comment on the PR
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: '## ✅ All Agent Reviews Complete\n\n' +
-                    `All ${checkedCount} required agent reviews have been checked off in the **SOMAS Agent Assignments** section.\n\n` +
-                    '**Status:** Auto-merge approved\n' +
-                    '**Label:** `auto-merge-approved` has been automatically added\n\n' +
-                    'This PR is now eligible for automatic merging if all other required checks pass and branch protection rules permit.\n\n' +
-                    '---\n' +
-                    '*Automated by PR Checklist Completion Detector*'
-            });
-            
-            core.info('✓ Status comment posted');
+            // Try to post a comment on the PR
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: '## ✅ All Agent Reviews Complete\n\n' +
+                      `All ${checkedCount} required agent reviews have been checked off in the **SOMAS Agent Assignments** section.\n\n` +
+                      '**Status:** Auto-merge approved\n' +
+                      '**Label:** `auto-merge-approved` has been automatically added\n\n' +
+                      'This PR is now eligible for automatic merging if all other required checks pass and branch protection rules permit.\n\n' +
+                      '---\n' +
+                      '*Automated by PR Checklist Completion Detector*'
+              });
+              core.info('✓ Status comment posted');
+            } catch (error) {
+              core.warning(`Could not post comment: ${error.message}`);
+              core.info('This is expected for PRs from forks or when workflow lacks comment permissions');
+            }
       
       - name: Enable Auto-Merge
         if: |
@@ -212,19 +221,28 @@ jobs:
             const totalCount = '${{ steps.check.outputs.total_count }}';
             
             core.info(`⏳ Agent reviews incomplete: ${checkedCount}/${totalCount} completed`);
-            core.info('Removing "auto-merge-approved" label...');
             
+            // Try to remove label
             try {
+              core.info('Removing "auto-merge-approved" label...');
               await github.rest.issues.removeLabel({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: prNumber,
                 name: 'auto-merge-approved'
               });
-              
               core.info('✓ Label removed successfully');
-              
-              // Post a comment on the PR
+            } catch (error) {
+              if (error.status === 404) {
+                core.info('Label was already removed, no action needed');
+              } else {
+                core.warning(`Could not remove label: ${error.message}`);
+                core.info('This is expected for PRs from forks or when workflow lacks label permissions');
+              }
+            }
+            
+            // Try to post a comment on the PR
+            try {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -237,14 +255,10 @@ jobs:
                       '---\n' +
                       '*Automated by PR Checklist Completion Detector*'
               });
-              
               core.info('✓ Status comment posted');
             } catch (error) {
-              if (error.status === 404) {
-                core.info('Label was already removed, no action needed');
-              } else {
-                throw error;
-              }
+              core.warning(`Could not post comment: ${error.message}`);
+              core.info('This is expected for PRs from forks or when workflow lacks comment permissions');
             }
       
       - name: Disable Auto-Merge
