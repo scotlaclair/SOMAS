@@ -22,6 +22,30 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 import re
 from filelock import FileLock
+import yaml
+
+
+def _load_max_checkpoints() -> int:
+    """
+    Load max_checkpoints from config or return default.
+    
+    Returns:
+        Maximum number of checkpoints to retain (default: 20)
+    """
+    config_path = Path(".somas/config.yml")
+    if config_path.exists():
+        try:
+            with open(config_path) as f:
+                config = yaml.safe_load(f) or {}
+                return config.get("state_manager", {}).get("max_checkpoints", 20)
+        except Exception:
+            # If config is invalid or can't be read, use default
+            return 20
+    return 20
+
+
+# Maximum checkpoints to retain (prevents unbounded state.json growth)
+MAX_CHECKPOINTS = _load_max_checkpoints()
 
 
 class StateManager:
@@ -605,6 +629,10 @@ class StateManager:
             if "checkpoints" not in state:
                 state["checkpoints"] = []
             state["checkpoints"].append(checkpoint)
+            
+            # ROTATION: Keep only the N most recent checkpoints
+            if len(state["checkpoints"]) > MAX_CHECKPOINTS:
+                state["checkpoints"] = state["checkpoints"][-MAX_CHECKPOINTS:]
             
             # Update recovery info
             if status == "success":
