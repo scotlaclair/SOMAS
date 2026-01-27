@@ -1,0 +1,247 @@
+# SOMAS Standard Labels Configuration
+# This file defines all labels used by SOMAS workflows, triage, and state machine orchestration
+# 
+# Usage:
+# - Manual creation: Use scripts/setup-labels.sh
+# - Automated sync: Use actions/github-labeler or similar tools
+# 
+# Color Scheme:
+# - Green (0E8A16, C2E0C6): Core pipeline triggers
+# - Blue (1D76DB, C5DEF5): Projects and completion states
+# - Yellow (FBCA04, E4E669): Changes and quality/checkpoint markers
+# - Cyan (A2EEEF, BFDADC): Enhancements and pending states
+# - Purple (D876E3): Questions/research
+# - Red (D73A4A): Bugs and blocking issues
+# - Pink (E99695): Stage tracking
+
+# ============================================================================
+# CORE PIPELINE LABELS
+# ============================================================================
+
+- name: "somas:dev"
+  description: "Trigger SOMAS autonomous pipeline in development mode"
+  color: "0E8A16"
+
+- name: "somas-project"
+  description: "New SOMAS project - triggers project initialization"
+  color: "1D76DB"
+
+# ============================================================================
+# TRIAGE LABELS
+# Used by the triage agent to classify and route incoming requests
+# ============================================================================
+
+- name: "somas:change"
+  description: "Change request - modification to existing functionality"
+  color: "FBCA04"
+
+- name: "somas:enhance"
+  description: "Enhancement suggestion - new feature or improvement"
+  color: "A2EEEF"
+
+- name: "somas:question"
+  description: "Question or research request"
+  color: "D876E3"
+
+- name: "somas:bug"
+  description: "Bug report - defect in existing functionality"
+  color: "D73A4A"
+
+- name: "somas:triaged"
+  description: "Request has been triaged by automation"
+  color: "C2E0C6"
+
+# ============================================================================
+# STATE MACHINE LABELS
+# Used for label-driven orchestration and tracking agent pending states
+# ============================================================================
+
+- name: "state:pending-planner"
+  description: "Planner agent is pending or in progress"
+  color: "BFDADC"
+
+- name: "state:pending-specifier"
+  description: "Specifier agent is pending or in progress"
+  color: "BFDADC"
+
+- name: "state:pending-simulator"
+  description: "Simulator agent is pending or in progress"
+  color: "BFDADC"
+
+- name: "state:pending-architect"
+  description: "Architect agent is pending or in progress"
+  color: "BFDADC"
+
+- name: "state:pending-implementer"
+  description: "Implementer agent is pending or in progress"
+  color: "BFDADC"
+
+- name: "state:pending-tester"
+  description: "Tester/validator agent is pending or in progress"
+  color: "BFDADC"
+
+- name: "state:pending-deployer"
+  description: "Deployer/staging agent is pending or in progress"
+  color: "BFDADC"
+
+- name: "state:complete"
+  description: "Pipeline execution complete - ready for review"
+  color: "C5DEF5"
+
+# ============================================================================
+# STAGE LABELS
+# Track which pipeline stage is currently active
+# ============================================================================
+
+- name: "stage:ideation"
+  description: "Ideation stage - initial planning"
+  color: "E99695"
+
+- name: "stage:specification"
+  description: "Specification stage - requirements definition"
+  color: "E99695"
+
+- name: "stage:simulation"
+  description: "Simulation stage - Monte Carlo optimization"
+  color: "E99695"
+
+- name: "stage:architecture"
+  description: "Architecture stage - system design"
+  color: "E99695"
+
+- name: "stage:implementation"
+  description: "Implementation stage - code generation"
+  color: "E99695"
+
+- name: "stage:validation"
+  description: "Validation stage - testing and quality checks"
+  color: "E99695"
+
+- name: "stage:staging"
+  description: "Staging stage - deployment preparation"
+  color: "E99695"
+
+# ============================================================================
+# QUALITY LABELS
+# Track quality gates and blocking conditions
+# ============================================================================
+
+- name: "quality:blocked"
+  description: "Blocked by quality gate failure"
+  color: "E4E669"
+
+- name: "quality:passed"
+  description: "Quality gate passed successfully"
+  color: "C2E0C6"
+
+- name: "quality:review-needed"
+  description: "Manual quality review needed"
+  color: "FBCA04"
+
+# ============================================================================
+# CHECKPOINT LABELS
+# Mark completion of specific agent checkpoints
+# ============================================================================
+
+- name: "checkpoint:planner-complete"
+  description: "Planner agent checkpoint reached"
+  color: "E4E669"
+
+- name: "checkpoint:specifier-complete"
+  description: "Specifier agent checkpoint reached"
+  color: "E4E669"
+
+- name: "checkpoint:simulator-complete"
+  description: "Simulator agent checkpoint reached"
+  color: "E4E669"
+
+- name: "checkpoint:architect-complete"
+  description: "Architect agent checkpoint reached"
+  color: "E4E669"
+
+- name: "checkpoint:implementer-complete"
+  description: "Implementer agent checkpoint reached"
+  color: "E4E669"
+
+- name: "checkpoint:tester-complete"
+  description: "Tester/validator agent checkpoint reached"
+  color: "E4E669"
+
+- name: "checkpoint:deployer-complete"
+  description: "Deployer agent checkpoint reached"
+  color: "E4E669"
+
+# ============================================================================
+# AGENT ACTIVITY LABELS
+# Indicate which agent is currently working
+# ============================================================================
+
+- name: "agent:planner-working"
+  description: "Planner agent is currently working"
+  color: "C5DEF5"
+
+- name: "agent:specifier-working"
+  description: "Specifier agent is currently working"
+  color: "C5DEF5"
+
+- name: "agent:simulator-working"
+  description: "Simulator agent is currently working"
+  color: "C5DEF5"
+
+- name: "agent:architect-working"
+  description: "Architect agent is currently working"
+  color: "C5DEF5"
+
+- name: "agent:implementer-working"
+  description: "Implementer agent is currently working"
+  color: "C5DEF5"
+
+- name: "agent:tester-working"
+  description: "Tester/validator agent is currently working"
+  color: "C5DEF5"
+
+- name: "agent:deployer-working"
+  description: "Deployer agent is currently working"
+  color: "C5DEF5"
+
+# ============================================================================
+# CIRCUIT BREAKER & CONTROL LABELS
+# Used for manual intervention and automation control
+# ============================================================================
+
+- name: "somas:circuit-breaker"
+  description: "Disable all SOMAS automation for this issue"
+  color: "D73A4A"
+
+- name: "somas:manual"
+  description: "Manual intervention mode - automation paused"
+  color: "FBCA04"
+
+- name: "somas:retry"
+  description: "Retry the current stage after failure"
+  color: "FBCA04"
+
+# ============================================================================
+# ADDITIONAL WORKFLOW LABELS
+# Supporting labels for various workflow conditions
+# ============================================================================
+
+- name: "somas:system"
+  description: "Changes to SOMAS system files"
+  color: "1D76DB"
+
+- name: "needs-human-review"
+  description: "Requires human review before proceeding"
+  color: "FBCA04"
+
+- name: "auto-merge-approved"
+  description: "Approved for automatic merging in dev environment"
+  color: "C2E0C6"
+
+- name: "somas:ready-for-review"
+  description: "SOMAS-generated PR ready for human review"
+  color: "0E8A16"
+
+- name: "somas-generated"
+  description: "Content generated by SOMAS automation"
+  color: "1D76DB"

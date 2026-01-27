@@ -87,29 +87,19 @@ class StateManager:
         """
         path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Use file locking to prevent concurrent write conflicts
-        with FileLock(f"{path}.lock", timeout=30):
-            self._atomic_write_json_unlocked(path, data)
-    
-    def _atomic_write_json_unlocked(self, path: Path, data: Dict[str, Any]) -> None:
-        """
-        Atomically write JSON to file without locking (for use inside locked sections).
-        
-        Args:
-            path: Target file path
-            data: Data to write
-        """
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tmp_path = path.with_suffix('.tmp')
-        
-        try:
-            with open(tmp_path, 'w') as f:
-                json.dump(data, f, indent=2)
-            tmp_path.replace(path)
-        except Exception as e:
-            if tmp_path.exists():
-                tmp_path.unlink()
-            raise
+        # Use file locking to prevent concurrent writes
+        lock_path = f"{path}.lock"
+        with FileLock(lock_path, timeout=30):
+            tmp_path = path.with_suffix('.tmp')
+            
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(data, f, indent=2)
+                tmp_path.replace(path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
     
     def _append_jsonl(self, path: Path, entry: Dict[str, Any]) -> None:
         """
@@ -121,8 +111,9 @@ class StateManager:
         """
         path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Use file locking to prevent concurrent append conflicts
-        with FileLock(f"{path}.lock", timeout=30):
+        # Use file locking to prevent concurrent appends
+        lock_path = f"{path}.lock"
+        with FileLock(lock_path, timeout=30):
             with open(path, 'a') as f:
                 json.dump(entry, f)
                 f.write('\n')
@@ -251,7 +242,7 @@ class StateManager:
         log_transition: bool = True
     ) -> Dict[str, Any]:
         """
-        Update project state with file locking for read-modify-write.
+        Update project state with file locking for concurrent safety.
         
         Args:
             project_id: Project identifier
@@ -263,7 +254,7 @@ class StateManager:
         """
         state_path = self._get_state_path(project_id)
         
-        # Lock the entire read-modify-write cycle
+        # Use file locking for the entire read-modify-write operation
         with FileLock(f"{state_path}.lock", timeout=30):
             state = self.get_state(project_id)
             
@@ -275,10 +266,10 @@ class StateManager:
             state.update(updates)
             state["updated_at"] = datetime.utcnow().isoformat() + 'Z'
             
-            # Write updated state (use unlocked version since we hold the lock)
+            # Perform atomic write while lock is held
             self._atomic_write_json_unlocked(state_path, state)
         
-        # Log transition if requested (outside lock)
+        # Log transition if requested (outside the lock)
         if log_transition:
             self.log_transition(
                 project_id=project_id,
@@ -300,7 +291,7 @@ class StateManager:
         agent: str
     ) -> Dict[str, Any]:
         """
-        Mark a pipeline stage as started with file locking for read-modify-write.
+        Mark a pipeline stage as started with file locking for concurrent safety.
         
         Args:
             project_id: Project identifier
@@ -311,11 +302,11 @@ class StateManager:
             Updated state
         """
         state_path = self._get_state_path(project_id)
-        now = datetime.utcnow().isoformat() + 'Z'
         
-        # Lock the entire read-modify-write cycle
+        # Use file locking for the entire read-modify-write operation
         with FileLock(f"{state_path}.lock", timeout=30):
             state = self.get_state(project_id)
+            now = datetime.utcnow().isoformat() + 'Z'
             
             # Update stage status
             if "stages" not in state:
@@ -339,10 +330,18 @@ class StateManager:
                 state["metrics"] = {}
             state["metrics"]["agent_invocations"] = state["metrics"].get("agent_invocations", 0) + 1
             
-            # Write state (use unlocked version since we hold the lock)
-            self._atomic_write_json_unlocked(state_path, state)
+            # Write directly (we already have the lock)
+            tmp_path = state_path.with_suffix('.tmp')
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(state, f, indent=2)
+                tmp_path.replace(state_path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
         
-        # Log transition (outside lock)
+        # Log transition (outside the lock)
         self.log_transition(
             project_id=project_id,
             event_type="stage_started",
@@ -361,7 +360,7 @@ class StateManager:
         create_checkpoint: bool = True
     ) -> Dict[str, Any]:
         """
-        Mark a pipeline stage as completed with file locking for read-modify-write.
+        Mark a pipeline stage as completed with file locking for concurrent safety.
         
         Args:
             project_id: Project identifier
@@ -373,11 +372,11 @@ class StateManager:
             Updated state
         """
         state_path = self._get_state_path(project_id)
-        now = datetime.utcnow().isoformat() + 'Z'
         
-        # Lock the entire read-modify-write cycle
+        # Use file locking for the entire read-modify-write operation
         with FileLock(f"{state_path}.lock", timeout=30):
             state = self.get_state(project_id)
+            now = datetime.utcnow().isoformat() + 'Z'
             
             # Calculate duration
             stage_info = state.get("stages", {}).get(stage, {})
@@ -402,11 +401,19 @@ class StateManager:
             state["metrics"]["stage_durations"][stage] = duration
             state["metrics"]["artifacts_generated"] = state["metrics"].get("artifacts_generated", 0) + len(artifacts or [])
             
-            # Write state (use unlocked version since we hold the lock)
+            # Write state
             state["updated_at"] = now
-            self._atomic_write_json_unlocked(state_path, state)
+            tmp_path = state_path.with_suffix('.tmp')
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(state, f, indent=2)
+                tmp_path.replace(state_path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
         
-        # Create checkpoint if requested (outside state lock)
+        # Create checkpoint if requested (outside the lock to avoid nested locking)
         checkpoint_id = None
         if create_checkpoint:
             checkpoint_id = self.create_checkpoint(
@@ -443,7 +450,7 @@ class StateManager:
         create_dead_letter: bool = True
     ) -> Dict[str, Any]:
         """
-        Mark a pipeline stage as failed with file locking for read-modify-write.
+        Mark a pipeline stage as failed with file locking for concurrent safety.
         
         Args:
             project_id: Project identifier
@@ -457,11 +464,11 @@ class StateManager:
             Updated state
         """
         state_path = self._get_state_path(project_id)
-        now = datetime.utcnow().isoformat() + 'Z'
         
-        # Lock the entire read-modify-write cycle
+        # Use file locking for the entire read-modify-write operation
         with FileLock(f"{state_path}.lock", timeout=30):
             state = self.get_state(project_id)
+            now = datetime.utcnow().isoformat() + 'Z'
             
             # Update stage status
             retry_count = state["stages"][stage].get("retry_count", 0)
@@ -475,10 +482,18 @@ class StateManager:
             state["status"] = "failed"
             state["updated_at"] = now
             
-            # Write state (use unlocked version since we hold the lock)
-            self._atomic_write_json_unlocked(state_path, state)
+            # Write state (before dead letter)
+            tmp_path = state_path.with_suffix('.tmp')
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(state, f, indent=2)
+                tmp_path.replace(state_path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
         
-        # Create dead letter if requested (outside lock)
+        # Create dead letter if requested (outside the lock)
         dead_letter_id = None
         if create_dead_letter:
             dead_letter_id = self.add_dead_letter(
@@ -516,7 +531,7 @@ class StateManager:
         metadata: Dict[str, Any] = None
     ) -> str:
         """
-        Create a recovery checkpoint with file locking for read-modify-write.
+        Create a recovery checkpoint with file locking for concurrent safety.
         
         Args:
             project_id: Project identifier
@@ -529,13 +544,13 @@ class StateManager:
             Checkpoint ID
         """
         state_path = self._get_state_path(project_id)
-        now = datetime.utcnow().isoformat() + 'Z'
-        checkpoint_id = f"chk-{uuid.uuid4().hex[:8]}"
         
-        # Lock the entire read-modify-write cycle
+        # Use file locking for the entire read-modify-write operation
         with FileLock(f"{state_path}.lock", timeout=30):
             state = self.get_state(project_id)
+            now = datetime.utcnow().isoformat() + 'Z'
             
+            checkpoint_id = f"chk-{uuid.uuid4().hex[:8]}"
             checkpoint = {
                 "id": checkpoint_id,
                 "stage": stage,
@@ -556,10 +571,18 @@ class StateManager:
             
             state["updated_at"] = now
             
-            # Write state (use unlocked version since we hold the lock)
-            self._atomic_write_json_unlocked(state_path, state)
+            # Write directly (we already have the lock)
+            tmp_path = state_path.with_suffix('.tmp')
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(state, f, indent=2)
+                tmp_path.replace(state_path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
         
-        # Log transition (outside lock)
+        # Log transition (outside the lock)
         self.log_transition(
             project_id=project_id,
             event_type="checkpoint_created",
@@ -597,13 +620,17 @@ class StateManager:
         Returns:
             Dead letter ID
         """
+        state_path = self._get_state_path(project_id)
         dead_letters_path = self._get_dead_letters_path(project_id)
         state_path = self._get_state_path(project_id)
         
-        # Use coordinated locking for multi-file update
-        # Lock state.json first, then dead_letters.json to prevent deadlocks
-        with FileLock(f"{state_path}.lock", timeout=30):
-            with FileLock(f"{dead_letters_path}.lock", timeout=30):
+        # Use coordinated locking for both files to prevent race conditions
+        # Lock both files in consistent order to prevent deadlocks
+        state_lock = FileLock(f"{state_path}.lock", timeout=30)
+        dl_lock = FileLock(f"{dead_letters_path}.lock", timeout=30)
+        
+        with state_lock:
+            with dl_lock:
                 # Load existing dead letters
                 if dead_letters_path.exists():
                     with open(dead_letters_path, 'r') as f:
@@ -626,9 +653,10 @@ class StateManager:
                 dead_letter_id = str(uuid.uuid4())
                 now = datetime.utcnow().isoformat() + 'Z'
                 
-                # Get current state snapshot
+                # Get current state snapshot (load state once and reuse)
                 state_snapshot = {}
                 labels = {}
+                state = None
                 try:
                     state = self.get_state(project_id)
                     state_snapshot = {
@@ -669,19 +697,38 @@ class StateManager:
                 stats["by_agent"][agent] = stats["by_agent"].get(agent, 0) + 1
                 stats["unrecovered"] += 1
                 
-                # Write dead letters (use unlocked version since we hold the lock)
-                self._atomic_write_json_unlocked(dead_letters_path, dead_letters)
-                
-                # Update state metrics (use unlocked version since we hold the lock)
+                # Write dead letters (within the lock, but not using _atomic_write_json
+                # since we already have the lock)
+                dead_letters_path.parent.mkdir(parents=True, exist_ok=True)
+                tmp_dl_path = dead_letters_path.with_suffix('.tmp')
                 try:
-                    state = self.get_state(project_id)
-                    state["metrics"]["dead_letters"] = stats["total_entries"]
-                    self._atomic_write_json_unlocked(state_path, state)
-                except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
-                    # If state update fails, log but continue
-                    print(f"Warning: Could not update state metrics: {e}", file=sys.stderr)
+                    with open(tmp_dl_path, 'w') as f:
+                        json.dump(dead_letters, f, indent=2)
+                    tmp_dl_path.replace(dead_letters_path)
+                except Exception as e:
+                    if tmp_dl_path.exists():
+                        tmp_dl_path.unlink()
+                    raise
+                
+                # Update state metrics (reuse previously loaded state)
+                if state is not None:
+                    try:
+                        state["metrics"]["dead_letters"] = stats["total_entries"]
+                        # Write state directly (we already have the lock)
+                        tmp_state_path = state_path.with_suffix('.tmp')
+                        try:
+                            with open(tmp_state_path, 'w') as f:
+                                json.dump(state, f, indent=2)
+                            tmp_state_path.replace(state_path)
+                        except Exception as e:
+                            if tmp_state_path.exists():
+                                tmp_state_path.unlink()
+                            raise
+                    except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
+                        # If state update fails, log but continue
+                        print(f"Warning: Could not update state metrics: {e}", file=sys.stderr)
         
-        # Log transition (outside locks to avoid holding locks during append)
+        # Log transition (outside the locks)
         self.log_transition(
             project_id=project_id,
             event_type="error_recorded",
