@@ -389,7 +389,7 @@ class SOMASRunner:
                 "Analyze pipeline performance and generate insights",
                 "analysis_report.md",
                 "whole",
-            )
+            ),
         ]
 
         project_dir = self.repo_root / ".somas" / "projects" / project_id
@@ -406,7 +406,12 @@ class SOMASRunner:
             # Add previous artifacts to context
             current_context = [
                 str(artifacts_dir / f)
-                for f in ["initial_plan.yml", "SPEC.md", "ARCHITECTURE.md"]
+                for f in [
+                    "project_request.md",
+                    "initial_plan.yml",
+                    "SPEC.md",
+                    "ARCHITECTURE.md",
+                ]
                 if (artifacts_dir / f).exists()
             ]
 

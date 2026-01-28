@@ -37,6 +37,16 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install pyyaml
 
+      - name: Configure Git & Create Branch
+        env:
+          PROJECT_ID: "project-${{ github.event.issue.number }}"
+        run: |
+          git config --global user.name "SOMAS Bot"
+          git config --global user.email "somas-bot@users.noreply.github.com"
+
+          BRANCH_NAME="somas/$PROJECT_ID"
+          git checkout -b "$BRANCH_NAME"
+
       - name: Initialize Pipeline
         env:
           GITHUB_TOKEN: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
@@ -47,6 +57,13 @@ jobs:
           # Initialize project structure and metadata
           python3 -c "from somas.core.state_manager import StateManager; StateManager().initialize_project('project-${ISSUE_NUMBER}', ${ISSUE_NUMBER}, '${{ github.event.issue.title }}')"
 
+      - name: Save Issue Context
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          PROJECT_ID: "project-${{ github.event.issue.number }}"
+        run: |
+          python3 -c "import os; import pathlib; path = pathlib.Path('.somas/projects/' + os.environ['PROJECT_ID'] + '/artifacts/project_request.md'); path.parent.mkdir(parents=True, exist_ok=True); path.write_text(os.environ['ISSUE_BODY'])"
+
       - name: Execute Autonomous Stages
         env:
           GITHUB_TOKEN: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
@@ -56,6 +73,15 @@ jobs:
           # Execute the pipeline stages sequentially for POC
           # This script should handle the logic defined in AUTONOMOUS_PIPELINE_SUMMARY.md
           python3 somas/core/runner.py --mode autonomous --project_id "$PROJECT_ID"
+
+      - name: Commit and Push Changes
+        env:
+          PROJECT_ID: "project-${{ github.event.issue.number }}"
+        run: |
+          BRANCH_NAME="somas/$PROJECT_ID"
+          git add .
+          git commit -m "Autonomous execution for $PROJECT_ID" || echo "No changes to commit"
+          git push -u origin "$BRANCH_NAME"
 
       - name: Create Pull Request
         if: success()
