@@ -297,24 +297,16 @@ class SOMASRunner:
             print(f"Task completed successfully. Output written to: {output_path}")
             success = True
 
-        except FileNotFoundError as e:
-            print(f"Error: Required file not found: {e}", file=sys.stderr)
-            error_info = {
-                "type": type(e).__name__,
-                "message": str(e),
-                "traceback": traceback.format_exc(),
-                "timestamp": datetime.utcnow().isoformat(),
-            }
-        except json.JSONDecodeError as e:
-            print(f"Error: Invalid JSON in context or configuration: {e}", file=sys.stderr)
-            error_info = {
-                "type": type(e).__name__,
-                "message": str(e),
-                "traceback": traceback.format_exc(),
-                "timestamp": datetime.utcnow().isoformat(),
-            }
         except Exception as e:
-            print(f"Error executing task: {e}", file=sys.stderr)
+            # Provide specific error messages based on exception type
+            if isinstance(e, FileNotFoundError):
+                print(f"Error: Required file not found: {e}", file=sys.stderr)
+            elif isinstance(e, json.JSONDecodeError):
+                print(f"Error: Invalid JSON in context or configuration: {e}", file=sys.stderr)
+            else:
+                print(f"Error executing task: {e}", file=sys.stderr)
+
+            # Capture comprehensive error information for debugging
             error_info = {
                 "type": type(e).__name__,
                 "message": str(e),

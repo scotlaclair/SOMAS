@@ -6,6 +6,7 @@ critical gaps identified in code review.
 """
 
 import os
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -46,8 +47,6 @@ agents:
 
     def tearDown(self):
         """Clean up test fixtures."""
-        import shutil
-
         os.chdir(self.orig_cwd)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
@@ -201,8 +200,6 @@ agents:
 
     def tearDown(self):
         """Clean up test fixtures."""
-        import shutil
-
         os.chdir(self.orig_cwd)
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
