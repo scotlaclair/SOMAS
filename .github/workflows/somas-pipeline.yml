@@ -68,7 +68,7 @@ concurrency:
 jobs:
   initialize-pipeline:
     runs-on: ubuntu-latest
-    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'somas-project')
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'somas-project') && !contains(github.event.issue.labels.*.name, 'somas:dev')
     outputs:
       project_id: ${{ steps.setup.outputs.project_id }}
 
@@ -300,7 +300,7 @@ jobs:
       - name: Record Stage Failure
         if: steps.wait_artifact.outputs.artifact_ready != 'true'
         env:
-          PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
+          PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || (github.event.issue.number && format('project-{0}', github.event.issue.number)) || github.event.inputs.project_id }}
         run: |
           # Record failure in dead letter vault
           printf '%s\n' \
@@ -490,7 +490,7 @@ jobs:
       - name: Record Stage Failure
         if: steps.wait_artifact.outputs.artifact_ready != 'true'
         env:
-          PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
+          PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || (github.event.issue.number && format('project-{0}', github.event.issue.number)) || github.event.inputs.project_id }}
         run: |
           # Record failure in dead letter vault
           printf '%s\n' \
