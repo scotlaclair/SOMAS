@@ -2,7 +2,7 @@
 # This workflow orchestrates the 11-stage Neurology-inspired AI development pipeline
 # Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
 # Each stage is handled by specialized AI agents (Claude, GPT, Gemini, Grok)
-# 
+#
 # GitHub Copilot Custom Agents (11-Stage Pipeline):
 #   - @copilot somas-planner (Stage 1: SIGNAL - Intake)
 #   - @copilot somas-specifier (Stage 2: DESIGN - Specify)
@@ -15,15 +15,15 @@
 #   - @copilot somas-deployer (Stage 9: VELOCITY - Release)
 #   - @copilot somas-operator (Stage 10: VIBE - Operate)
 #   - @copilot somas-analyzer (Stage 11: WHOLE - Learn)
-#   
+#
 # Support Agents:
 #   - @copilot somas-security (Security scanning)
 #   - @copilot somas-documenter (Documentation)
 #   - @copilot somas-orchestrator (Coordination)
 #   - @copilot somas-advisor (Strategic planning)
-# 
+#
 # See .somas/agents/*.yml for complete agent documentation
-# 
+#
 # @copilot-review: Ensure security measures are maintained in all stages
 name: SOMAS Pipeline
 
@@ -71,11 +71,11 @@ jobs:
     if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'somas-project')
     outputs:
       project_id: ${{ steps.setup.outputs.project_id }}
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup Project
         id: setup
         env:
@@ -86,10 +86,10 @@ jobs:
           # Generate project ID from issue number
           PROJECT_ID="project-${ISSUE_NUMBER}"
           echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
-          
+
           # Create project directory structure
           mkdir -p .somas/projects/${PROJECT_ID}/{artifacts,logs}
-          
+
           # @copilot-context: Using Python for JSON encoding prevents shell injection
           # Initialize project state using Python and state manager
           printf '%s\n' \
@@ -119,18 +119,18 @@ jobs:
             'print(f"  - dead_letters.json: Created")' \
             'print(f"  - transitions.jsonl: Initialized")' \
             > /tmp/init_project.py
-          
+
           python3 /tmp/init_project.py
-          
+
           export PROJECT_ID="${PROJECT_ID}"
           echo "Initialized project: ${PROJECT_ID}"
-      
+
       - name: Create GitHub Project Board
         uses: actions/github-script@v7
         with:
           script: |
             const projectId = '${{ steps.setup.outputs.project_id }}';
-            
+
             // Trigger project creation workflow
             await github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
@@ -141,12 +141,12 @@ jobs:
                 action: 'create'
               }
             });
-      
+
       - name: Commit project initialization
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           # Check if there are any changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
@@ -155,7 +155,7 @@ jobs:
           else
             echo "No changes to commit"
           fi
-  
+
   stage-1-ideation:
     # Agent Assignment: @copilot somas-requirements
     # Responsible for: Extracting and structuring requirements from issue
@@ -166,13 +166,13 @@ jobs:
     if: |
       (github.event_name == 'issues' || github.event_name == 'workflow_dispatch') &&
       (needs.initialize-pipeline.result == 'success' || github.event.inputs.stage == 'ideation' || github.event.inputs.stage == 'all')
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-      
+
       - name: Start Ideation Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -194,9 +194,9 @@ jobs:
             ')' \
             'print(f"Started ideation stage for {project_id}")' \
             > /tmp/start_stage.py
-          
+
           python3 /tmp/start_stage.py
-      
+
       - name: Run Ideation Stage
         # Invoke @copilot somas-requirements agent via issue comment
         uses: actions/github-script@v7
@@ -205,7 +205,7 @@ jobs:
         with:
           script: |
             const projectId = process.env.PROJECT_ID;
-            
+
             // Create issue comment to invoke agent
             const body = [
               '## 🎯 Stage 1: Ideation Started',
@@ -220,14 +220,14 @@ jobs:
               '- High-level implementation approach',
               '- Key dependencies and risks'
             ].join('\n');
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
               body: body
             });
-      
+
       - name: Wait for Artifact
         id: wait_artifact
         env:
@@ -236,15 +236,15 @@ jobs:
           ARTIFACT_PATH=".somas/projects/${PROJECT_ID}/artifacts/initial_plan.md"
           TIMEOUT=600  # 10 minutes
           ELAPSED=0
-          
+
           echo "Waiting for artifact: ${ARTIFACT_PATH}"
-          
+
           while [ ! -f "$ARTIFACT_PATH" ] && [ $ELAPSED -lt $TIMEOUT ]; do
             sleep 10
             ELAPSED=$((ELAPSED + 10))
             echo "Waiting... ${ELAPSED}s elapsed"
           done
-          
+
           if [ -f "$ARTIFACT_PATH" ]; then
             echo "artifact_ready=true" >> $GITHUB_OUTPUT
             echo "✅ Ideation artifact generated"
@@ -252,7 +252,7 @@ jobs:
             echo "artifact_ready=false" >> $GITHUB_OUTPUT
             echo "::warning::Artifact not generated within timeout, proceeding anyway"
           fi
-      
+
       - name: Complete Ideation Stage
         if: steps.wait_artifact.outputs.artifact_ready == 'true'
         env:
@@ -276,9 +276,9 @@ jobs:
             ')' \
             'print(f"Completed ideation stage for {project_id}")' \
             > /tmp/complete_stage.py
-          
+
           python3 /tmp/complete_stage.py
-      
+
       - name: Record Stage Failure
         if: steps.wait_artifact.outputs.artifact_ready != 'true'
         env:
@@ -308,21 +308,21 @@ jobs:
             ')' \
             'print(f"Recorded failure for ideation stage in {project_id}")' \
             > /tmp/fail_stage.py
-          
+
           python3 /tmp/fail_stage.py
-      
+
       - name: Commit State Updates
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
             git commit -m "Update state for ideation stage"
             git push
           fi
-  
+
   stage-2-specification:
     # Agent Assignment: Codex Specifier (primary)
     # Supporting: @copilot somas-requirements (provides structured input)
@@ -333,13 +333,13 @@ jobs:
     if: |
       always() &&
       (needs.stage-1-ideation.result == 'success' || github.event.inputs.stage == 'specification' || github.event.inputs.stage == 'all')
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-      
+
       - name: Start Specification Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -361,9 +361,9 @@ jobs:
             ')' \
             'print(f"Started specification stage for {project_id}")' \
             > /tmp/start_stage.py
-          
+
           python3 /tmp/start_stage.py
-      
+
       - name: Run Specification Stage
         # Invoke Specifier agent via issue comment
         uses: actions/github-script@v7
@@ -372,7 +372,7 @@ jobs:
         with:
           script: |
             const projectId = process.env.PROJECT_ID;
-            
+
             // Create issue comment to invoke agent
             const body = [
               '## 📋 Stage 2: Specification Started',
@@ -401,14 +401,14 @@ jobs:
               '- No ambiguous language',
               '- All open questions resolved'
             ].join('\n');
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
               body: body
             });
-      
+
       - name: Wait for Artifact
         id: wait_artifact
         env:
@@ -417,15 +417,15 @@ jobs:
           ARTIFACT_PATH=".somas/projects/${PROJECT_ID}/artifacts/SPEC.md"
           TIMEOUT=1200  # 20 minutes
           ELAPSED=0
-          
+
           echo "Waiting for artifact: ${ARTIFACT_PATH}"
-          
+
           while [ ! -f "$ARTIFACT_PATH" ] && [ $ELAPSED -lt $TIMEOUT ]; do
             sleep 15
             ELAPSED=$((ELAPSED + 15))
             echo "Waiting... ${ELAPSED}s elapsed"
           done
-          
+
           if [ -f "$ARTIFACT_PATH" ]; then
             echo "artifact_ready=true" >> $GITHUB_OUTPUT
             echo "✅ Specification artifact generated"
@@ -433,7 +433,7 @@ jobs:
             echo "artifact_ready=false" >> $GITHUB_OUTPUT
             echo "::warning::Artifact not generated within timeout, proceeding anyway"
           fi
-      
+
       - name: Complete Specification Stage
         if: steps.wait_artifact.outputs.artifact_ready == 'true'
         env:
@@ -457,9 +457,9 @@ jobs:
             ')' \
             'print(f"Completed specification stage for {project_id}")' \
             > /tmp/complete_stage.py
-          
+
           python3 /tmp/complete_stage.py
-      
+
       - name: Record Stage Failure
         if: steps.wait_artifact.outputs.artifact_ready != 'true'
         env:
@@ -489,21 +489,21 @@ jobs:
             ')' \
             'print(f"Recorded failure for specification stage in {project_id}")' \
             > /tmp/fail_stage.py
-          
+
           python3 /tmp/fail_stage.py
-      
+
       - name: Commit State Updates
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
             git commit -m "Update state for specification stage"
             git push
           fi
-      
+
       - name: Update Project Status
         uses: actions/github-script@v7
         with:
@@ -518,7 +518,7 @@ jobs:
                 stage: 'specification'
               }
             });
-  
+
   stage-3-simulation:
     # Agent Assignment: Codex Simulator
     # Responsible for: Monte Carlo simulation for optimal task execution
@@ -528,13 +528,13 @@ jobs:
     if: |
       always() &&
       (needs.stage-2-specification.result == 'success' || github.event.inputs.stage == 'simulation' || github.event.inputs.stage == 'all')
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-      
+
       - name: Start Simulation Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -556,9 +556,9 @@ jobs:
             ')' \
             'print(f"Started simulation stage for {project_id}")' \
             > /tmp/start_stage.py
-          
+
           python3 /tmp/start_stage.py
-      
+
       - name: Run Simulation Stage
         # Invoke Simulator agent via issue comment
         uses: actions/github-script@v7
@@ -567,7 +567,7 @@ jobs:
         with:
           script: |
             const projectId = process.env.PROJECT_ID;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -590,7 +590,7 @@ jobs:
                 '- Estimate timeline with 90% confidence interval'
               ].join('\n')
             });
-      
+
       - name: Wait for Artifact
         id: wait_artifact
         env:
@@ -599,17 +599,17 @@ jobs:
           ARTIFACT_PATH=".somas/projects/${PROJECT_ID}/artifacts/execution_plan.yml"
           TIMEOUT=600  # 10 minutes
           ELAPSED=0
-          
+
           # Simulation artifact generation
           ARTIFACT_DIR=".somas/projects/${PROJECT_ID}/artifacts"
           PLAN_OUTPUT="${ARTIFACT_DIR}/execution_plan.yml"
-          
+
           while [ ! -f "$ARTIFACT_PATH" ] && [ $ELAPSED -lt $TIMEOUT ]; do
             sleep 15
             ELAPSED=$((ELAPSED + 15))
             echo "Waiting... ${ELAPSED}s elapsed"
           done
-          
+
           # Generate execution plan YAML
           # In production, this would be generated by the simulator agent
           # For now, generate a basic structure that the dispatch job can parse
@@ -672,10 +672,10 @@ jobs:
           	    name: "Integration Testing"
           	    probability: 0.78
           	PLANEOF
-          
+
           echo "Generated execution plan at ${PLAN_OUTPUT}"
           echo "Stage 3: Simulation completed"
-      
+
       - name: Complete Simulation Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -698,9 +698,9 @@ jobs:
             ')' \
             'print(f"Completed simulation stage for {project_id}")' \
             > /tmp/complete_stage.py
-          
+
           python3 /tmp/complete_stage.py
-      
+
       - name: Record Stage Failure
         if: failure()
         env:
@@ -730,21 +730,21 @@ jobs:
             ')' \
             'print(f"Recorded failure for simulation stage in {project_id}")' \
             > /tmp/fail_stage.py
-          
+
           python3 /tmp/fail_stage.py
-      
+
       - name: Commit State Updates
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
             git commit -m "Update state for simulation stage"
             git push
           fi
-      
+
       - name: Create Task Issues
         uses: actions/github-script@v7
         with:
@@ -759,7 +759,7 @@ jobs:
                 stage: 'simulation'
               }
             });
-  
+
   stage-4-architecture:
     # Agent Assignment: @copilot somas-architect + Codex Architect
     # Responsible for: System architecture, component design, API specs
@@ -769,7 +769,7 @@ jobs:
     if: |
       always() &&
       (needs.stage-3-simulation.result == 'success' || github.event.inputs.stage == 'architecture' || github.event.inputs.stage == 'all')
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -777,7 +777,7 @@ jobs:
           # Use the branch ref (from initialize-pipeline if available) and ensure we have the latest commits
           ref: ${{ needs.initialize-pipeline.outputs.branch_ref || github.ref }}
           fetch-depth: 0
-      
+
       - name: Start Architecture Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -799,9 +799,9 @@ jobs:
             ')' \
             'print(f"Started architecture stage for {project_id}")' \
             > /tmp/start_stage.py
-          
+
           python3 /tmp/start_stage.py
-      
+
       - name: Run Architecture Stage
         # Invoke Architect agents via issue comment
         uses: actions/github-script@v7
@@ -810,7 +810,7 @@ jobs:
         with:
           script: |
             const projectId = process.env.PROJECT_ID;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -837,7 +837,7 @@ jobs:
                 '- Architecture Decision Records (ADRs)'
               ].join('\n')
             });
-      
+
       - name: Wait for Artifact
         id: wait_artifact
         env:
@@ -846,15 +846,15 @@ jobs:
           ARTIFACT_PATH=".somas/projects/${PROJECT_ID}/artifacts/ARCHITECTURE.md"
           TIMEOUT=900  # 15 minutes
           ELAPSED=0
-          
+
           echo "Waiting for artifact: ${ARTIFACT_PATH}"
-          
+
           while [ ! -f "$ARTIFACT_PATH" ] && [ $ELAPSED -lt $TIMEOUT ]; do
             sleep 15
             ELAPSED=$((ELAPSED + 15))
             echo "Waiting... ${ELAPSED}s elapsed"
           done
-          
+
           if [ -f "$ARTIFACT_PATH" ]; then
             echo "artifact_ready=true" >> $GITHUB_OUTPUT
             echo "✅ Architecture artifact generated"
@@ -862,7 +862,7 @@ jobs:
             echo "artifact_ready=false" >> $GITHUB_OUTPUT
             echo "::warning::Artifact not generated within timeout, proceeding anyway"
           fi
-      
+
       - name: Complete Architecture Stage
         if: steps.wait_artifact.outputs.artifact_ready == 'true'
         env:
@@ -886,9 +886,9 @@ jobs:
             ')' \
             'print(f"Completed architecture stage for {project_id}")' \
             > /tmp/complete_stage.py
-          
+
           python3 /tmp/complete_stage.py
-      
+
       - name: Record Stage Failure
         if: steps.wait_artifact.outputs.artifact_ready != 'true'
         env:
@@ -918,21 +918,21 @@ jobs:
             ')' \
             'print(f"Recorded failure for architecture stage in {project_id}")' \
             > /tmp/fail_stage.py
-          
+
           python3 /tmp/fail_stage.py
-      
+
       - name: Commit State Updates
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
             git commit -m "Update state for architecture stage"
             git push
           fi
-  
+
   stage-4-b-dispatch:
     # Dynamic Task Matrix Generation
     # Reads execution_plan.yml from simulation and extracts parallel tasks
@@ -945,26 +945,26 @@ jobs:
     outputs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
       has_tasks: ${{ steps.generate-matrix.outputs.has_tasks }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-      
+
       - name: Install yq
         run: |
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
-      
+
       - name: Generate Task Matrix
         id: generate-matrix
         run: |
           PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
           EXECUTION_PLAN=".somas/projects/${PROJECT_ID}/artifacts/execution_plan.yml"
-          
+
           echo "Checking for execution plan at: ${EXECUTION_PLAN}"
-          
+
           # Check if execution plan exists
           if [ ! -f "${EXECUTION_PLAN}" ]; then
             echo "Warning: Execution plan not found. Using fallback sequential mode."
@@ -974,7 +974,7 @@ jobs:
             echo "has_tasks=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           # Validate YAML syntax
           if ! yq eval '.' "${EXECUTION_PLAN}" > /dev/null 2>&1; then
             echo "Error: Invalid YAML in execution plan. Using fallback mode."
@@ -983,11 +983,11 @@ jobs:
             echo "has_tasks=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           # Extract parallel tasks from Phase 2 (Core Implementation)
           # Try to find the first phase with parallel_tasks
           PHASE_COUNT=$(yq eval '.optimal_execution_plan | keys | length' "${EXECUTION_PLAN}" 2>/dev/null || echo "0")
-          
+
           if [ "${PHASE_COUNT}" -eq "0" ]; then
             echo "Warning: No phases found in execution plan. Using fallback mode."
             MATRIX='{"include":[{"task_id":"FALLBACK-001","task_name":"Sequential Implementation","task_desc":"Execute implementation in sequential mode","duration":24}]}'
@@ -995,15 +995,15 @@ jobs:
             echo "has_tasks=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           # Find first phase with parallel_tasks (typically phase_2 for implementation)
           TASKS_JSON="[]"
           for phase in phase_1 phase_2 phase_3 phase_4 phase_5; do
             PARALLEL_TASKS=$(yq eval ".optimal_execution_plan.${phase}.parallel_tasks // []" "${EXECUTION_PLAN}" 2>/dev/null)
-            
+
             if [ "${PARALLEL_TASKS}" != "[]" ] && [ "${PARALLEL_TASKS}" != "null" ]; then
               echo "Found parallel tasks in ${phase}"
-              
+
               # Convert YAML array to JSON matrix format
               # Create Python script for task conversion
               printf '%s\n' \
@@ -1031,16 +1031,16 @@ jobs:
                 '    print("[]", file=sys.stderr)' \
                 '    print("[]")' \
                 > /tmp/convert_tasks.py
-              
+
               TASKS_JSON=$(yq eval -o=json ".optimal_execution_plan.${phase}.parallel_tasks" "${EXECUTION_PLAN}" | python3 /tmp/convert_tasks.py)
-              
+
               # Exit loop if we found tasks
               if [ "${TASKS_JSON}" != "[]" ]; then
                 break
               fi
             fi
           done
-          
+
           # If no parallel tasks found, use fallback
           if [ "${TASKS_JSON}" = "[]" ] || [ -z "${TASKS_JSON}" ]; then
             echo "No parallel tasks found in execution plan. Using fallback mode."
@@ -1049,7 +1049,7 @@ jobs:
             echo "has_tasks=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           # Wrap in matrix format
           printf '%s\n' \
             'import sys' \
@@ -1059,20 +1059,20 @@ jobs:
             'matrix = {"include": tasks}' \
             'print(json.dumps(matrix))' \
             > /tmp/wrap_matrix.py
-          
+
           MATRIX=$(echo "${TASKS_JSON}" | python3 /tmp/wrap_matrix.py)
-          
+
           printf '%s\n' \
             'import sys' \
             'import json' \
             'print(len(json.load(sys.stdin)))' \
             > /tmp/count_tasks.py
-          
+
           TASK_COUNT=$(echo "${TASKS_JSON}" | python3 /tmp/count_tasks.py)
           echo "Generated matrix with ${TASK_COUNT} tasks"
           echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
           echo "has_tasks=true" >> $GITHUB_OUTPUT
-  
+
   stage-5-a-start:
     # Start implementation stage once before matrix execution
     runs-on: ubuntu-latest
@@ -1081,13 +1081,13 @@ jobs:
       always() &&
       needs.stage-4-b-dispatch.result == 'success' &&
       needs.stage-4-b-dispatch.outputs.has_tasks == 'true'
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-      
+
       - name: Start Implementation Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -1109,21 +1109,21 @@ jobs:
             ')' \
             'print(f"Started implementation stage for {project_id}")' \
             > /tmp/start_stage.py
-          
+
           python3 /tmp/start_stage.py
-      
+
       - name: Commit State Updates
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
             git commit -m "Start implementation stage"
             git push
           fi
-  
+
   stage-5-implementation:
     # Agent Assignment: @copilot somas-implementer + Codex Coder
     # Supporting Agents:
@@ -1133,7 +1133,7 @@ jobs:
     #   - @copilot somas-documenter: Documents code and APIs
     # Responsible for: Production-ready code generation with 80%+ test coverage
     # Output: Source code, tests, documentation in implementation/ directory
-    # 
+    #
     # DYNAMIC PARALLEL EXECUTION:
     # This job uses a matrix strategy driven by the simulation's execution_plan.yml
     # Tasks run in parallel based on the optimized task graph from Monte Carlo simulation
@@ -1145,22 +1145,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.stage-4-b-dispatch.outputs.matrix) }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-      
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      
+
       - name: Install Python Dependencies
         run: |
           pip install pyyaml
-      
+
       - name: Execute Implementation Task
         # Agents: Multi-agent collaboration for complete implementation
         # - @copilot somas-implementer: Generates code
@@ -1179,12 +1179,12 @@ jobs:
           echo "Task ID: ${TASK_ID}"
           echo "Project: ${PROJECT_ID}"
           echo "========================================"
-          
+
           # Define and validate required context files for the task
           SPEC_FILE=".somas/projects/${PROJECT_ID}/artifacts/SPEC.md"
           ARCH_FILE=".somas/projects/${PROJECT_ID}/artifacts/ARCHITECTURE.md"
           PLAN_FILE=".somas/projects/${PROJECT_ID}/artifacts/execution_plan.yml"
-          
+
           for context_file in "${SPEC_FILE}" "${ARCH_FILE}" "${PLAN_FILE}"; do
             if [ ! -f "${context_file}" ]; then
               echo "ERROR: Required context file not found: ${context_file}"
@@ -1192,12 +1192,12 @@ jobs:
               exit 1
             fi
           done
-          
+
           CONTEXT_FILES="${SPEC_FILE},${ARCH_FILE},${PLAN_FILE}"
-          
+
           # Define output path for this task
           OUTPUT_PATH=".somas/projects/${PROJECT_ID}/artifacts/tasks/${TASK_ID}_result.md"
-          
+
           # Execute task using the runner
           python3 somas/core/runner.py \
             --agent "coder" \
@@ -1206,16 +1206,16 @@ jobs:
             --context_files "${CONTEXT_FILES}" \
             --output_path "${OUTPUT_PATH}" \
             --project_id "${PROJECT_ID}"
-          
+
           echo "Task ${TASK_ID} completed successfully"
-      
+
       - name: Commit Task Results
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
-          
+
           # Check if there are any changes to commit
           if git status --porcelain .somas/projects/${PROJECT_ID}/artifacts/ | grep . >/dev/null; then
             git add .somas/projects/${PROJECT_ID}/artifacts/
@@ -1224,27 +1224,27 @@ jobs:
           else
             echo "No changes to commit for task ${{ matrix.task_id }}"
           fi
-  
+
   stage-5-b-complete:
     # Complete implementation stage after all tasks finish
     runs-on: ubuntu-latest
     needs: [initialize-pipeline, stage-5-implementation]
     if: always()
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
-      
+
       - name: Ensure branch is up to date
         run: |
           # Pull latest changes from matrix jobs before committing state
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
           git pull --rebase origin ${{ github.ref_name }} || true
-      
+
       - name: Complete Implementation Stage
         if: needs.stage-5-implementation.result == 'success'
         env:
@@ -1268,9 +1268,9 @@ jobs:
             ')' \
             'print(f"Completed implementation stage for {project_id}")' \
             > /tmp/complete_stage.py
-          
+
           python3 /tmp/complete_stage.py
-      
+
       - name: Record Stage Failure
         if: needs.stage-5-implementation.result != 'success'
         env:
@@ -1300,21 +1300,21 @@ jobs:
             ')' \
             'print(f"Recorded failure for implementation stage in {project_id}")' \
             > /tmp/fail_stage.py
-          
+
           python3 /tmp/fail_stage.py
-      
+
       - name: Commit State Updates
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
             git commit -m "Update state for implementation stage"
             git push
           fi
-  
+
   stage-6-validation:
     # Agent Assignment: Gemini Validator (primary)
     # Supporting Agents:
@@ -1329,14 +1329,14 @@ jobs:
     if: |
       always() &&
       (needs.stage-5-b-complete.result == 'success' || github.event.inputs.stage == 'validation' || github.event.inputs.stage == 'all')
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
-      
+
       - name: Start Validation Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -1358,9 +1358,9 @@ jobs:
             ')' \
             'print(f"Started validation stage for {project_id}")' \
             > /tmp/start_stage.py
-          
+
           python3 /tmp/start_stage.py
-      
+
       - name: Run Validation with Retry
         id: validate
         uses: actions/github-script@v7
@@ -1374,11 +1374,11 @@ jobs:
             const maxRetries = 3;
             let attempt = 0;
             let passed = false;
-            
+
             while (attempt < maxRetries && !passed) {
               attempt++;
               console.log(`Validation attempt ${attempt}/${maxRetries}`);
-              
+
               // Invoke validation agents
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -1402,19 +1402,19 @@ jobs:
                   '- Performance requirements satisfied'
                 ].join('\n')
               });
-              
+
               // Wait for validation results (simplified - in real implementation would poll for artifact)
               // For now, we'll assume validation passes after first attempt
               // In a real implementation, this would check for validation_report.json artifact
               // and parse the results to determine if validation passed
-              
+
               // Simulate waiting for validation
               await new Promise(resolve => setTimeout(resolve, 30000)); // 30 seconds
-              
+
               // In real implementation, check if validation passed by reading artifact
               // For now, assume it passes on first attempt
               passed = true;
-              
+
               if (!passed && attempt < maxRetries) {
                 // Invoke debugger to fix issues
                 await github.rest.issues.createComment({
@@ -1432,12 +1432,12 @@ jobs:
                     '**Next:** Validation will re-run after fixes are applied'
                   ].join('\n')
                 });
-                
+
                 // Wait for debugger to fix issues
                 await new Promise(resolve => setTimeout(resolve, 60000)); // 60 seconds
               }
             }
-            
+
             if (!passed) {
               // Notify human only after all retries exhausted
               await github.rest.issues.createComment({
@@ -1455,7 +1455,7 @@ jobs:
                   'Please review the validation reports and fix issues manually, then re-run the validation stage.'
                 ].join('\n')
               });
-              
+
               core.setFailed(`Validation failed after ${maxRetries} attempts`);
             } else {
               await github.rest.issues.createComment({
@@ -1472,7 +1472,7 @@ jobs:
                 ].join('\n')
               });
             }
-      
+
       - name: Complete Validation Stage
         if: steps.validate.outcome == 'success'
         env:
@@ -1496,9 +1496,9 @@ jobs:
             ')' \
             'print(f"Completed validation stage for {project_id}")' \
             > /tmp/complete_stage.py
-          
+
           python3 /tmp/complete_stage.py
-      
+
       - name: Record Stage Failure
         if: steps.validate.outcome != 'success'
         env:
@@ -1528,21 +1528,21 @@ jobs:
             ')' \
             'print(f"Recorded failure for validation stage in {project_id}")' \
             > /tmp/fail_stage.py
-          
+
           python3 /tmp/fail_stage.py
-      
+
       - name: Commit State Updates
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
             git commit -m "Update state for validation stage"
             git push
           fi
-  
+
   stage-7-staging:
     # Agent Assignment: @copilot somas-merger + Codex Deployer
     # Supporting Agents:
@@ -1555,7 +1555,7 @@ jobs:
     if: |
       always() &&
       (needs.stage-6-validation.result == 'success' || github.event.inputs.stage == 'staging' || github.event.inputs.stage == 'all')
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -1563,7 +1563,7 @@ jobs:
           # Pin checkout to the workflow's branch ref and fetch full history
           ref: ${{ github.ref }}
           fetch-depth: 0
-      
+
       - name: Ensure branch is up to date
         run: |
           # Fast-forward the local branch to match the remote before committing state
@@ -1571,7 +1571,16 @@ jobs:
           git fetch origin "${BRANCH_NAME}"
           git checkout "${BRANCH_NAME}" || true
           git pull --ff-only origin "${BRANCH_NAME}"
-      
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: pip install filelock pyyaml
+
       - name: Start Staging Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -1593,9 +1602,9 @@ jobs:
             ')' \
             'print(f"Started staging stage for {project_id}")' \
             > /tmp/start_stage.py
-          
+
           python3 /tmp/start_stage.py
-      
+
       - name: Run Staging Stage
         # Invoke staging agents via issue comment
         uses: actions/github-script@v7
@@ -1606,7 +1615,7 @@ jobs:
           script: |
             const projectId = process.env.PROJECT_ID;
             const issueNumber = parseInt(process.env.ISSUE_NUMBER);
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -1622,7 +1631,7 @@ jobs:
                 '**Status:** Preparing pull request for human review'
               ].join('\n')
             });
-      
+
       - name: Create Draft PR
         id: create_pr
         uses: actions/github-script@v7
@@ -1631,11 +1640,12 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
         with:
+          github-token: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
           script: |
             const projectId = process.env.PROJECT_ID;
             const issueNumber = parseInt(process.env.ISSUE_NUMBER);
             const issueTitle = process.env.ISSUE_TITLE;
-            
+
             // Create PR from somas branch to main
             try {
               const pr = await github.rest.pulls.create({
@@ -1688,10 +1698,10 @@ jobs:
                 ].join('\n'),
                 draft: false
               });
-              
+
               console.log(`Created PR #${pr.data.number}`);
               core.setOutput('pr_number', pr.data.number);
-              
+
               // Add ready-for-review label
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
@@ -1699,7 +1709,7 @@ jobs:
                 issue_number: pr.data.number,
                 labels: ['somas:ready-for-review', 'somas-generated']
               });
-              
+
               // Comment on original issue with PR link
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -1719,10 +1729,10 @@ jobs:
                   '**Notification:** @scotlaclair'
                 ].join('\n')
               });
-              
+
             } catch (error) {
               console.log(`Note: PR creation failed (branch may not exist yet): ${error.message}`);
-              
+
               // Post comment about PR creation issue
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -1737,7 +1747,7 @@ jobs:
                 ].join('\n')
               });
             }
-      
+
       - name: Complete Staging Stage
         if: steps.create_pr.outcome == 'success'
         env:
@@ -1761,9 +1771,9 @@ jobs:
             ')' \
             'print(f"Completed staging stage for {project_id}")' \
             > /tmp/complete_stage.py
-          
+
           python3 /tmp/complete_stage.py
-      
+
       - name: Record Stage Failure
         if: failure()
         env:
@@ -1793,21 +1803,21 @@ jobs:
             ')' \
             'print(f"Recorded failure for staging stage in {project_id}")' \
             > /tmp/fail_stage.py
-          
+
           python3 /tmp/fail_stage.py
-      
+
       - name: Commit State Updates
         run: |
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
             git commit -m "Update state for staging stage"
             git push
           fi
-      
+
       - name: Close Project
         uses: actions/github-script@v7
         with:
@@ -1821,20 +1831,20 @@ jobs:
                 action: 'close'
               }
             });
-  
+
   record-metrics:
     runs-on: ubuntu-latest
     needs: [stage-7-staging]
     if: always()
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Record Pipeline Metrics
         run: |
           PROJECT_ID="${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}"
-          
+
           # Record metrics to analytics
           mkdir -p .somas/analytics/runs
           cat > .somas/analytics/runs/${PROJECT_ID}_metrics.json << EOF
@@ -1852,5 +1862,5 @@ jobs:
             }
           }
           EOF
-          
+
           echo "Recorded metrics for ${PROJECT_ID}"
