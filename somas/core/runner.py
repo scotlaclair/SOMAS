@@ -23,6 +23,7 @@ import argparse
 import json
 import re
 import sys
+import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -51,9 +52,12 @@ class SOMASRunner:
         try:
             with open(self.config_path, "r") as f:
                 return yaml.safe_load(f)
+        except FileNotFoundError as e:
+            raise RuntimeError(f"Config file not found: {self.config_path}") from e
+        except yaml.YAMLError as e:
+            raise RuntimeError(f"Invalid YAML in config file {self.config_path}: {e}") from e
         except Exception as e:
-            print(f"Error loading config from {self.config_path}: {e}", file=sys.stderr)
-            sys.exit(1)
+            raise RuntimeError(f"Error loading config from {self.config_path}: {e}") from e
 
     def _validate_project_id(self, project_id: str) -> bool:
         """
@@ -239,9 +243,30 @@ class SOMASRunner:
             print(f"Task completed successfully. Output written to: {output_path}")
             success = True
 
+        except FileNotFoundError as e:
+            print(f"Error: Required file not found: {e}", file=sys.stderr)
+            error_info = {
+                "type": type(e).__name__,
+                "message": str(e),
+                "traceback": traceback.format_exc(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON in context or configuration: {e}", file=sys.stderr)
+            error_info = {
+                "type": type(e).__name__,
+                "message": str(e),
+                "traceback": traceback.format_exc(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
         except Exception as e:
             print(f"Error executing task: {e}", file=sys.stderr)
-            error_info = {"type": type(e).__name__, "message": str(e)}
+            error_info = {
+                "type": type(e).__name__,
+                "message": str(e),
+                "traceback": traceback.format_exc(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
 
         # Log completion or failure to state if project_id provided
         if project_id and stage:
@@ -286,7 +311,16 @@ class SOMASRunner:
                     )
 
             except Exception as e:
-                print(f"Warning: Could not log task completion: {e}", file=sys.stderr)
+                print(f"Critical: Failed to log task completion to state manager: {e}", file=sys.stderr)
+                print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
+                # State management failure is critical - escalate instead of silently continuing
+                if success:
+                    # Task succeeded but we couldn't log it - this is a system failure
+                    print("WARNING: Task completed but state logging failed. Manual intervention may be needed.", file=sys.stderr)
+                    # Don't change success status, but ensure visibility
+                else:
+                    # Task already failed, logging failure is additional context
+                    print("NOTE: Task failed AND state logging failed. State may be inconsistent.", file=sys.stderr)
 
         return 0 if success else 1
 
@@ -300,6 +334,12 @@ class SOMASRunner:
         Returns:
             Exit code
         """
+        # Validate project_id to prevent path traversal attacks
+        if not self._validate_project_id(project_id):
+            print(f"Error: Invalid project ID format: {project_id}", file=sys.stderr)
+            print(f"Project IDs must match pattern: project-<number>", file=sys.stderr)
+            return 1
+
         print(f"Starting Autonomous Pipeline for {project_id}")
 
         # Define the pipeline sequence

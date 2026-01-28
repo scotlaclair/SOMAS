@@ -19,7 +19,9 @@ permissions:
 jobs:
   check-agent-assignments:
     runs-on: ubuntu-latest
-    
+    # Skip if PR is already merged (prevents failures on auto-deleted branches)
+    if: github.event.pull_request.merged != true
+
     steps:
       - name: Check Agent Assignment Checklist
         id: check

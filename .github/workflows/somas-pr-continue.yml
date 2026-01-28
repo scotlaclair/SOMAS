@@ -19,12 +19,15 @@ permissions:
 jobs:
   continue-on-issue:
     # Only for SOMAS-related PRs (created by Copilot or containing SOMAS markers)
+    # Skip if PR is already merged (prevents failures on auto-deleted branches)
     if: |
-      github.event.pull_request.user.login == 'copilot[bot]' ||
-      contains(github.event.pull_request.body, 'SOMAS') ||
-      contains(github.event.pull_request.body, 'somas-') ||
-      startsWith(github.event.pull_request.head.ref, 'somas/') ||
-      startsWith(github.event.pull_request.head.ref, 'copilot/')
+      github.event.pull_request.merged != true && (
+        github.event.pull_request.user.login == 'copilot[bot]' ||
+        contains(github.event.pull_request.body, 'SOMAS') ||
+        contains(github.event.pull_request.body, 'somas-') ||
+        startsWith(github.event.pull_request.head.ref, 'somas/') ||
+        startsWith(github.event.pull_request.head.ref, 'copilot/')
+      )
     runs-on: ubuntu-latest
     
     steps:
