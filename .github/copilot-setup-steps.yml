@@ -5,7 +5,7 @@ steps:
   # Install Python dependencies used by SOMAS workflows
   - name: Install Python packages
     run: |
-      pip install pyyaml
+      pip install pyyaml filelock
 
   # Install YAML tools for configuration validation
   - name: Install yq
