@@ -128,6 +128,48 @@ agents:
 
         self.assertIn("Invalid YAML", str(context.exception))
 
+    def test_ensure_valid_project_id_auto_generate(self):
+        """Test auto-generation of project ID from issue number."""
+        runner = SOMASRunner()
+
+        # Test auto-generation when project_id is empty
+        generated_id = runner._ensure_valid_project_id("", issue_number=123)
+        self.assertEqual(generated_id, "project-123")
+
+        # Test auto-generation when project_id is None
+        generated_id = runner._ensure_valid_project_id(None, issue_number=456)
+        self.assertEqual(generated_id, "project-456")
+
+    def test_ensure_valid_project_id_sanitize(self):
+        """Test sanitization of malformed project IDs."""
+        runner = SOMASRunner()
+
+        # Test sanitization of project ID with extra characters
+        sanitized = runner._ensure_valid_project_id(
+            "project-123-extra-stuff", issue_number=None
+        )
+        self.assertEqual(sanitized, "project-123")
+
+    def test_ensure_valid_project_id_missing_both(self):
+        """Test error when both project_id and issue_number missing."""
+        runner = SOMASRunner()
+
+        with self.assertRaises(ValueError) as context:
+            runner._ensure_valid_project_id("", issue_number=None)
+
+        self.assertIn("missing", str(context.exception).lower())
+
+    def test_ensure_valid_project_id_invalid(self):
+        """Test error for completely invalid project ID."""
+        runner = SOMASRunner()
+
+        with self.assertRaises(ValueError) as context:
+            runner._ensure_valid_project_id(
+                "../../../etc/passwd", issue_number=None
+            )
+
+        self.assertIn("Invalid project ID", str(context.exception))
+
 
 class TestRunnerProjectIDInjectionPrevention(unittest.TestCase):
     """Security tests for project ID path traversal prevention."""

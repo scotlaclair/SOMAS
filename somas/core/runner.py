@@ -73,6 +73,60 @@ class SOMASRunner:
         pattern = r"^project-\d+$"
         return bool(re.match(pattern, project_id))
 
+    def _ensure_valid_project_id(self, project_id: str, issue_number: Optional[int] = None) -> str:
+        """
+        Ensure project ID is valid, auto-generating if missing or invalid.
+
+        Args:
+            project_id: Project identifier (may be empty/invalid)
+            issue_number: GitHub issue number for fallback generation
+
+        Returns:
+            Valid project ID
+
+        Raises:
+            ValueError: If project_id cannot be validated or generated
+        """
+        # If empty or None, try to auto-generate from issue number
+        if not project_id or project_id.strip() == "":
+            if issue_number:
+                generated_id = f"project-{issue_number}"
+                print(f"Info: Auto-generated project ID: {generated_id}", file=sys.stderr)
+                return generated_id
+            else:
+                raise ValueError(
+                    "Project ID is missing and cannot be auto-generated. "
+                    "Provide a valid project ID (format: project-<number>) or issue number."
+                )
+
+        # Validate the provided project_id
+        if self._validate_project_id(project_id):
+            return project_id
+
+        # Check for path traversal attempts - these should never be sanitized
+        path_traversal_indicators = ['..', '/', '\\', '\x00']
+        if any(indicator in project_id for indicator in path_traversal_indicators):
+            raise ValueError(
+                f"Invalid project ID: '{project_id}'. "
+                f"Project IDs must match pattern 'project-<number>' and cannot contain path separators. "
+                f"This appears to be a path traversal attempt."
+            )
+
+        # Try to extract issue number from benign malformed project_id
+        # Only handle simple cases like "project-123-extra" not "project-123/../etc"
+        match = re.match(r"^project-(\d+)[-\w]*$", project_id)
+        if match:
+            sanitized_id = f"project-{match.group(1)}"
+            print(f"Warning: Sanitized invalid project ID '{project_id}' to '{sanitized_id}'", file=sys.stderr)
+            return sanitized_id
+
+        # Cannot salvage this project_id
+        raise ValueError(
+            f"Invalid project ID: '{project_id}'. "
+            f"Project IDs must match pattern 'project-<number>'. "
+            f"Examples: project-1, project-123"
+        )
+
     def _validate_path(self, path: str) -> bool:
         """
         Validate file path to prevent path traversal.
@@ -324,20 +378,22 @@ class SOMASRunner:
 
         return 0 if success else 1
 
-    def run_autonomous_pipeline(self, project_id: str) -> int:
+    def run_autonomous_pipeline(self, project_id: str, issue_number: Optional[int] = None) -> int:
         """
         Execute the full autonomous pipeline stages sequentially.
 
         Args:
-            project_id: Project identifier
+            project_id: Project identifier (auto-generated if missing)
+            issue_number: GitHub issue number (used for auto-generation if project_id missing)
 
         Returns:
             Exit code
         """
-        # Validate project_id to prevent path traversal attacks
-        if not self._validate_project_id(project_id):
-            print(f"Error: Invalid project ID format: {project_id}", file=sys.stderr)
-            print(f"Project IDs must match pattern: project-<number>", file=sys.stderr)
+        # Ensure valid project_id, auto-generating if needed
+        try:
+            project_id = self._ensure_valid_project_id(project_id, issue_number)
+        except ValueError as e:
+            print(f"Error: {e}", file=sys.stderr)
             return 1
 
         print(f"Starting Autonomous Pipeline for {project_id}")
@@ -536,7 +592,14 @@ Examples:
     parser.add_argument(
         "--project_id",
         required=False,
-        help='Optional project identifier (e.g., "project-123")',
+        help='Project identifier (e.g., "project-123"). Auto-generated from --issue_number if not provided.',
+    )
+
+    parser.add_argument(
+        "--issue_number",
+        type=int,
+        required=False,
+        help='GitHub issue number. Used to auto-generate project_id if not provided.',
     )
 
     parser.add_argument(
@@ -557,9 +620,13 @@ Examples:
     runner = SOMASRunner(config_path=args.config)
 
     if args.mode == "autonomous":
-        if not args.project_id:
-            parser.error("--project_id is required for autonomous mode")
-        exit_code = runner.run_autonomous_pipeline(args.project_id)
+        # Require either project_id or issue_number
+        if not args.project_id and not args.issue_number:
+            parser.error("--project_id or --issue_number is required for autonomous mode")
+        exit_code = runner.run_autonomous_pipeline(
+            project_id=args.project_id or "",
+            issue_number=args.issue_number
+        )
     else:
         # Validate required args for task mode
         if not all([args.agent, args.task_name, args.task_desc, args.output_path]):
