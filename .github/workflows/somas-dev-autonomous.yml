@@ -159,5 +159,10 @@ jobs:
               });
 
             } catch (error) {
-              core.setFailed(`Failed to create PR: ${error.message}`);
+              // Handle case where branch is already up to date
+              if (error.message && error.message.includes("No commits between")) {
+                console.log("PR creation skipped: Branch is already up to date with base.");
+              } else {
+                core.setFailed(`Failed to create PR: ${error.message}`);
+              }
             }
