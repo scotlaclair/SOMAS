@@ -33,11 +33,11 @@ on:
   workflow_dispatch:
     inputs:
       project_id:
-        description: 'Project ID to process'
+        description: "Project ID to process"
         required: true
         type: string
       stage:
-        description: 'Pipeline stage to execute'
+        description: "Pipeline stage to execute"
         required: false
         type: choice
         options:
@@ -75,6 +75,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: pip install filelock pyyaml
 
       - name: Setup Project
         id: setup
@@ -172,6 +181,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: pip install filelock pyyaml
 
       - name: Start Ideation Stage
         env:
@@ -339,6 +357,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: pip install filelock pyyaml
 
       - name: Start Specification Stage
         env:
@@ -534,6 +561,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: pip install filelock pyyaml
 
       - name: Start Simulation Stage
         env:
@@ -777,6 +813,15 @@ jobs:
           # Use the branch ref (from initialize-pipeline if available) and ensure we have the latest commits
           ref: ${{ needs.initialize-pipeline.outputs.branch_ref || github.ref }}
           fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: pip install filelock pyyaml
 
       - name: Start Architecture Stage
         env:
@@ -1088,6 +1133,15 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: pip install filelock pyyaml
+
       - name: Start Implementation Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -1153,13 +1207,14 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install Python Dependencies
         run: |
-          pip install pyyaml
+          pip install pyyaml filelock
 
       - name: Execute Implementation Task
         # Agents: Multi-agent collaboration for complete implementation
@@ -1237,6 +1292,15 @@ jobs:
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: pip install filelock pyyaml
 
       - name: Ensure branch is up to date
         run: |
@@ -1336,6 +1400,15 @@ jobs:
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: pip install filelock pyyaml
 
       - name: Start Validation Stage
         env:
@@ -1575,8 +1648,8 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install Dependencies
         run: pip install filelock pyyaml

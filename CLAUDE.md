@@ -7,6 +7,7 @@ This document provides context for AI assistants working with the SOMAS (Self-So
 SOMAS is an AI-first Software Development Life Cycle (SDLC) that orchestrates specialized AI agents to autonomously build production-ready software. It features an 11-stage neurology-inspired pipeline with 15+ specialized AI agents powered by 2026 Frontier Tier models.
 
 **Key Concepts:**
+
 - Fully autonomous development pipeline with minimal human intervention
 - Comment-driven orchestration via GitHub Issues
 - State persistence with automatic recovery from failures
@@ -57,6 +58,7 @@ SOMAS is an AI-first Software Development Life Cycle (SDLC) that orchestrates sp
 ## Development Commands
 
 ### Running Tests
+
 ```bash
 # Run all tests
 python -m pytest tests/ -v
@@ -69,6 +71,7 @@ python -m pytest tests/ --cov=somas --cov-report=term-missing
 ```
 
 ### Dependencies
+
 ```bash
 # Install dependencies
 pip install -r requirements.txt
@@ -77,6 +80,7 @@ pip install -r requirements.txt
 ```
 
 ### Label Setup
+
 ```bash
 # Create all GitHub labels for the SOMAS workflow
 ./scripts/setup-labels.sh
@@ -101,17 +105,20 @@ pip install -r requirements.txt
 ## Code Conventions
 
 ### Python Style
+
 - Python 3.11+ required
 - Type hints used throughout
 - Docstrings for public methods
 - Security-first: validate all inputs
 
 ### File Naming
+
 - Python modules: `snake_case.py`
 - Test files: `test_*.py`
 - YAML configs: `kebab-case.yml` or `snake_case.yml`
 
 ### Import Order
+
 ```python
 # Standard library
 import json
@@ -127,6 +134,7 @@ from somas.core.state_manager import StateManager
 ```
 
 ### Error Handling
+
 ```python
 # Use specific exceptions, not bare except
 try:
@@ -142,6 +150,7 @@ except json.JSONDecodeError as e:
 **CRITICAL - Always follow these patterns:**
 
 ### Input Validation
+
 ```python
 import re
 # Project IDs must match pattern: project-\d+
@@ -152,22 +161,19 @@ def validate_project_id(project_id: str) -> bool:
 ```
 
 ### Path Traversal Prevention
+
 ```python
 # Always resolve and verify paths
 def validate_path(path: Path, base_dir: Path) -> bool:
-    resolved = path.resolve()
-    # Check for symlinks
-    if resolved != path.resolve(strict=False):
-        return False
-    # Check path is within base directory
-    try:
-        resolved.relative_to(base_dir.resolve())
-        return True
-    except ValueError:
-        return False
+    # Resolve both paths to absolute paths to handle symlinks and ..
+    abs_base = base_dir.resolve()
+    abs_path = path.resolve()
+    # Check if path is within base directory
+    return abs_path.is_relative_to(abs_base)
 ```
 
 ### Safe JSON Operations
+
 ```python
 # Use json module, never shell commands
 import json
@@ -185,6 +191,7 @@ os.replace(tmp.name, filepath)  # Atomic rename
 ```
 
 ### File Locking
+
 ```python
 from filelock import FileLock
 
@@ -210,6 +217,7 @@ with lock:
 ## Testing Patterns
 
 ### Unit Tests
+
 ```python
 import unittest
 import tempfile
@@ -230,20 +238,24 @@ class TestFeature(unittest.TestCase):
 ```
 
 ### Security Tests
+
 ```python
 def test_path_traversal_prevention(self):
     """Verify path traversal attacks are blocked."""
+    base_dir = Path("/tmp/safe_dir")
     malicious_paths = [
         "../../../etc/passwd",
         "project-123/../../../etc/passwd",
         "/absolute/path/attack",
     ]
-    for path in malicious_paths:
-        with self.assertRaises(ValueError):
-            validate_path(path)
+    for path_str in malicious_paths:
+        # Function returns bool, doesn't raise
+        is_safe = validate_path(Path(path_str), base_dir)
+        self.assertFalse(is_safe, f"Path {path_str} should be rejected")
 ```
 
 ### Concurrent Access Tests
+
 ```python
 def test_concurrent_writes(self):
     """Verify no data corruption under concurrent access."""
@@ -260,11 +272,13 @@ def test_concurrent_writes(self):
 ## GitHub Workflows
 
 ### Label-Driven Triggers
+
 - `somas-project`: Triggers full pipeline
 - `somas:dev`: Enables autonomous development mode
 - `stage:*`: Tracks pipeline progress through stages
 
 ### Key Workflows
+
 - **somas-pipeline.yml**: Main 11-stage orchestration
 - **somas-orchestrator.yml**: Comment-driven agent invocation
 - **somas-meta-capture.yml**: Captures PR review recommendations
@@ -283,18 +297,21 @@ def test_concurrent_writes(self):
 ## Common Tasks
 
 ### Adding a New Agent
+
 1. Create agent config in `.somas/agents/new_agent.yml`
 2. Define role, responsibilities, and output format
 3. Add to appropriate stage in `.somas/config.yml`
 4. Update tests if agent has Python implementation
 
 ### Adding a New Stage
+
 1. Create stage definition in `.somas/stages/new_stage.yml`
 2. Add to pipeline in `.somas/config.yml`
 3. Create corresponding label: `stage:new-stage`
 4. Update workflow in `.github/workflows/somas-pipeline.yml`
 
 ### Modifying State Manager
+
 1. Read `somas/core/state_manager.py` thoroughly
 2. Maintain file locking patterns
 3. Preserve atomic write operations
@@ -302,6 +319,7 @@ def test_concurrent_writes(self):
 5. Test concurrent access scenarios
 
 ### Creating ADRs
+
 1. Follow template in `.somas/architecture/ADRs/README.md`
 2. Use format: `ADR-NNN-title.md`
 3. Document context, decision, and consequences

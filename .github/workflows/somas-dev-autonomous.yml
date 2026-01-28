@@ -109,7 +109,7 @@ jobs:
                 body: `## Autonomous SOMAS Pipeline Complete
 
                 **Project:** ${projectId}
-                **Issue:** #${issueNumber}
+                **Issue:** Closes #${issueNumber}
 
                 All stages completed successfully.
 
