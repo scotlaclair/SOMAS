@@ -23,6 +23,7 @@ import argparse
 import json
 import re
 import sys
+import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -51,9 +52,12 @@ class SOMASRunner:
         try:
             with open(self.config_path, "r") as f:
                 return yaml.safe_load(f)
+        except FileNotFoundError as e:
+            raise RuntimeError(f"Config file not found: {self.config_path}") from e
+        except yaml.YAMLError as e:
+            raise RuntimeError(f"Invalid YAML in config file {self.config_path}: {e}") from e
         except Exception as e:
-            print(f"Error loading config from {self.config_path}: {e}", file=sys.stderr)
-            sys.exit(1)
+            raise RuntimeError(f"Error loading config from {self.config_path}: {e}") from e
 
     def _validate_project_id(self, project_id: str) -> bool:
         """
@@ -68,6 +72,60 @@ class SOMASRunner:
         # Must match pattern: project-<number>
         pattern = r"^project-\d+$"
         return bool(re.match(pattern, project_id))
+
+    def _ensure_valid_project_id(self, project_id: str, issue_number: Optional[int] = None) -> str:
+        """
+        Ensure project ID is valid, auto-generating if missing or invalid.
+
+        Args:
+            project_id: Project identifier (may be empty/invalid)
+            issue_number: GitHub issue number for fallback generation
+
+        Returns:
+            Valid project ID
+
+        Raises:
+            ValueError: If project_id cannot be validated or generated
+        """
+        # If empty or None, try to auto-generate from issue number
+        if not project_id or project_id.strip() == "":
+            if issue_number:
+                generated_id = f"project-{issue_number}"
+                print(f"Info: Auto-generated project ID: {generated_id}", file=sys.stderr)
+                return generated_id
+            else:
+                raise ValueError(
+                    "Project ID is missing and cannot be auto-generated. "
+                    "Provide a valid project ID (format: project-<number>) or issue number."
+                )
+
+        # Validate the provided project_id
+        if self._validate_project_id(project_id):
+            return project_id
+
+        # Check for path traversal attempts - these should never be sanitized
+        path_traversal_indicators = ['..', '/', '\\', '\x00']
+        if any(indicator in project_id for indicator in path_traversal_indicators):
+            raise ValueError(
+                f"Invalid project ID: '{project_id}'. "
+                f"Project IDs must match pattern 'project-<number>' and cannot contain path separators. "
+                f"This appears to be a path traversal attempt."
+            )
+
+        # Try to extract issue number from benign malformed project_id
+        # Only handle simple cases like "project-123-extra" not "project-123/../etc"
+        match = re.match(r"^project-(\d+)[-\w]*$", project_id)
+        if match:
+            sanitized_id = f"project-{match.group(1)}"
+            print(f"Warning: Sanitized invalid project ID '{project_id}' to '{sanitized_id}'", file=sys.stderr)
+            return sanitized_id
+
+        # Cannot salvage this project_id
+        raise ValueError(
+            f"Invalid project ID: '{project_id}'. "
+            f"Project IDs must match pattern 'project-<number>'. "
+            f"Examples: project-1, project-123"
+        )
 
     def _validate_path(self, path: str) -> bool:
         """
@@ -240,8 +298,21 @@ class SOMASRunner:
             success = True
 
         except Exception as e:
-            print(f"Error executing task: {e}", file=sys.stderr)
-            error_info = {"type": type(e).__name__, "message": str(e)}
+            # Provide specific error messages based on exception type
+            if isinstance(e, FileNotFoundError):
+                print(f"Error: Required file not found: {e}", file=sys.stderr)
+            elif isinstance(e, json.JSONDecodeError):
+                print(f"Error: Invalid JSON in context or configuration: {e}", file=sys.stderr)
+            else:
+                print(f"Error executing task: {e}", file=sys.stderr)
+
+            # Capture comprehensive error information for debugging
+            error_info = {
+                "type": type(e).__name__,
+                "message": str(e),
+                "traceback": traceback.format_exc(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
 
         # Log completion or failure to state if project_id provided
         if project_id and stage:
@@ -286,20 +357,37 @@ class SOMASRunner:
                     )
 
             except Exception as e:
-                print(f"Warning: Could not log task completion: {e}", file=sys.stderr)
+                print(f"Critical: Failed to log task completion to state manager: {e}", file=sys.stderr)
+                print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
+                # State management failure is critical - escalate instead of silently continuing
+                if success:
+                    # Task succeeded but we couldn't log it - this is a system failure
+                    print("WARNING: Task completed but state logging failed. Manual intervention may be needed.", file=sys.stderr)
+                    # Don't change success status, but ensure visibility
+                else:
+                    # Task already failed, logging failure is additional context
+                    print("NOTE: Task failed AND state logging failed. State may be inconsistent.", file=sys.stderr)
 
         return 0 if success else 1
 
-    def run_autonomous_pipeline(self, project_id: str) -> int:
+    def run_autonomous_pipeline(self, project_id: str, issue_number: Optional[int] = None) -> int:
         """
         Execute the full autonomous pipeline stages sequentially.
 
         Args:
-            project_id: Project identifier
+            project_id: Project identifier (auto-generated if missing)
+            issue_number: GitHub issue number (used for auto-generation if project_id missing)
 
         Returns:
             Exit code
         """
+        # Ensure valid project_id, auto-generating if needed
+        try:
+            project_id = self._ensure_valid_project_id(project_id, issue_number)
+        except ValueError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
+
         print(f"Starting Autonomous Pipeline for {project_id}")
 
         # Define the pipeline sequence
@@ -496,7 +584,14 @@ Examples:
     parser.add_argument(
         "--project_id",
         required=False,
-        help='Optional project identifier (e.g., "project-123")',
+        help='Project identifier (e.g., "project-123"). Auto-generated from --issue_number if not provided.',
+    )
+
+    parser.add_argument(
+        "--issue_number",
+        type=int,
+        required=False,
+        help='GitHub issue number. Used to auto-generate project_id if not provided.',
     )
 
     parser.add_argument(
@@ -517,9 +612,13 @@ Examples:
     runner = SOMASRunner(config_path=args.config)
 
     if args.mode == "autonomous":
-        if not args.project_id:
-            parser.error("--project_id is required for autonomous mode")
-        exit_code = runner.run_autonomous_pipeline(args.project_id)
+        # Require either project_id or issue_number
+        if not args.project_id and not args.issue_number:
+            parser.error("--project_id or --issue_number is required for autonomous mode")
+        exit_code = runner.run_autonomous_pipeline(
+            project_id=args.project_id or "",
+            issue_number=args.issue_number
+        )
     else:
         # Validate required args for task mode
         if not all([args.agent, args.task_name, args.task_desc, args.output_path]):

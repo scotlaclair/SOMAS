@@ -24,7 +24,9 @@ jobs:
   dependency-review:
     name: Review Dependencies
     runs-on: ubuntu-latest
-    
+    # Skip if PR is already merged (prevents failures on auto-deleted branches)
+    if: github.event.pull_request.merged != true
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
