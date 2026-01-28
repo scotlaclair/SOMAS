@@ -92,6 +92,7 @@ SOMAS leverages the best 2026 Frontier Tier models for each task:
 ### 2. Start the Pipeline
 
 Add the `somas-project` label to your issue. SOMAS will automatically:
+
 - Create a feature branch
 - Initialize the 7-stage pipeline
 - Begin autonomous development
@@ -117,11 +118,13 @@ Watch the pipeline progress through 11 stages:
 ### 4. Review and Approve
 
 When staging completes:
+
 - You'll be notified (@scotlaclair) for final review
 - Review the generated code in the PR
 - Approve and merge when ready
 
 **Human engagement required ONLY for:**
+
 - Final merge approval
 - Failures after max retries exhausted
 
@@ -130,7 +133,8 @@ When staging completes:
 ## 📋 Pipeline Stages
 
 ### Stage 1: Ideation
-**Agent:** Planner (GPT-5.2)  
+
+**Agent:** Planner (GPT-5.2)
 **Autonomous:** Yes
 
 - Extracts and analyzes requirements
@@ -139,7 +143,8 @@ When staging completes:
 - Identifies dependencies and risks
 
 ### Stage 2: Specification
-**Agent:** Specifier (GPT-5.2)  
+
+**Agent:** Specifier (Claude Sonnet 4.5)
 **Autonomous:** Yes *(No human gate)*
 
 - Generates complete SPEC.md document
@@ -149,7 +154,8 @@ When staging completes:
 - Resolves ambiguities and open questions
 
 ### Stage 3: Simulation
-**Agent:** Simulator (GPT-5.2)  
+
+**Agent:** Simulator (Claude Sonnet 4.5)
 **Autonomous:** Yes
 
 - Runs Monte Carlo simulations (1000 iterations)
@@ -159,7 +165,8 @@ When staging completes:
 - Maximizes parallelization opportunities
 
 ### Stage 4: Architecture
-**Agent:** Architect (Claude Opus 4.5)  
+
+**Agent:** Architect (Claude Opus 4.5)
 **Autonomous:** Yes
 
 - Designs system architecture
@@ -169,8 +176,9 @@ When staging completes:
 - Designs API specifications
 
 ### Stage 5: Implementation
-**Agents:** Implementer, Tester, Security, Optimizer  
-**Models:** GPT-5.2-Codex, Claude Sonnet 4.5, GPT-5.2  
+
+**Agents:** Implementer, Tester, Security, Optimizer
+**Models:** Claude Sonnet 4.5, GPT-5.2
 **Autonomous:** Yes
 
 - Generates production-ready code
@@ -180,8 +188,9 @@ When staging completes:
 - Documents code and APIs
 
 ### Stage 6: Validation
-**Agents:** Tester, Reviewer, Security, Debugger  
-**Models:** Claude Sonnet 4.5, GPT-5.2, Claude Haiku 4.5  
+
+**Agents:** Tester, Reviewer, Security, Debugger
+**Models:** Claude Sonnet 4.5, GPT-5.2, Claude Haiku 4.5
 **Autonomous:** Yes (with auto-retry)
 
 - Runs all tests and verifies coverage
@@ -192,8 +201,9 @@ When staging completes:
 - Notifies human only after retries exhausted
 
 ### Stage 7: Staging
-**Agents:** Merger, Documenter  
-**Models:** Claude Opus 4.5, Gemini 3 Pro  
+
+**Agents:** Merger, Documenter
+**Models:** Claude Opus 4.5, Gemini 3 Pro
 **Autonomous:** No (requires human approval)
 
 - Creates pull request with all artifacts
@@ -209,6 +219,7 @@ When staging completes:
 ### Automatic Retry Logic
 
 When validation failures occur:
+
 1. **Attempt 1-3**: Debugger agent investigates and fixes issues
 2. **Each retry**: Full validation suite runs again
 3. **After retry 3**: Human notified for intervention
@@ -216,6 +227,7 @@ When validation failures occur:
 ### Bounded Autonomy
 
 SOMAS operates autonomously with clear boundaries:
+
 - ✅ **Autonomous**: All 6 stages (Ideation → Validation)
 - ⏸️ **Human Gate**: Only at Staging (final merge approval)
 - 🚨 **Human Escalation**: Only when max retries exhausted
@@ -223,6 +235,7 @@ SOMAS operates autonomously with clear boundaries:
 ### Progress Notifications
 
 Pipeline progress is reported via:
+
 - Issue comments with stage completion status
 - PR description updates with checklist
 - Notifications on failures requiring intervention
@@ -234,18 +247,21 @@ Pipeline progress is reported via:
 Each stage has quality gates that must pass:
 
 **Specification:**
+
 - All requirements have unique IDs
 - All requirements are testable
 - No ambiguous language (TBD, maybe, etc.)
 - All open questions resolved
 
 **Implementation:**
+
 - All tests passing
 - Code coverage > 80%
 - No critical security vulnerabilities
 - Documentation complete
 
 **Validation:**
+
 - All acceptance criteria met
 - Performance requirements satisfied
 - Security scan passed
@@ -270,6 +286,7 @@ SOMAS implements security best practices:
 ### Main Configuration
 
 See [`.somas/config.yml`](.somas/config.yml) for complete configuration including:
+
 - Pipeline stage definitions
 - AI agent provider mappings
 - Quality gate requirements
@@ -279,6 +296,7 @@ See [`.somas/config.yml`](.somas/config.yml) for complete configuration includin
 ### Agent Configurations
 
 Each agent has a detailed configuration file in [`.somas/agents/`](.somas/agents/):
+
 - Role and responsibilities
 - Prompt templates
 - Output format specifications
@@ -287,6 +305,7 @@ Each agent has a detailed configuration file in [`.somas/agents/`](.somas/agents
 ### Stage Definitions
 
 Stage-specific configurations in [`.somas/stages/`](.somas/stages/):
+
 - Input/output artifacts
 - Agent assignments
 - Quality gates
@@ -295,6 +314,7 @@ Stage-specific configurations in [`.somas/stages/`](.somas/stages/):
 ### Label System
 
 SOMAS uses a comprehensive label system for workflow triggers, triage, and state machine orchestration. See [`.github/LABELS.md`](.github/LABELS.md) for:
+
 - Complete label definitions
 - Automated setup instructions
 - Workflow integration details
@@ -318,18 +338,21 @@ Quick setup: Run `./scripts/setup-labels.sh` to create all labels at once.
 ## 💡 Example Use Cases
 
 ### Web Application
+
 ```
 Issue: "Build a task management app with React frontend and Node.js backend"
 Result: Full-stack application with tests, docs, and deployment config
 ```
 
 ### CLI Tool
+
 ```
 Issue: "Create a Python CLI tool for file organization"
 Result: Python package with argparse CLI, tests, and PyPI setup
 ```
 
 ### API Service
+
 ```
 Issue: "Build a REST API for user authentication with JWT"
 Result: API with endpoints, tests, security scanning, and OpenAPI spec
@@ -342,6 +365,7 @@ Result: API with endpoints, tests, security scanning, and OpenAPI spec
 ### Monte Carlo Simulation
 
 SOMAS uses Monte Carlo analysis to:
+
 - Simulate 1000+ possible execution scenarios
 - Identify the optimal task sequence
 - Predict timeline with 90% confidence
@@ -350,6 +374,7 @@ SOMAS uses Monte Carlo analysis to:
 ### GitHub Project Integration
 
 Automatic GitHub Project board creation:
+
 - Visual progress tracking
 - Task decomposition with sub-issues
 - Real-time status updates
@@ -358,6 +383,7 @@ Automatic GitHub Project board creation:
 ### Continuous Learning
 
 SOMAS learns from each run:
+
 - Duration estimation improvement
 - Pattern extraction from successful runs
 - Risk threshold adjustment
@@ -389,6 +415,7 @@ When reviewing PRs, use this format in comments:
 ### Automatic Processing
 
 On PR merge, SOMAS:
+
 1. 🎯 **Scans** merged PRs for structured recommendations
 2. 📝 **Creates Issues** for "Must Address Soon" items with `somas:follow-up` label
 3. 📚 **Updates Backlog** (`.somas/backlog.md`) with "Should Consider" items
@@ -409,22 +436,22 @@ Learn more: [Meta-Capture Process Documentation](docs/somas/meta-capture-process
 
 ## 🤔 FAQ
 
-**Q: How long does a project take?**  
+**Q: How long does a project take?**
 A: Varies by complexity. Simple tools: 30-60 minutes. Complex systems: 2-8 hours.
 
-**Q: Can I modify the generated code?**  
+**Q: Can I modify the generated code?**
 A: Absolutely! Review and refine as needed before merging.
 
-**Q: What languages are supported?**  
+**Q: What languages are supported?**
 A: Any major language. Specify preference in your project description.
 
-**Q: Can I customize agent behavior?**  
+**Q: Can I customize agent behavior?**
 A: Yes! Edit `.somas/agents/*.yml` to customize prompts and requirements.
 
-**Q: What if validation fails repeatedly?**  
+**Q: What if validation fails repeatedly?**
 A: After 3 automatic retry attempts, you'll be notified to investigate manually.
 
-**Q: Does SOMAS work with private repositories?**  
+**Q: Does SOMAS work with private repositories?**
 A: Yes, as long as GitHub Actions and required API keys are configured.
 
 ---
@@ -438,6 +465,7 @@ MIT License - See [LICENSE](LICENSE) for details
 ## 🙏 Acknowledgments
 
 SOMAS is powered by the 2026 Frontier Tier AI models:
+
 - **GPT-5.2-Codex** (OpenAI) - SOTA coding agent
 - **Claude Opus 4.5** (Anthropic) - Deepest reasoning
 - **Claude Sonnet 4.5** (Anthropic) - Balanced power
@@ -453,5 +481,5 @@ SOMAS is powered by the 2026 Frontier Tier AI models:
 
 ---
 
-**Ready to build something amazing?**  
+**Ready to build something amazing?**
 [Create your first SOMAS project →](../../issues/new/choose)

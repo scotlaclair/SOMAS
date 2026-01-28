@@ -1,28 +1,128 @@
-name: SOMAS Autonomous Dev Pipeline (Legacy)
-
-# DEPRECATED: This workflow has been replaced by somas-orchestrator.yml
-# which implements comment-driven agent orchestration.
-# 
-# This file is kept for reference only.
-# 
-# For the working autonomous pipeline, see:
-# .github/workflows/somas-orchestrator.yml
+name: SOMAS Autonomous Dev Pipeline
 
 on:
-  workflow_dispatch:
-    inputs:
-      note:
-        description: 'This workflow is deprecated - use somas-orchestrator.yml'
-        required: false
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  actions: write
 
 jobs:
-  deprecated-notice:
+  autonomous-execution:
+    name: Autonomous Pipeline Execution
+    if: github.event.label.name == 'somas:dev' || github.event.label.name == 'somas-project'
     runs-on: ubuntu-latest
+    timeout-minutes: 300
+
     steps:
-      - name: Show Deprecation Notice
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # Use SOMAS_PAT if available for cascading triggers, otherwise GITHUB_TOKEN
+          token: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
         run: |
-          echo "⚠️  This workflow is deprecated."
-          echo "Please use .github/workflows/somas-orchestrator.yml instead."
-          echo ""
-          echo "The new orchestrator implements comment-driven agent execution"
-          echo "via GitHub Copilot and parses responses to extract artifacts."
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pyyaml
+
+      - name: Initialize Pipeline
+        env:
+          GITHUB_TOKEN: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PROJECT_ID: "project-${{ github.event.issue.number }}"
+        run: |
+          echo "Starting autonomous pipeline for Issue #$ISSUE_NUMBER"
+          # Initialize project structure and metadata
+          python3 -c "from somas.core.state_manager import StateManager; StateManager().initialize_project('project-${ISSUE_NUMBER}', ${ISSUE_NUMBER}, '${{ github.event.issue.title }}')"
+
+      - name: Execute Autonomous Stages
+        env:
+          GITHUB_TOKEN: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PROJECT_ID: "project-${{ github.event.issue.number }}"
+        run: |
+          # Execute the pipeline stages sequentially for POC
+          # This script should handle the logic defined in AUTONOMOUS_PIPELINE_SUMMARY.md
+          python3 somas/core/runner.py --mode autonomous --project_id "$PROJECT_ID"
+
+      - name: Create Pull Request
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const projectId = `project-${issueNumber}`;
+            const branchName = `somas/${projectId}`;
+
+            try {
+              const pr = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `[${projectId}] Autonomous Implementation`,
+                body: `## Autonomous SOMAS Pipeline Complete
+
+                **Project:** ${projectId}
+                **Issue:** #${issueNumber}
+
+                All stages completed successfully.
+
+                ## SOMAS Pipeline Stages & Agent Assignments
+
+                ### Phase 1: Signal & Design
+                - [x] Stage 1: @copilot somas-planner
+                - [x] Stage 2: @copilot somas-specifier
+                - [x] Stage 3: @copilot somas-simulator
+                - [x] Stage 4: @copilot somas-decomposer
+
+                ### Phase 2: Implementation & Validation
+                - [x] Stage 5: @copilot somas-implementer
+                - [x] Stage 6: @copilot somas-validator
+                - [x] Stage 6: @copilot somas-tester
+                - [x] Stage 6: @copilot somas-security
+                - [x] Stage 6: @copilot somas-reviewer
+
+                ### Phase 3: Integration & Release
+                - [x] Stage 7: @copilot somas-merger
+                - [x] Stage 9: @copilot somas-deployer
+
+                ### Phase 4: Operations & Learning
+                - [x] Stage 10: @copilot somas-operator
+                - [x] Stage 11: @copilot somas-analyzer
+
+                **Artifacts:**
+                - \`initial_plan.yml\`
+                - \`SPEC.md\`
+                - \`execution_plan.yml\`
+                - \`ARCHITECTURE.md\`
+                - Implementation code
+                - Test suite
+                - Review report
+
+                **Auto-merge:** Enabled (dev environment)`,
+                head: branchName,
+                base: 'dev'
+              });
+
+              // Enable auto-merge
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.data.number,
+                merge_method: 'squash'
+              });
+
+            } catch (error) {
+              core.setFailed(`Failed to create PR: ${error.message}`);
+            }

@@ -33,6 +33,7 @@ To update existing labels:
 ```
 
 **Prerequisites:**
+
 - GitHub CLI (`gh`) installed and authenticated
 - Repository write permissions
 
@@ -55,7 +56,7 @@ Use a GitHub Action to automatically sync labels from `labels.yml`. Popular opti
 
 | Label | Description | Color | Used By | Status |
 |-------|-------------|-------|---------|--------|
-| `somas:dev` | Trigger autonomous pipeline | 🟢 0E8A16 | somas-orchestrator.yml | ✅ Active |
+| `somas:dev` | Trigger autonomous pipeline | 🟢 0E8A16 | somas-dev-autonomous.yml | ✅ Active |
 | `somas-project` | New SOMAS project | 🔵 1D76DB | somas-pipeline.yml | ✅ Active |
 
 ### Triage Labels
@@ -110,6 +111,7 @@ Track the current pipeline stage (Energy, Frequency, Vibration, Sound):
 All use color 🔴 E99695.
 
 Referenced by:
+
 - `somas-project-sync.yml` for dynamic stage tracking
 - `sync-stage-milestones.yml` for automatic milestone creation and assignment
 
@@ -187,6 +189,7 @@ All use color 🔵 C5DEF5.
 ### somas-orchestrator.yml
 
 Uses these labels for orchestration:
+
 - `somas:dev` - Triggers autonomous pipeline
 - `somas:change`, `somas:enhance`, `somas:question`, `somas:bug` - Triage routing
 - `somas:triaged` - Marks completed triage
@@ -195,17 +198,20 @@ Uses these labels for orchestration:
 ### somas-pipeline.yml
 
 Uses these labels:
+
 - `somas-project` - Triggers project initialization
 - `somas:dev` - Applied automatically to new projects
 
 ### somas-project-sync.yml
 
 Uses these labels:
+
 - `stage:*` - Syncs project stage with issue labels
 
 ### sync-stage-milestones.yml
 
 Automatically creates and assigns milestones based on the 11-stage neurology-inspired pipeline labels:
+
 - `stage:signal` → Creates/assigns "SIGNAL (Intake)" milestone
 - `stage:design` → Creates/assigns "DESIGN (Specify)" milestone
 - `stage:grid` → Creates/assigns "GRID (Plan)" milestone
@@ -219,6 +225,7 @@ Automatically creates and assigns milestones based on the 11-stage neurology-ins
 - `stage:whole` → Creates/assigns "WHOLE (Learn)" milestone
 
 **Features:**
+
 - Automatically creates milestones if they don't exist
 - Assigns issue/PR to appropriate milestone when stage label is added
 - Enforces one milestone per issue/PR (latest label wins)
@@ -233,6 +240,7 @@ Automatically creates and assigns milestones based on the 11-stage neurology-ins
 ### When to Add New Labels
 
 Consider adding new labels when:
+
 - Introducing new pipeline stages
 - Adding new agent types
 - Implementing new quality gates
@@ -241,6 +249,7 @@ Consider adding new labels when:
 ### Label Naming Conventions
 
 Follow these conventions for consistency:
+
 - **Namespace prefix**: `somas:`, `state:`, `stage:`, `checkpoint:`, `agent:`, `quality:`
 - **Lowercase**: Use lowercase for all label names
 - **Hyphens**: Separate words with hyphens (e.g., `pending-planner`)
@@ -268,28 +277,28 @@ Or use the GitHub web interface: Repository → Labels → Delete
 
 ### Script Won't Run
 
-**Issue**: Permission denied when running script  
+**Issue**: Permission denied when running script
 **Solution**: Make script executable: `chmod +x scripts/setup-labels.sh`
 
-**Issue**: `gh` command not found  
-**Solution**: Install GitHub CLI from https://cli.github.com/
+**Issue**: `gh` command not found
+**Solution**: Install GitHub CLI from <https://cli.github.com/>
 
-**Issue**: Not authenticated  
+**Issue**: Not authenticated
 **Solution**: Run `gh auth login` and follow prompts
 
 ### Labels Already Exist
 
-**Issue**: Script says labels already exist  
+**Issue**: Script says labels already exist
 **Solution**: Run with `--force` flag to update: `./scripts/setup-labels.sh --force`
 
 ### Wrong Repository
 
-**Issue**: Labels created in wrong repository  
+**Issue**: Labels created in wrong repository
 **Solution**: Check current directory and ensure you're in the correct repository
 
 ### Missing Permissions
 
-**Issue**: Cannot create labels - permission denied  
+**Issue**: Cannot create labels - permission denied
 **Solution**: Ensure you have write access to the repository
 
 ## Integration with Future Features
@@ -322,6 +331,7 @@ When adding new labels:
 ## Support
 
 For issues with label setup:
+
 - Check [Troubleshooting](#troubleshooting) section
 - Review workflow configurations in `.github/workflows/`
 - Consult SOMAS documentation in `docs/somas/`

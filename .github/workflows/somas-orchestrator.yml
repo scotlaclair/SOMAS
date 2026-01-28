@@ -24,7 +24,7 @@ jobs:
   # Triage incoming change/enhance/question/bug requests
   triage:
     if: |
-      github.event_name == 'issues' && 
+      github.event_name == 'issues' &&
       !contains(github.event.issue.labels.*.name, 'somas:circuit-breaker') &&
       (contains(github.event.issue.labels.*.name, 'somas:change') ||
        contains(github.event.issue.labels.*.name, 'somas:enhance') ||
@@ -32,13 +32,12 @@ jobs:
        contains(github.event.issue.labels.*.name, 'somas:bug')) &&
       !contains(github.event.issue.labels.*.name, 'somas:triaged')
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Extract Request Details
         id: extract
         uses: actions/github-script@v7
@@ -47,19 +46,19 @@ jobs:
             const issue = context.issue.number;
             const issueBody = context.payload.issue.body;
             const labels = context.payload.issue.labels.map(l => l.name);
-            
+
             // Determine request type from labels
             let requestType = 'unknown';
             if (labels.includes('somas:change')) requestType = 'change';
             else if (labels.includes('somas:enhance')) requestType = 'enhancement';
             else if (labels.includes('somas:question')) requestType = 'question';
             else if (labels.includes('somas:bug')) requestType = 'bug';
-            
+
             core.setOutput('issue_number', issue);
             core.setOutput('request_type', requestType);
-            
+
             return { issue, requestType };
-      
+
       - name: Add Triaged Label
         uses: actions/github-script@v7
         with:
@@ -70,7 +69,7 @@ jobs:
               issue_number: context.issue.number,
               labels: ['somas:triaged']
             });
-      
+
       - name: Invoke Triage Agent
         uses: actions/github-script@v7
         with:
@@ -79,33 +78,33 @@ jobs:
             const requestType = '${{ steps.extract.outputs.request_type }}';
             const issueBody = context.payload.issue.body;
             const issueTitle = context.payload.issue.title;
-            
+
             // Post triage invocation comment
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: `🔍 **SOMAS Triage Agent Initiated**
-              
+
               **Issue:** #${issueNumber}
               **Type:** ${requestType}
-              
+
               Analyzing and routing your request...
-              
+
               ---
-              
+
               @copilot somas-triage
-              
+
               Please analyze and triage this ${requestType} request.
-              
+
               **Request Details:**
               - **Issue Number:** ${issueNumber}
               - **Title:** ${issueTitle}
               - **Type:** ${requestType}
-              
+
               **Request Body:**
               ${issueBody}
-              
+
               **Required Output Format:**
               \`\`\`yaml
               triage_result:
@@ -122,28 +121,27 @@ jobs:
                 next_steps: |
                   <what happens next>
               \`\`\`
-              
+
               Apply deterministic routing criteria from \`.somas/agents/triage.yml\`.
-              
+
               **Confidence Threshold:** If confidence < 0.8, escalate to human (@scotlaclair).
               `
             });
-  
+
   # Detect pipeline triggers and initialize
   initialize:
     if: |
-      github.event_name == 'issues' && 
+      github.event_name == 'issues' &&
       !contains(github.event.issue.labels.*.name, 'somas:circuit-breaker') &&
       contains(github.event.issue.labels.*.name, 'somas:dev') &&
       !contains(github.event.issue.body, '<!-- SOMAS_INITIALIZED -->')
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Create Project Structure
         id: init
         env:
@@ -154,10 +152,10 @@ jobs:
           TITLE="$TITLE"
           PROJECT_ID="project-${ISSUE}"
           BRANCH_NAME="somas/${PROJECT_ID}"
-          
+
           # Create project directory structure
           mkdir -p .somas/projects/${PROJECT_ID}/{artifacts,logs}
-          
+
           # Initialize project state using state manager
           printf '%s\n' \
             'import sys' \
@@ -180,31 +178,31 @@ jobs:
             ')' \
             'print(f"Initialized {project_id} with state persistence")' \
             > /tmp/init_state.py
-          
+
           python3 /tmp/init_state.py
-          
+
           echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
           echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
-      
+
       - name: Create Feature Branch
         run: |
           BRANCH_NAME="${{ steps.init.outputs.branch_name }}"
-          
+
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           git checkout -b "${BRANCH_NAME}"
           git add .somas/projects/
           git commit -m "Initialize project ${{ steps.init.outputs.project_id }}"
           git push -u origin "${BRANCH_NAME}"
-      
+
       - name: Start Pipeline - Invoke Planner
         uses: actions/github-script@v7
         with:
           script: |
             const projectId = '${{ steps.init.outputs.project_id }}';
             const issueBody = context.payload.issue.body;
-            
+
             // Post initialization comment
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -212,19 +210,19 @@ jobs:
               issue_number: context.issue.number,
               body: `<!-- SOMAS_INITIALIZED -->
               🚀 **SOMAS Autonomous Pipeline Initiated**
-              
+
               **Project ID:** \`${projectId}\`
               **Branch:** \`somas/${projectId}\`
               **Mode:** Autonomous (dev environment)
-              
+
               Starting Stage 1: Ideation...
-              
+
               ---
-              
+
               @copilot somas-planner
-              
+
               Create initial plan for this project based on the issue description above.
-              
+
               **Required Output Format:**
               \`\`\`yaml
               # initial_plan.yml
@@ -241,7 +239,7 @@ jobs:
                 - description: "..."
                   mitigation: "..."
               \`\`\`
-              
+
               **Project Context:**
               ${issueBody}
               `
@@ -255,13 +253,12 @@ jobs:
       contains(github.event.comment.body, '@copilot somas-') &&
       (github.event.comment.user.login == 'github-copilot[bot]' || github.event.comment.user.login == 'copilot[bot]')
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Parse Agent Response
         id: parse
         uses: actions/github-script@v7
@@ -271,21 +268,21 @@ jobs:
             const projectId = `project-${issue}`;
             const comment = context.payload.comment.body;
             const commentAuthor = context.payload.comment.user.login;
-            
+
             // Check if this is a SOMAS agent response (from copilot)
             if (commentAuthor !== 'copilot[bot]') {
               core.info('Not a copilot response, skipping');
               core.setOutput('skip', 'true');
               return;
             }
-            
+
             // Extract YAML/Markdown code blocks
             const yamlRegex = new RegExp('```(?:yaml|yml)\\n([\\s\\S]*?)\\n```', 'g');
             const mdRegex = new RegExp('```(?:markdown|md)?\\n([\\s\\S]*?)\\n```', 'g');
-            
+
             const yamlBlocks = [];
             const mdBlocks = [];
-            
+
             let match;
             while ((match = yamlRegex.exec(comment)) !== null) {
               yamlBlocks.push(match[1]);
@@ -293,25 +290,25 @@ jobs:
             while ((match = mdRegex.exec(comment)) !== null) {
               mdBlocks.push(match[1]);
             }
-            
+
             // Determine which agent responded based on comment context
             let agentName = null;
             let artifactName = null;
             let nextAgent = null;
             let nextStage = null;
-            
+
             const parentComments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue
             });
-            
+
             // Find the last human comment before this bot response
-            const humanComments = parentComments.data.filter(c => 
+            const humanComments = parentComments.data.filter(c =>
               c.user.login !== 'copilot[bot]' &&
               c.id < context.payload.comment.id
             );
-            
+
             const lastHuman = humanComments[humanComments.length - 1];
             if (lastHuman) {
               // Stage 1: SIGNAL (Intake) - planner
@@ -348,20 +345,26 @@ jobs:
               } else if (lastHuman.body.includes('@copilot somas-validator')) {
                 agentName = 'validator';
                 artifactName = 'test_results.json';
-                nextAgent = 'merger';
-                nextStage = 'synapse';
+                nextAgent = 'tester';
+                nextStage = 'pulse';
+              // Stage 6: PULSE (Verify) - security
+              } else if (lastHuman.body.includes('@copilot somas-security')) {
+                agentName = 'security';
+                artifactName = 'security_scan.md';
+                nextAgent = 'reviewer';
+                nextStage = 'pulse';
               // Stage 7: SYNAPSE (Integrate) - merger
               } else if (lastHuman.body.includes('@copilot somas-merger')) {
                 agentName = 'merger';
                 artifactName = 'integration_report.md';
-                nextAgent = 'tester';
-                nextStage = 'overload';
-              // Stage 8: OVERLOAD (Harden) - tester
+                nextAgent = 'deployer';
+                nextStage = 'velocity';
+              // Stage 6: PULSE (Verify) - tester
               } else if (lastHuman.body.includes('@copilot somas-tester')) {
                 agentName = 'tester';
                 artifactName = 'hardening_report.md';
-                nextAgent = 'deployer';
-                nextStage = 'velocity';
+                nextAgent = 'security';
+                nextStage = 'pulse';
               // Stage 9: VELOCITY (Release) - deployer
               } else if (lastHuman.body.includes('@copilot somas-deployer')) {
                 agentName = 'deployer';
@@ -384,8 +387,8 @@ jobs:
               } else if (lastHuman.body.includes('@copilot somas-reviewer')) {
                 agentName = 'reviewer';
                 artifactName = 'review_report.md';
-                nextAgent = 'complete';
-                nextStage = 'complete';
+                nextAgent = 'merger';
+                nextStage = 'synapse';
               // Legacy support for architect
               } else if (lastHuman.body.includes('@copilot somas-architect')) {
                 agentName = 'architect';
@@ -394,7 +397,7 @@ jobs:
                 nextStage = 'mcp';
               }
             }
-            
+
             core.setOutput('agent_name', agentName);
             core.setOutput('artifact_name', artifactName);
             core.setOutput('next_agent', nextAgent);
@@ -403,9 +406,9 @@ jobs:
             core.setOutput('yaml_blocks', JSON.stringify(yamlBlocks));
             core.setOutput('md_blocks', JSON.stringify(mdBlocks));
             core.setOutput('skip', agentName ? 'false' : 'true');
-            
+
             return { agentName, artifactName, nextAgent, nextStage };
-      
+
       - name: Save Artifacts
         if: steps.parse.outputs.skip != 'true'
         run: |
@@ -413,19 +416,19 @@ jobs:
           AGENT_NAME="${{ steps.parse.outputs.agent_name }}"
           ARTIFACT_NAME="${{ steps.parse.outputs.artifact_name }}"
           BRANCH_NAME="somas/${PROJECT_ID}"
-          
+
           # Switch to project branch
           git fetch origin
           git checkout "${BRANCH_NAME}" || git checkout -b "${BRANCH_NAME}"
-          
+
           # Create artifacts directory
           mkdir -p "projects/${PROJECT_ID}/artifacts"
           mkdir -p "projects/${PROJECT_ID}/logs"
-          
+
           # Parse and save artifacts from comment
           YAML_BLOCKS='${{ steps.parse.outputs.yaml_blocks }}'
           MD_BLOCKS='${{ steps.parse.outputs.md_blocks }}'
-          
+
           # Save YAML artifacts with validation
           if [ "$ARTIFACT_NAME" = "initial_plan.yml" ] || [ "$ARTIFACT_NAME" = "execution_plan.yml" ]; then
             YAML_CONTENT=$(echo "${YAML_BLOCKS}" | jq -r '.[0]' 2>/dev/null)
@@ -440,9 +443,10 @@ jobs:
               echo "::warning::No valid YAML block found for ${ARTIFACT_NAME}"
             fi
           fi
-          
+
           # Save Markdown artifacts with validation
           if [ "$ARTIFACT_NAME" = "SPEC.md" ] || [ "$ARTIFACT_NAME" = "ARCHITECTURE.md" ] || [ "$ARTIFACT_NAME" = "review_report.md" ]; then
+          if [ "$ARTIFACT_NAME" = "SPEC.md" ] || [ "$ARTIFACT_NAME" = "ARCHITECTURE.md" ] || [ "$ARTIFACT_NAME" = "review_report.md" ] || [ "$ARTIFACT_NAME" = "security_scan.md" ]; then
             MD_CONTENT=$(echo "${MD_BLOCKS}" | jq -r '.[0]' 2>/dev/null)
             if [ -n "$MD_CONTENT" ] && [ "$MD_CONTENT" != "null" ]; then
               echo "${MD_CONTENT}" > "projects/${PROJECT_ID}/artifacts/${ARTIFACT_NAME}"
@@ -450,11 +454,11 @@ jobs:
               echo "::warning::No valid Markdown block found for ${ARTIFACT_NAME}"
             fi
           fi
-          
+
           # Save log entry
           echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) - ${AGENT_NAME} completed - ${ARTIFACT_NAME} saved" \
             >> "projects/${PROJECT_ID}/logs/${AGENT_NAME}.log"
-          
+
           # Update metadata
           cat > "projects/${PROJECT_ID}/metadata.json" << EOF
           {
@@ -467,21 +471,21 @@ jobs:
             "status": "in_progress"
           }
           EOF
-      
+
       - name: Commit Artifacts
         if: steps.parse.outputs.skip != 'true'
         run: |
           PROJECT_ID="${{ steps.parse.outputs.project_id }}"
           AGENT_NAME="${{ steps.parse.outputs.agent_name }}"
           BRANCH_NAME="somas/${PROJECT_ID}"
-          
+
           git config user.name "SOMAS Bot"
           git config user.email "somas-bot@users.noreply.github.com"
-          
+
           git add "projects/${PROJECT_ID}/"
           git commit -m "[${PROJECT_ID}] ${AGENT_NAME} stage complete" || echo "No changes to commit"
           git push origin "${BRANCH_NAME}"
-      
+
       - name: Circuit Breaker Check
         id: circuit_check
         if: steps.parse.outputs.skip != 'true' && steps.parse.outputs.next_agent != 'complete'
@@ -493,15 +497,15 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.issue.number
             });
-            
+
             // Count agent invocations
-            const invocations = comments.data.filter(c => 
-              c.body.includes('@copilot somas-') && 
+            const invocations = comments.data.filter(c =>
+              c.body.includes('@copilot somas-') &&
               !['copilot[bot]', 'Copilot'].includes(c.user.login)
             ).length;
-            
+
             const MAX_INVOCATIONS = 20;
-            
+
             if (invocations >= MAX_INVOCATIONS) {
               // Trip circuit breaker
               await github.rest.issues.createComment({
@@ -509,33 +513,33 @@ jobs:
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
                 body: \`## ⚠️ Circuit Breaker Triggered
-                
+
                 <!-- SOMAS_CIRCUIT_BREAKER:max_invocations -->
-                
+
                 **Reason:** Maximum agent invocations (\${MAX_INVOCATIONS}) reached
                 **Issue:** #\${context.issue.number}
-                
+
                 @scotlaclair - Human intervention required.
-                
+
                 The autonomous pipeline has been paused to prevent runaway automation.
                 Please review the situation and manually continue if appropriate.
-                
+
                 **To resume:** Remove the \\\`somas:circuit-breaker\\\` label after addressing the issue.\`
               });
-              
+
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
                 labels: ['somas:circuit-breaker']
               });
-              
+
               core.setOutput('tripped', 'true');
               return;
             }
-            
+
             core.setOutput('tripped', 'false');
-      
+
       - name: Invoke Next Agent
         if: steps.parse.outputs.skip != 'true' && steps.parse.outputs.next_agent != 'complete' && steps.circuit_check.outputs.tripped != 'true'
         uses: actions/github-script@v7
@@ -545,48 +549,48 @@ jobs:
             const nextStage = '${{ steps.parse.outputs.next_stage }}';
             const projectId = '${{ steps.parse.outputs.project_id }}';
             const lastArtifact = '${{ steps.parse.outputs.artifact_name }}';
-            
+
             // Define agent invocation prompts
             const invocations = {
               // Stage 2: DESIGN (Specify)
               specifier: `@copilot somas-specifier
 
               Create complete specification document (SPEC.md) based on the initial plan above.
-              
+
               **Stage:** 2/11 - DESIGN (Specify)
               **Input:** \`initial_plan.yml\` from planner
-              
+
               **Required Output Format:**
               \`\`\`markdown
               # Project Specification
-              
+
               ## Executive Summary
               ...
-              
+
               ## Functional Requirements
               ### REQ-F-001: ...
               ...
-              
+
               ## Complete Task Breakdown
               - TASK-001: ...
               ...
               \`\`\`
-              
+
               Include:
               - All functional requirements (REQ-F-XXX)
               - All non-functional requirements (REQ-NF-XXX)
               - Complete task breakdown (100% enumeration, <5 min per task)
               - Task dependency graph
               - Acceptance criteria per task`,
-              
+
               // Stage 3: GRID (Plan)
               simulator: `@copilot somas-simulator
 
               Perform Monte Carlo simulation and create optimized execution plan based on SPEC.md above.
-              
+
               **Stage:** 3/11 - GRID (Plan)
               **Input:** \`SPEC.md\` from specifier
-              
+
               **Required Output Format:**
               \`\`\`yaml
               # execution_plan.yml
@@ -604,15 +608,15 @@ jobs:
                   risk_level: "high"
                   mitigation: "..."
               \`\`\``,
-              
+
               // Stage 4: LINE (Decompose)
               decomposer: `@copilot somas-decomposer
 
               Break down the execution plan into atomic, parallelizable tasks.
-              
+
               **Stage:** 4/11 - LINE (Decompose)
               **Input:** \`execution_plan.yml\` from simulator
-              
+
               **Required Output Format:**
               \`\`\`yaml
               # task_decomposition.yml
@@ -623,64 +627,64 @@ jobs:
                   estimated_minutes: 5
                   parallelizable: true
               \`\`\``,
-              
+
               // Stage 5: MCP (Implement) - Legacy architect support
               architect: `@copilot somas-architect
 
               Design system architecture based on specification and execution plan above.
-              
+
               **Stage:** 4/11 - Architecture (Legacy)
               **Inputs:** \`SPEC.md\`, \`execution_plan.yml\`
-              
+
               **Required Output Format:**
               \`\`\`markdown
               # System Architecture
-              
+
               ## System Overview
               ...
-              
+
               ## Components
               ### Component: API Server
               - Responsibilities: ...
               - Technology: ...
               - Interfaces: ...
-              
+
               ## Data Flow
               ...
-              
+
               ## Implementation Guidance
               ...
               \`\`\``,
-              
+
               // Stage 5: MCP (Implement)
               implementer: `@copilot somas-implementer
 
               Implement the system based on decomposed tasks using single-shot protocol.
-              
+
               **Stage:** 5/11 - MCP (Implement)
               **Inputs:** \`task_decomposition.yml\`, \`SPEC.md\`, \`execution_plan.yml\`
-              
+
               **Single-Shot Protocol:**
               1. Analysis phase - understand all requirements
               2. Design phase - plan before coding
               3. Implementation phase - write complete code in one pass
               4. Verification phase - self-check against requirements
-              
+
               **Output:** Complete working code with tests in markdown code blocks`,
-              
+
               // Stage 6: PULSE (Verify)
               validator: `@copilot somas-validator
 
               Validate implementation against requirements and create test suite.
-              
+
               **Stage:** 6/11 - PULSE (Verify)
               **Input:** Implementation code and SPEC.md
-              
+
               **Required Output:**
               - Unit tests (80%+ coverage)
               - Integration tests
               - Test results in JSON format
-              
+
               \`\`\`json
               {
                 "test_results": {
@@ -691,21 +695,21 @@ jobs:
                 }
               }
               \`\`\``,
-              
+
               // Stage 6: PULSE (Verify) - Legacy tester
               tester: `@copilot somas-tester
 
               Create comprehensive test suite and hardening report.
-              
-              **Stage:** 6/11 - PULSE (Verify) / 8/11 - OVERLOAD (Harden)
+
+              **Stage:** 6/11 - PULSE (Verify)
               **Input:** Implementation code and SPEC.md
-              
+
               **Required Output:**
               - Unit tests (80%+ coverage)
               - Integration tests
               - Stress test results
               - Security scan results
-              
+
               \`\`\`json
               {
                 "test_results": {
@@ -716,33 +720,50 @@ jobs:
                 }
               }
               \`\`\``,
-              
+
+              // Stage 6: PULSE (Verify) - Security
+              security: `@copilot somas-security
+
+              Perform security vulnerability scan on the implementation.
+
+              **Stage:** 6/11 - PULSE (Verify - Security)
+              **Input:** Implementation code and SPEC.md
+
+              **Required Output:**
+              \`\`\`markdown
+              # Security Scan Report
+
+              ## Vulnerabilities
+              - Critical: 0
+              - High: 0
+              \`\`\``,
+
               // Stage 7: SYNAPSE (Integrate)
               merger: `@copilot somas-merger
 
               Integrate code changes and resolve any conflicts.
-              
+
               **Stage:** 7/11 - SYNAPSE (Integrate)
               **Input:** Validated code from pulse stage
-              
+
               **Output:**
               \`\`\`markdown
               # Integration Report
-              
+
               ## Merge Status
               - Files merged: X
               - Conflicts resolved: Y
               - Integration tests: PASS/FAIL
               \`\`\``,
-              
+
               // Stage 10: VIBE (Operate)
               operator: `@copilot somas-operator
 
               Monitor operational metrics and SLO compliance.
-              
+
               **Stage:** 10/11 - VIBE (Operate)
               **Input:** Deployed system metrics
-              
+
               **Output:**
               \`\`\`yaml
               operations_report:
@@ -752,78 +773,79 @@ jobs:
                 metrics:
                   requests_per_second: 1000
               \`\`\``,
-              
+
               // Stage 11: WHOLE (Learn)
               analyzer: `@copilot somas-analyzer
 
               Analyze pipeline execution and generate insights for future improvements.
-              
+
               **Stage:** 11/11 - WHOLE (Learn)
               **Input:** All pipeline artifacts and metrics
-              
+
               **Output:**
               \`\`\`markdown
               # Analysis Report
-              
+
               ## Pipeline Metrics
               - Total duration: X hours
               - Efficiency score: Y/10
-              
+
               ## Lessons Learned
               1. ...
               2. ...
-              
+
               ## Recommendations
               - ...
               \`\`\``,
-              
+
               // Legacy reviewer support
               reviewer: `@copilot somas-reviewer
 
               Perform code review of implementation above.
-              
+
               **Review Focus:**
               - Code quality and standards
               - Test coverage
               - Security issues
               - Performance concerns
-              
+
               **Output:**
               \`\`\`markdown
               # Code Review Report
-              
+
               ## Summary
               - Overall Score: X/10
               - Issues Found: X
-              
+
               ## Issues
               1. **High Priority:** ...
               2. **Medium Priority:** ...
-              
+
               ## Recommendations
               ...
               \`\`\`
-              
+
               If review passes (score >= 8), pipeline will complete.
+              If review passes (score >= 8), proceed to integration stage.
               If review fails, implementer will be re-invoked.`
             };
-            
+
             const invocationText = invocations[nextAgent] || `@copilot somas-${nextAgent}\n\nProceed with ${nextStage} stage.`;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: `✅ **Stage Complete:** ${' ${{ steps.parse.outputs.agent_name }}'.toUpperCase()}
-              
+
               **Artifact Saved:** \`${lastArtifact}\`
               **Next Stage:** ${nextStage}
-              
+
               ---
-              
+
               ${invocationText}`
             });
-      
+
       - name: Complete Pipeline
         if: steps.parse.outputs.skip != 'true' && steps.parse.outputs.next_agent == 'complete'
         uses: actions/github-script@v7
@@ -831,7 +853,7 @@ jobs:
           script: |
             const projectId = '${{ steps.parse.outputs.project_id }}';
             const branchName = `somas/${projectId}`;
-            
+
             // Create PR
             try {
               const pr = await github.rest.pulls.create({
@@ -839,10 +861,10 @@ jobs:
                 repo: context.repo.repo,
                 title: `[${projectId}] Autonomous Implementation`,
                 body: `## Autonomous SOMAS Pipeline Complete
-                
+
                 **Project:** ${projectId}
                 **Issue:** #${context.issue.number}
-                
+
                 All stages completed successfully:
                 ✅ Ideation
                 ✅ Specification
@@ -851,7 +873,23 @@ jobs:
                 ✅ Implementation
                 ✅ Validation
                 ✅ Review
-                
+
+                ## SOMAS Agent Assignments
+
+                - [x] @copilot somas-planner
+                - [x] @copilot somas-specifier
+                - [x] @copilot somas-simulator
+                - [x] @copilot somas-decomposer
+                - [x] @copilot somas-implementer
+                - [x] @copilot somas-validator
+                - [x] @copilot somas-security
+                - [x] @copilot somas-reviewer
+                - [x] @copilot somas-merger
+                - [x] @copilot somas-tester
+                - [x] @copilot somas-deployer
+                - [x] @copilot somas-operator
+                - [x] @copilot somas-analyzer
+
                 **Artifacts:**
                 - \`initial_plan.yml\`
                 - \`SPEC.md\`
@@ -860,12 +898,12 @@ jobs:
                 - Implementation code
                 - Test suite
                 - Review report
-                
+
                 **Auto-merge:** Enabled (dev environment)`,
                 head: branchName,
-                base: 'main'
+                base: 'dev'
               });
-              
+
               // Enable auto-merge (waits for required checks)
               // Note: This requires branch protection rules to be configured
               try {
@@ -877,7 +915,7 @@ jobs:
               } catch (error) {
                 core.info('Branch update not needed or not available');
               }
-              
+
               // Set auto-merge to wait for checks
               // If no branch protection, this will merge immediately
               await github.rest.pulls.merge({
@@ -886,22 +924,22 @@ jobs:
                 pull_number: pr.data.number,
                 merge_method: 'squash'
               });
-              
+
               // Post completion comment
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
                 body: `🎉 **SOMAS Pipeline Complete!**
-                
+
                 **PR Created:** #${pr.data.number}
-                **Status:** Auto-merged to main
-                
+                **Status:** Auto-merged to dev
+
                 The autonomous pipeline has successfully completed all stages with zero human intervention.
-                
+
                 Review the PR for detailed artifacts and implementation.`
               });
-              
+
             } catch (error) {
               core.setFailed(\`Failed to create PR: \${error.message}\`);
             }

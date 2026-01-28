@@ -13,11 +13,13 @@ To enable **true autonomous operation**, you need to create a **Fine-grained Per
 ## Why This Matters
 
 Without a PAT, SOMAS cannot:
+
 - Automatically trigger the next stage workflow after completing one
 - Create issues or PRs that trigger workflow automations
 - Perform operations that require your user-level permissions
 
 With a PAT, SOMAS gains full autonomous capability to:
+
 - Execute the entire 7-stage pipeline without manual intervention
 - Create issues/PRs that trigger other workflows
 - Act with your permissions for protected operations
@@ -36,9 +38,11 @@ With a PAT, SOMAS gains full autonomous capability to:
 This token name is just for your reference in GitHub and does **not** need to match the repository secret name. Later, when you add this token as a GitHub secret, be sure to name the secret **exactly** `SOMAS_PAT`.
 
 **Repository access:** Select "Only select repositories"
+
 - Choose: `scotlaclair/SOMAS`
 
 **Permissions:**
+
 ```
 Repository Permissions:
   - Contents: Read and write
@@ -50,6 +54,7 @@ Repository Permissions:
 ```
 
 **Expiration:** Choose based on your preference
+
 - 90 days (recommended for testing)
 - 1 year (for production use)
 - No expiration (requires admin privileges, use cautiously)
@@ -70,11 +75,12 @@ Repository Permissions:
    - **Value:** Paste the token you copied
 5. Click **"Add secret"**
 
-### 5. Update Workflows (Future Enhancement)
+### 5. Workflow Configuration
 
-The SOMAS workflows are currently designed to work with both `GITHUB_TOKEN` and `SOMAS_PAT`. While the workflows in this repository haven't been updated yet to use the `SOMAS_PAT || GITHUB_TOKEN` pattern, setting up the PAT now prepares the system for future autonomous workflow triggering capabilities.
+The SOMAS workflows are designed to work with `SOMAS_PAT` to enable autonomous execution and cascading workflow triggers.
 
-**Future workflow pattern:**
+**Workflow pattern:**
+
 ```yaml
 - uses: actions/checkout@v4
   with:
@@ -82,6 +88,7 @@ The SOMAS workflows are currently designed to work with both `GITHUB_TOKEN` and 
 ```
 
 This pattern ensures:
+
 - Uses `SOMAS_PAT` when available (autonomous mode with workflow triggering)
 - Falls back to `GITHUB_TOKEN` if not configured (standard mode)
 
@@ -97,6 +104,7 @@ After setup, verify the token works:
 4. Check that stages automatically trigger each other
 
 You should see:
+
 - ✅ Workflows triggering subsequent workflows
 - ✅ PRs created with your username (not "github-actions[bot]")
 - ✅ No manual approval required for stage transitions
@@ -104,6 +112,7 @@ You should see:
 ## Security Best Practices
 
 ### Token Security
+
 - ✅ Use Fine-grained tokens (not Classic tokens)
 - ✅ Limit to single repository
 - ✅ Use minimum required permissions
@@ -113,12 +122,14 @@ You should see:
 - ❌ Never share tokens
 
 ### Access Control
+
 - Only grant to repositories you fully control
 - Review token permissions quarterly
 - Revoke unused tokens immediately
 - Monitor token usage in audit log
 
 ### If Token is Compromised
+
 1. Go to Settings → Developer settings → Personal access tokens
 2. Find the compromised token
 3. Click **"Revoke"** immediately
@@ -133,6 +144,7 @@ You should see:
 **Problem:** Workflows still can't trigger each other
 
 **Solutions:**
+
 1. Verify token name is exactly `SOMAS_PAT` (case-sensitive)
 2. Check token hasn't expired
 3. Confirm all required permissions are granted
@@ -143,6 +155,7 @@ You should see:
 **Problem:** "Resource not accessible by integration"
 
 **Solutions:**
+
 1. Check token has required permission (Contents, Issues, PRs, Workflows)
 2. Verify repository access is granted
 3. Ensure token hasn't been revoked
@@ -153,6 +166,7 @@ You should see:
 **Problem:** PRs still show "github-actions[bot]"
 
 **Solutions:**
+
 1. Check workflows are using `${{ secrets.SOMAS_PAT }}`
 2. Verify secret is correctly named `SOMAS_PAT`
 3. Restart failed workflow runs to pick up new token
