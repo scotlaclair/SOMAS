@@ -45,10 +45,11 @@ jobs:
           git config --global user.email "somas-bot@users.noreply.github.com"
 
           BRANCH_NAME="somas/$PROJECT_ID"
-          git fetch origin
-          if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
-            echo "Branch exists remotely, checking out..."
-            git checkout -B "$BRANCH_NAME" "origin/$BRANCH_NAME"
+          # Use ls-remote to check existence on server directly
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
+            echo "Branch exists remotely, fetching and checking out..."
+            git fetch origin "$BRANCH_NAME:$BRANCH_NAME"
+            git checkout "$BRANCH_NAME"
           else
             echo "Creating new branch $BRANCH_NAME..."
             git checkout -b "$BRANCH_NAME"
