@@ -45,17 +45,25 @@ jobs:
           git config --global user.email "somas-bot@users.noreply.github.com"
 
           BRANCH_NAME="somas/$PROJECT_ID"
-          git checkout -b "$BRANCH_NAME"
+          git fetch origin
+          if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
+            echo "Branch exists remotely, checking out..."
+            git checkout -B "$BRANCH_NAME" "origin/$BRANCH_NAME"
+          else
+            echo "Creating new branch $BRANCH_NAME..."
+            git checkout -b "$BRANCH_NAME"
+          fi
 
       - name: Initialize Pipeline
         env:
           GITHUB_TOKEN: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
           PROJECT_ID: "project-${{ github.event.issue.number }}"
         run: |
           echo "Starting autonomous pipeline for Issue #$ISSUE_NUMBER"
           # Initialize project structure and metadata
-          python3 -c "from somas.core.state_manager import StateManager; StateManager().initialize_project('project-${ISSUE_NUMBER}', ${ISSUE_NUMBER}, '${{ github.event.issue.title }}')"
+          python3 -c "import os; from somas.core.state_manager import StateManager; StateManager().initialize_project(os.environ['PROJECT_ID'], int(os.environ['ISSUE_NUMBER']), os.environ['ISSUE_TITLE'])"
 
       - name: Save Issue Context
         env:

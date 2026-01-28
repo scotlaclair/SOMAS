@@ -26,10 +26,20 @@ jobs:
     if: |
       github.event_name == 'issues' &&
       !contains(github.event.issue.labels.*.name, 'somas:circuit-breaker') &&
-      (contains(github.event.issue.labels.*.name, 'somas:change') ||
-       contains(github.event.issue.labels.*.name, 'somas:enhance') ||
-       contains(github.event.issue.labels.*.name, 'somas:question') ||
-       contains(github.event.issue.labels.*.name, 'somas:bug')) &&
+      (
+        (github.event.action == 'opened' && (
+          contains(github.event.issue.labels.*.name, 'somas:change') ||
+          contains(github.event.issue.labels.*.name, 'somas:enhance') ||
+          contains(github.event.issue.labels.*.name, 'somas:question') ||
+          contains(github.event.issue.labels.*.name, 'somas:bug')
+        )) ||
+        (github.event.action == 'labeled' && (
+          github.event.label.name == 'somas:change' ||
+          github.event.label.name == 'somas:enhance' ||
+          github.event.label.name == 'somas:question' ||
+          github.event.label.name == 'somas:bug'
+        ))
+      ) &&
       !contains(github.event.issue.labels.*.name, 'somas:triaged')
     runs-on: ubuntu-latest
     steps:
