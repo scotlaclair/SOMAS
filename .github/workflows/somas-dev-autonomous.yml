@@ -45,10 +45,11 @@ jobs:
           git config --global user.email "somas-bot@users.noreply.github.com"
 
           BRANCH_NAME="somas/$PROJECT_ID"
-          git fetch origin
-          if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
-            echo "Branch exists remotely, checking out..."
-            git checkout -B "$BRANCH_NAME" "origin/$BRANCH_NAME"
+          # Use ls-remote to check existence on server directly
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
+            echo "Branch exists remotely, fetching and checking out..."
+            git fetch origin "$BRANCH_NAME:$BRANCH_NAME"
+            git checkout "$BRANCH_NAME"
           else
             echo "Creating new branch $BRANCH_NAME..."
             git checkout -b "$BRANCH_NAME"
@@ -113,28 +114,28 @@ jobs:
 
                 All stages completed successfully.
 
-                ## SOMAS Pipeline Stages & Agent Assignments
+                ## SOMAS Agent Assignments
 
                 ### Phase 1: Signal & Design
-                - [x] Stage 1: @copilot somas-planner
-                - [x] Stage 2: @copilot somas-specifier
-                - [x] Stage 3: @copilot somas-simulator
-                - [x] Stage 4: @copilot somas-decomposer
+                - [ ] Stage 1: @copilot somas-planner
+                - [ ] Stage 2: @copilot somas-specifier
+                - [ ] Stage 3: @copilot somas-simulator
+                - [ ] Stage 4: @copilot somas-decomposer
 
                 ### Phase 2: Implementation & Validation
-                - [x] Stage 5: @copilot somas-implementer
-                - [x] Stage 6: @copilot somas-validator
-                - [x] Stage 6: @copilot somas-tester
-                - [x] Stage 6: @copilot somas-security
-                - [x] Stage 6: @copilot somas-reviewer
+                - [ ] Stage 5: @copilot somas-implementer
+                - [ ] Stage 6: @copilot somas-validator
+                - [ ] Stage 6: @copilot somas-tester
+                - [ ] Stage 6: @copilot somas-security
+                - [ ] Stage 6: @copilot somas-reviewer
 
                 ### Phase 3: Integration & Release
-                - [x] Stage 7: @copilot somas-merger
-                - [x] Stage 9: @copilot somas-deployer
+                - [ ] Stage 7: @copilot somas-merger
+                - [ ] Stage 9: @copilot somas-deployer
 
                 ### Phase 4: Operations & Learning
-                - [x] Stage 10: @copilot somas-operator
-                - [x] Stage 11: @copilot somas-analyzer
+                - [ ] Stage 10: @copilot somas-operator
+                - [ ] Stage 11: @copilot somas-analyzer
 
                 **Artifacts:**
                 - \`initial_plan.yml\`
@@ -150,13 +151,9 @@ jobs:
                 base: 'dev'
               });
 
-              // Enable auto-merge
-              await github.rest.pulls.merge({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.data.number,
-                merge_method: 'squash'
-              });
+              core.info(`✓ PR #${pr.data.number} created successfully`);
+              core.info('Auto-merge will be handled by PR Checklist Completion Detector workflow');
+              core.info('Agents must review and check off items before auto-merge is enabled');
 
             } catch (error) {
               // Handle case where branch is already up to date
