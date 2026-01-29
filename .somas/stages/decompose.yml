@@ -1,0 +1,46 @@
+# Stage 4: DECOMPOSE - Break into atomic tasks
+decompose:
+  id: "decompose"
+  order: 4
+  code_name: "DECOMPOSE"
+  objective: "Break architecture into atomic, parallelizable implementation tasks"
+
+  inputs:
+    - "docs/specs/ISSUE-{id}.md (from specify)"
+    - "docs/arch/ISSUE-{id}-design.md (from plan)"
+    - "docs/plans/ISSUE-{id}-plan.json (from plan)"
+
+  outputs:
+    - artifact: "task_list"
+      location: "Issue body (as checkbox list)"
+      format: "markdown_tasklist"
+    - artifact: "docs/tasks/ISSUE-{id}-tasks.yml"
+      contents:
+        - "atomic_tasks"
+        - "dependencies"
+        - "estimated_minutes"
+        - "parallelizable_groups"
+
+  agents:
+    primary: "decomposer"
+
+  quality_gates:
+    - "All tasks are atomic (< 4 hours each)"
+    - "Each task has clear acceptance criteria"
+    - "Dependencies explicitly mapped"
+    - "No circular dependencies"
+    - "100% coverage of requirements"
+
+  exit_criteria:
+    success_label: "somas:stage:05-implement"
+    failure_label: "somas:status:decompose-failed"
+
+  human_gate: false
+  auto_proceed: true
+  timeout_hours: 4
+
+  notes: |
+    The Decompose stage breaks the plan into actionable tasks.
+    Each task should be completable in under 4 hours.
+    Tasks are added as checkboxes to the Issue body.
+    Clicking a checkbox triggers implementation of that task.

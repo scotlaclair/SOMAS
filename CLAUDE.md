@@ -4,7 +4,7 @@ This document provides context for AI assistants working with the SOMAS (Self-So
 
 ## Project Overview
 
-SOMAS is an AI-first Software Development Life Cycle (SDLC) that orchestrates specialized AI agents to autonomously build production-ready software. It features an 11-stage neurology-inspired pipeline with 15+ specialized AI agents powered by 2026 Frontier Tier models.
+SOMAS is an AI-first Software Development Life Cycle (SDLC) that orchestrates specialized AI agents to autonomously build production-ready software. It features an 11-stage Aether Lifecycle pipeline with 20 specialized AI agents powered by 2026 Frontier Tier models.
 
 **Key Concepts:**
 
@@ -86,21 +86,21 @@ pip install -r requirements.txt
 ./scripts/setup-labels.sh
 ```
 
-## Pipeline Stages (11-Stage Architecture)
+## Pipeline Stages (11-Stage Aether Lifecycle)
 
 | # | Code | Stage | Description | Agent |
 |---|------|-------|-------------|-------|
-| 1 | SIGNAL | Intake | Catch initial request | planner |
-| 2 | DESIGN | Specify | Expand into requirements | specifier |
-| 3 | GRID | Plan | Map components & strategy | simulator |
-| 4 | LINE | Decompose | Break into atomic tasks | decomposer |
-| 5 | MCP | Implement | Generate code | coder |
-| 6 | PULSE | Verify | Run tests | validator |
-| 7 | SYNAPSE | Integrate | Connect & merge | merger |
-| 8 | OVERLOAD | Harden | Stress test & document | tester |
-| 9 | VELOCITY | Release | Deploy at speed | deployer |
-| 10 | VIBE | Operate | Monitor SLOs | operator |
-| 11 | WHOLE | Learn | Analyze & loop back | analyzer |
+| 1 | INTAKE | Intake | Catch initial request | triage, advisor |
+| 2 | SPECIFY | Specify | Expand into requirements | specifier, requirements |
+| 3 | PLAN | Plan | Map components & strategy | planner, architect |
+| 4 | DECOMPOSE | Decompose | Break into atomic tasks | decomposer |
+| 5 | IMPLEMENT | Implement | Generate code | implementer, copilot |
+| 6 | VERIFY | Verify | Run tests | tester, debugger |
+| 7 | INTEGRATE | Integrate | Connect & merge | merger, validator |
+| 8 | HARDEN | Harden | Security scanning & audits | security |
+| 9 | RELEASE | Release | Deploy at speed | deployer |
+| 10 | OPERATE | Operate | Monitor SLOs | operator |
+| 11 | ANALYZE | Analyze | Metrics & documentation | analyzer, documenter |
 
 ## Code Conventions
 

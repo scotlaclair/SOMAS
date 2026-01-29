@@ -92,7 +92,7 @@ copilot:
       - Update progress against plan
       
       **Collaborate with Validator (Gemini):**
-      - Prepare code for validation stage
+      - Prepare code for verify stage
       - Include all necessary tests
       - Provide documentation for test scenarios
       

@@ -551,7 +551,7 @@ apo:
 
 ## Usage Examples
 
-### Example 1: Specification Stage
+### Example 1: Specify Stage
 
 **Task**: Create specification for user authentication feature
 
@@ -618,7 +618,7 @@ Synthesis: Secure foundation with extensibility points
 ✓ Confidence: high
 ```
 
-### Example 2: Architecture Stage
+### Example 2: Decompose Stage
 
 **Task**: Design microservices architecture
 

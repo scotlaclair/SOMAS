@@ -88,25 +88,25 @@ All use color 🔵 BFDADC except `state:complete` which uses C5DEF5.
 
 **Note:** These labels are defined now for future label-driven state machine transitions. Workflows can reference them once state machine features are implemented.
 
-### Stage Labels - 11-Stage Neurology-Inspired Pipeline
+### Stage Labels - 11-Stage Aether Lifecycle
 
 | Label | Description | Color | Used By | Status |
 |-------|-------------|-------|---------|--------|
 | `stage:*` (11 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml, sync-stage-milestones.yml | ✅ Active |
 
-Track the current pipeline stage (Energy, Frequency, Vibration, Sound):
+Track the current pipeline stage:
 
-- `stage:signal` - Stage 1: SIGNAL (Intake) - Catch the initial request
-- `stage:design` - Stage 2: DESIGN (Specify) - Expand into requirements
-- `stage:grid` - Stage 3: GRID (Plan) - Map components & strategy
-- `stage:line` - Stage 4: LINE (Decompose) - Break into atomic tasks
-- `stage:mcp` - Stage 5: MCP (Implement) - Generate code via AI agents
-- `stage:pulse` - Stage 6: PULSE (Verify) - Run tests, check heartbeat
-- `stage:synapse` - Stage 7: SYNAPSE (Integrate) - Connect & merge
-- `stage:overload` - Stage 8: OVERLOAD (Harden) - Stress test & document
-- `stage:velocity` - Stage 9: VELOCITY (Release) - Deploy at speed
-- `stage:vibe` - Stage 10: VIBE (Operate) - Monitor SLOs
-- `stage:whole` - Stage 11: WHOLE (Learn) - Analyze & loop back
+- `stage:intake` - Stage 1: INTAKE - Ingest issues and route requests
+- `stage:specify` - Stage 2: SPECIFY - Convert intent into specifications
+- `stage:plan` - Stage 3: PLAN - Design architecture and task graph
+- `stage:decompose` - Stage 4: DECOMPOSE - Break into atomic tasks
+- `stage:implement` - Stage 5: IMPLEMENT - Generate code and tests
+- `stage:verify` - Stage 6: VERIFY - Run tests and self-heal
+- `stage:integrate` - Stage 7: INTEGRATE - Merge and validate contracts
+- `stage:harden` - Stage 8: HARDEN - Security scanning and audits
+- `stage:release` - Stage 9: RELEASE - Package and deploy artifacts
+- `stage:operate` - Stage 10: OPERATE - Health checks and monitoring
+- `stage:analyze` - Stage 11: ANALYZE - Metrics and documentation
 
 All use color 🔴 E99695.
 
@@ -210,19 +210,19 @@ Uses these labels:
 
 ### sync-stage-milestones.yml
 
-Automatically creates and assigns milestones based on the 11-stage neurology-inspired pipeline labels:
+Automatically creates and assigns milestones based on the 11-stage Aether Lifecycle labels:
 
-- `stage:signal` → Creates/assigns "SIGNAL (Intake)" milestone
-- `stage:design` → Creates/assigns "DESIGN (Specify)" milestone
-- `stage:grid` → Creates/assigns "GRID (Plan)" milestone
-- `stage:line` → Creates/assigns "LINE (Decompose)" milestone
-- `stage:mcp` → Creates/assigns "MCP (Implement)" milestone
-- `stage:pulse` → Creates/assigns "PULSE (Verify)" milestone
-- `stage:synapse` → Creates/assigns "SYNAPSE (Integrate)" milestone
-- `stage:overload` → Creates/assigns "OVERLOAD (Harden)" milestone
-- `stage:velocity` → Creates/assigns "VELOCITY (Release)" milestone
-- `stage:vibe` → Creates/assigns "VIBE (Operate)" milestone
-- `stage:whole` → Creates/assigns "WHOLE (Learn)" milestone
+- `stage:intake` → Creates/assigns "INTAKE" milestone
+- `stage:specify` → Creates/assigns "SPECIFY" milestone
+- `stage:plan` → Creates/assigns "PLAN" milestone
+- `stage:decompose` → Creates/assigns "DECOMPOSE" milestone
+- `stage:implement` → Creates/assigns "IMPLEMENT" milestone
+- `stage:verify` → Creates/assigns "VERIFY" milestone
+- `stage:integrate` → Creates/assigns "INTEGRATE" milestone
+- `stage:harden` → Creates/assigns "HARDEN" milestone
+- `stage:release` → Creates/assigns "RELEASE" milestone
+- `stage:operate` → Creates/assigns "OPERATE" milestone
+- `stage:analyze` → Creates/assigns "ANALYZE" milestone
 
 **Features:**
 

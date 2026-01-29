@@ -133,9 +133,9 @@ These words are now in `flag_patterns` instead, meaning they'll be flagged for h
 
 ### Simulation & Optimization Issues
 
-#### Issue: Simulation stage takes too long
+#### Issue: Plan stage takes too long
 **Symptom:**
-Simulation stage runs for more than expected, consuming pipeline time.
+Plan stage runs for more than expected, consuming pipeline time.
 
 **Cause:** High iteration count or complex task graphs.
 

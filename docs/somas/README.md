@@ -76,12 +76,12 @@ Human approves and merges
    - Only escalates to human after retries exhausted
 
 5. **Release & Human Review**
-   - Stage 9 (VELOCITY) creates pull request with all artifacts
+   - Stage 9 (RELEASE) creates pull request with all artifacts
    - Human reviews generated code (ONLY human touchpoint)
    - Approves and merges when ready
 
 6. **Learning Loop**
-   - Stage 11 (WHOLE) analyzes entire pipeline execution
+   - Stage 11 (ANALYZE) analyzes entire pipeline execution
    - Extracts lessons learned and optimization opportunities
    - Updates knowledge base for continuous improvement
 

@@ -846,10 +846,10 @@ stage-N-example:
         state_manager = StateManager()
         state_manager.start_stage(
             project_id=project_id,
-            stage="specification",  # Change per stage
+            stage="specify",  # Change per stage
             agent="specifier"       # Change per stage
         )
-        print(f"Started specification stage for {project_id}")
+        print(f"Started specify stage for {project_id}")
         PYTHON
     
     # ... Agent invocation and artifact generation ...
@@ -867,11 +867,11 @@ stage-N-example:
         state_manager = StateManager()
         state_manager.complete_stage(
             project_id=project_id,
-            stage="specification",
+            stage="specify",
             artifacts=["artifacts/SPEC.md"],
             create_checkpoint=True
         )
-        print(f"Completed specification stage for {project_id}")
+        print(f"Completed specify stage for {project_id}")
         PYTHON
     
     - name: Record Stage Failure
@@ -887,7 +887,7 @@ stage-N-example:
         state_manager = StateManager()
         state_manager.fail_stage(
             project_id=project_id,
-            stage="specification",
+            stage="specify",
             agent="specifier",
             error={"type": "WorkflowError", "message": "Stage failed"},
             create_dead_letter=True
@@ -901,7 +901,7 @@ stage-N-example:
         
         if git status --porcelain .somas/projects/ | grep . >/dev/null; then
           git add .somas/projects/
-          git commit -m "Update state for specification stage"
+          git commit -m "Update state for specify stage"
           git push
         fi
 ```
@@ -910,7 +910,7 @@ stage-N-example:
 
 Applying state tracking to all pipeline stages provides:
 
-1. **Consistent Recovery**: Resume from any stage after failure, not just ideation
+1. **Consistent Recovery**: Resume from any stage after failure, not just intake
 2. **Complete Audit Trail**: Full execution history for compliance and debugging
 3. **Performance Metrics**: Stage duration tracking enables optimization
 4. **Failure Analysis**: Dead letters for every stage enable systematic debugging

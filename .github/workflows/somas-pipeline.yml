@@ -1,20 +1,20 @@
 # @copilot-context: SOMAS main pipeline workflow
-# This workflow orchestrates the 11-stage Neurology-inspired AI development pipeline
-# Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
+# This workflow orchestrates the 11-stage Aether Lifecycle AI development pipeline
+# Autonomous, self-healing SOMAS with specialized AI agents
 # Each stage is handled by specialized AI agents (Claude, GPT, Gemini, Grok)
 #
-# GitHub Copilot Custom Agents (11-Stage Pipeline):
-#   - @copilot somas-planner (Stage 1: SIGNAL - Intake)
-#   - @copilot somas-specifier (Stage 2: DESIGN - Specify)
-#   - @copilot somas-simulator (Stage 3: GRID - Plan)
-#   - @copilot somas-decomposer (Stage 4: LINE - Decompose)
-#   - @copilot somas-implementer / somas-coder (Stage 5: MCP - Implement)
-#   - @copilot somas-validator (Stage 6: PULSE - Verify)
-#   - @copilot somas-merger (Stage 7: SYNAPSE - Integrate)
-#   - @copilot somas-tester (Stage 8: OVERLOAD - Harden)
-#   - @copilot somas-deployer (Stage 9: VELOCITY - Release)
-#   - @copilot somas-operator (Stage 10: VIBE - Operate)
-#   - @copilot somas-analyzer (Stage 11: WHOLE - Learn)
+# GitHub Copilot Custom Agents (11-Stage Aether Lifecycle):
+#   - @copilot somas-triage, somas-advisor (Stage 1: INTAKE)
+#   - @copilot somas-specifier (Stage 2: SPECIFY)
+#   - @copilot somas-planner, somas-architect, somas-simulator (Stage 3: PLAN)
+#   - @copilot somas-decomposer (Stage 4: DECOMPOSE)
+#   - @copilot somas-implementer, somas-copilot (Stage 5: IMPLEMENT)
+#   - @copilot somas-tester, somas-debugger (Stage 6: VERIFY)
+#   - @copilot somas-merger, somas-validator (Stage 7: INTEGRATE)
+#   - @copilot somas-security (Stage 8: HARDEN)
+#   - @copilot somas-deployer (Stage 9: RELEASE)
+#   - @copilot somas-operator (Stage 10: OPERATE)
+#   - @copilot somas-analyzer, somas-documenter (Stage 11: ANALYZE)
 #
 # Support Agents:
 #   - @copilot somas-security (Security scanning)
@@ -42,17 +42,17 @@ on:
         type: choice
         options:
           - all
-          - signal
-          - design
-          - grid
-          - line
-          - mcp
-          - pulse
-          - synapse
-          - overload
-          - velocity
-          - vibe
-          - whole
+          - intake
+          - specify
+          - plan
+          - decompose
+          - implement
+          - verify
+          - integrate
+          - harden
+          - release
+          - operate
+          - analyze
 
 permissions:
   contents: write
@@ -165,7 +165,7 @@ jobs:
             echo "No changes to commit"
           fi
 
-  stage-1-ideation:
+  stage-1-intake:
     # Agent Assignment: @copilot somas-requirements
     # Responsible for: Extracting and structuring requirements from issue
     # Output: requirements_analysis.md in project artifacts
@@ -174,7 +174,7 @@ jobs:
     needs: [initialize-pipeline]
     if: |
       (github.event_name == 'issues' || github.event_name == 'workflow_dispatch') &&
-      (needs.initialize-pipeline.result == 'success' || github.event.inputs.stage == 'ideation' || github.event.inputs.stage == 'all')
+      (needs.initialize-pipeline.result == 'success' || github.event.inputs.stage == 'intake' || github.event.inputs.stage == 'all')
 
     steps:
       - name: Checkout repository
@@ -191,7 +191,7 @@ jobs:
       - name: Install Dependencies
         run: pip install filelock pyyaml
 
-      - name: Start Ideation Stage
+      - name: Start Intake Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
         run: |
@@ -207,16 +207,16 @@ jobs:
             '' \
             'state_manager.start_stage(' \
             '    project_id=project_id,' \
-            '    stage="ideation",' \
-            '    agent="planner"' \
+            '    stage="intake",' \
+            '    agent="triage"' \
             ')' \
-            'print(f"Started ideation stage for {project_id}")' \
+            'print(f"Started intake stage for {project_id}")' \
             > /tmp/start_stage.py
 
           python3 /tmp/start_stage.py
 
-      - name: Run Ideation Stage
-        # Invoke @copilot somas-requirements agent via issue comment
+      - name: Run Intake Stage
+        # Invoke @copilot somas-triage and somas-advisor agents via issue comment
         uses: actions/github-script@v7
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -226,13 +226,13 @@ jobs:
 
             // Create issue comment to invoke agent
             const body = [
-              '## 🎯 Stage 1: Ideation Started',
+              '## 🎯 Stage 1: Intake Started',
               '',
-              '**Agent:** @somas-planner',
+              '**Agents:** @somas-triage, @somas-advisor',
               `**Project ID:** ${projectId}`,
               `**Output:** \`.somas/projects/${projectId}/artifacts/initial_plan.md\``,
               '',
-              'Please analyze the requirements in this issue and create an initial plan, extracting:',
+              'Analyzing the incoming request and creating an initial plan:',
               '- Core requirements and objectives',
               '- Project scope and constraints',
               '- High-level implementation approach',
@@ -265,13 +265,13 @@ jobs:
 
           if [ -f "$ARTIFACT_PATH" ]; then
             echo "artifact_ready=true" >> $GITHUB_OUTPUT
-            echo "✅ Ideation artifact generated"
+            echo "✅ Intake artifact generated"
           else
             echo "artifact_ready=false" >> $GITHUB_OUTPUT
             echo "::warning::Artifact not generated within timeout, proceeding anyway"
           fi
 
-      - name: Complete Ideation Stage
+      - name: Complete Intake Stage
         if: steps.wait_artifact.outputs.artifact_ready == 'true'
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -288,11 +288,11 @@ jobs:
             '' \
             'state_manager.complete_stage(' \
             '    project_id=project_id,' \
-            '    stage="ideation",' \
+            '    stage="intake",' \
             '    artifacts=["artifacts/initial_plan.md"],' \
             '    create_checkpoint=True' \
             ')' \
-            'print(f"Completed ideation stage for {project_id}")' \
+            'print(f"Completed intake stage for {project_id}")' \
             > /tmp/complete_stage.py
 
           python3 /tmp/complete_stage.py
@@ -319,12 +319,12 @@ jobs:
             '' \
             'state_manager.fail_stage(' \
             '    project_id=project_id,' \
-            '    stage="ideation",' \
-            '    agent="planner",' \
+            '    stage="intake",' \
+            '    agent="triage",' \
             '    error=error,' \
             '    create_dead_letter=True' \
             ')' \
-            'print(f"Recorded failure for ideation stage in {project_id}")' \
+            'print(f"Recorded failure for intake stage in {project_id}")' \
             > /tmp/fail_stage.py
 
           python3 /tmp/fail_stage.py
@@ -337,20 +337,20 @@ jobs:
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
-            git commit -m "Update state for ideation stage"
+            git commit -m "Update state for intake stage"
             git push
           fi
 
-  stage-2-specification:
+  stage-2-specify:
     # Agent Assignment: Codex Specifier (primary)
     # Supporting: @copilot somas-requirements (provides structured input)
     # Responsible for: Creating complete, unambiguous SPEC.md
     # Output: SPEC.md with all requirements documented
     runs-on: ubuntu-latest
-    needs: [initialize-pipeline, stage-1-ideation]
+    needs: [initialize-pipeline, stage-1-intake]
     if: |
       always() &&
-      (needs.stage-1-ideation.result == 'success' || github.event.inputs.stage == 'specification' || github.event.inputs.stage == 'all')
+      (needs.stage-1-intake.result == 'success' || github.event.inputs.stage == 'specify' || github.event.inputs.stage == 'all')
 
     steps:
       - name: Checkout repository
@@ -367,7 +367,7 @@ jobs:
       - name: Install Dependencies
         run: pip install filelock pyyaml
 
-      - name: Start Specification Stage
+      - name: Start Specify Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
         run: |
@@ -383,15 +383,15 @@ jobs:
             '' \
             'state_manager.start_stage(' \
             '    project_id=project_id,' \
-            '    stage="specification",' \
+            '    stage="specify",' \
             '    agent="specifier"' \
             ')' \
-            'print(f"Started specification stage for {project_id}")' \
+            'print(f"Started specify stage for {project_id}")' \
             > /tmp/start_stage.py
 
           python3 /tmp/start_stage.py
 
-      - name: Run Specification Stage
+      - name: Run Specify Stage
         # Invoke Specifier agent via issue comment
         uses: actions/github-script@v7
         env:
@@ -402,7 +402,7 @@ jobs:
 
             // Create issue comment to invoke agent
             const body = [
-              '## 📋 Stage 2: Specification Started',
+              '## 📋 Stage 2: Specify Started',
               '',
               '**Agent:** @somas-specifier',
               `**Project ID:** ${projectId}`,
@@ -455,13 +455,13 @@ jobs:
 
           if [ -f "$ARTIFACT_PATH" ]; then
             echo "artifact_ready=true" >> $GITHUB_OUTPUT
-            echo "✅ Specification artifact generated"
+            echo "✅ Specify artifact generated"
           else
             echo "artifact_ready=false" >> $GITHUB_OUTPUT
             echo "::warning::Artifact not generated within timeout, proceeding anyway"
           fi
 
-      - name: Complete Specification Stage
+      - name: Complete Specify Stage
         if: steps.wait_artifact.outputs.artifact_ready == 'true'
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -478,11 +478,11 @@ jobs:
             '' \
             'state_manager.complete_stage(' \
             '    project_id=project_id,' \
-            '    stage="specification",' \
+            '    stage="specify",' \
             '    artifacts=["artifacts/SPEC.md"],' \
             '    create_checkpoint=True' \
             ')' \
-            'print(f"Completed specification stage for {project_id}")' \
+            'print(f"Completed specify stage for {project_id}")' \
             > /tmp/complete_stage.py
 
           python3 /tmp/complete_stage.py
@@ -509,12 +509,12 @@ jobs:
             '' \
             'state_manager.fail_stage(' \
             '    project_id=project_id,' \
-            '    stage="specification",' \
+            '    stage="specify",' \
             '    agent="specifier",' \
             '    error=error,' \
             '    create_dead_letter=True' \
             ')' \
-            'print(f"Recorded failure for specification stage in {project_id}")' \
+            'print(f"Recorded failure for specify stage in {project_id}")' \
             > /tmp/fail_stage.py
 
           python3 /tmp/fail_stage.py
@@ -527,7 +527,7 @@ jobs:
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
-            git commit -m "Update state for specification stage"
+            git commit -m "Update state for specify stage"
             git push
           fi
 
@@ -542,19 +542,19 @@ jobs:
               client_payload: {
                 project_id: '${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}',
                 action: 'update',
-                stage: 'specification'
+                stage: 'specify'
               }
             });
 
-  stage-3-simulation:
+  stage-3-plan:
     # Agent Assignment: Codex Simulator
     # Responsible for: Monte Carlo simulation for optimal task execution
     # Output: execution_plan.yml with optimized task sequence
     runs-on: ubuntu-latest
-    needs: [initialize-pipeline, stage-2-specification]
+    needs: [initialize-pipeline, stage-2-specify]
     if: |
       always() &&
-      (needs.stage-2-specification.result == 'success' || github.event.inputs.stage == 'simulation' || github.event.inputs.stage == 'all')
+      (needs.stage-2-specify.result == 'success' || github.event.inputs.stage == 'plan' || github.event.inputs.stage == 'all')
 
     steps:
       - name: Checkout repository
@@ -571,7 +571,7 @@ jobs:
       - name: Install Dependencies
         run: pip install filelock pyyaml
 
-      - name: Start Simulation Stage
+      - name: Start Plan Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
         run: |
@@ -587,15 +587,15 @@ jobs:
             '' \
             'state_manager.start_stage(' \
             '    project_id=project_id,' \
-            '    stage="simulation",' \
+            '    stage="plan",' \
             '    agent="simulator"' \
             ')' \
-            'print(f"Started simulation stage for {project_id}")' \
+            'print(f"Started plan stage for {project_id}")' \
             > /tmp/start_stage.py
 
           python3 /tmp/start_stage.py
 
-      - name: Run Simulation Stage
+      - name: Run Plan Stage
         # Invoke Simulator agent via issue comment
         uses: actions/github-script@v7
         env:
@@ -609,7 +609,7 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
               body: [
-                '## 🔬 Stage 3: Simulation Started',
+                '## 🔬 Stage 3: Plan Started',
                 '',
                 '**Agent:** @somas-simulator',
                 `**Project ID:** ${projectId}`,
@@ -636,7 +636,7 @@ jobs:
           TIMEOUT=600  # 10 minutes
           ELAPSED=0
 
-          # Simulation artifact generation
+          # Plan artifact generation
           ARTIFACT_DIR=".somas/projects/${PROJECT_ID}/artifacts"
           PLAN_OUTPUT="${ARTIFACT_DIR}/execution_plan.yml"
 
@@ -710,9 +710,9 @@ jobs:
           	PLANEOF
 
           echo "Generated execution plan at ${PLAN_OUTPUT}"
-          echo "Stage 3: Simulation completed"
+          echo "Stage 3: Plan completed"
 
-      - name: Complete Simulation Stage
+      - name: Complete Plan Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
         run: |
@@ -728,11 +728,11 @@ jobs:
             '' \
             'state_manager.complete_stage(' \
             '    project_id=project_id,' \
-            '    stage="simulation",' \
+            '    stage="plan",' \
             '    artifacts=["artifacts/execution_plan.yml"],' \
             '    create_checkpoint=True' \
             ')' \
-            'print(f"Completed simulation stage for {project_id}")' \
+            'print(f"Completed plan stage for {project_id}")' \
             > /tmp/complete_stage.py
 
           python3 /tmp/complete_stage.py
@@ -754,17 +754,17 @@ jobs:
             '' \
             'error = {' \
             '    "type": "WorkflowError",' \
-            '    "message": "Simulation stage failed"' \
+            '    "message": "Plan stage failed"' \
             '}' \
             '' \
             'state_manager.fail_stage(' \
             '    project_id=project_id,' \
-            '    stage="simulation",' \
+            '    stage="plan",' \
             '    agent="simulator",' \
             '    error=error,' \
             '    create_dead_letter=True' \
             ')' \
-            'print(f"Recorded failure for simulation stage in {project_id}")' \
+            'print(f"Recorded failure for plan stage in {project_id}")' \
             > /tmp/fail_stage.py
 
           python3 /tmp/fail_stage.py
@@ -777,7 +777,7 @@ jobs:
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
-            git commit -m "Update state for simulation stage"
+            git commit -m "Update state for plan stage"
             git push
           fi
 
@@ -792,19 +792,19 @@ jobs:
               client_payload: {
                 project_id: '${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}',
                 action: 'update',
-                stage: 'simulation'
+                stage: 'plan'
               }
             });
 
-  stage-4-architecture:
+  stage-4-decompose:
     # Agent Assignment: @copilot somas-architect + Codex Architect
     # Responsible for: System architecture, component design, API specs
     # Output: ARCHITECTURE.md, api_specs.yml, data_models.yml, ADRs
     runs-on: ubuntu-latest
-    needs: [initialize-pipeline, stage-3-simulation]
+    needs: [initialize-pipeline, stage-3-plan]
     if: |
       always() &&
-      (needs.stage-3-simulation.result == 'success' || github.event.inputs.stage == 'architecture' || github.event.inputs.stage == 'all')
+      (needs.stage-3-plan.result == 'success' || github.event.inputs.stage == 'decompose' || github.event.inputs.stage == 'all')
 
     steps:
       - name: Checkout repository
@@ -823,7 +823,7 @@ jobs:
       - name: Install Dependencies
         run: pip install filelock pyyaml
 
-      - name: Start Architecture Stage
+      - name: Start Decompose Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
         run: |
@@ -839,15 +839,15 @@ jobs:
             '' \
             'state_manager.start_stage(' \
             '    project_id=project_id,' \
-            '    stage="architecture",' \
+            '    stage="decompose",' \
             '    agent="architect"' \
             ')' \
-            'print(f"Started architecture stage for {project_id}")' \
+            'print(f"Started decompose stage for {project_id}")' \
             > /tmp/start_stage.py
 
           python3 /tmp/start_stage.py
 
-      - name: Run Architecture Stage
+      - name: Run Decompose Stage
         # Invoke Architect agents via issue comment
         uses: actions/github-script@v7
         env:
@@ -861,7 +861,7 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
               body: [
-                '## 🏗️ Stage 4: Architecture Started',
+                '## 🏗️ Stage 4: Decompose Started',
                 '',
                 '**Agent:** @somas-architect',
                 `**Project ID:** ${projectId}`,
@@ -902,13 +902,13 @@ jobs:
 
           if [ -f "$ARTIFACT_PATH" ]; then
             echo "artifact_ready=true" >> $GITHUB_OUTPUT
-            echo "✅ Architecture artifact generated"
+            echo "✅ Decompose artifact generated"
           else
             echo "artifact_ready=false" >> $GITHUB_OUTPUT
             echo "::warning::Artifact not generated within timeout, proceeding anyway"
           fi
 
-      - name: Complete Architecture Stage
+      - name: Complete Decompose Stage
         if: steps.wait_artifact.outputs.artifact_ready == 'true'
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -925,11 +925,11 @@ jobs:
             '' \
             'state_manager.complete_stage(' \
             '    project_id=project_id,' \
-            '    stage="architecture",' \
+            '    stage="decompose",' \
             '    artifacts=["artifacts/ARCHITECTURE.md"],' \
             '    create_checkpoint=True' \
             ')' \
-            'print(f"Completed architecture stage for {project_id}")' \
+            'print(f"Completed decompose stage for {project_id}")' \
             > /tmp/complete_stage.py
 
           python3 /tmp/complete_stage.py
@@ -956,12 +956,12 @@ jobs:
             '' \
             'state_manager.fail_stage(' \
             '    project_id=project_id,' \
-            '    stage="architecture",' \
+            '    stage="decompose",' \
             '    agent="architect",' \
             '    error=error,' \
             '    create_dead_letter=True' \
             ')' \
-            'print(f"Recorded failure for architecture stage in {project_id}")' \
+            'print(f"Recorded failure for decompose stage in {project_id}")' \
             > /tmp/fail_stage.py
 
           python3 /tmp/fail_stage.py
@@ -974,19 +974,19 @@ jobs:
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
-            git commit -m "Update state for architecture stage"
+            git commit -m "Update state for decompose stage"
             git push
           fi
 
-  stage-4-b-dispatch:
+  stage-4-decompose-dispatch:
     # Dynamic Task Matrix Generation
     # Reads execution_plan.yml from simulation and extracts parallel tasks
     # Outputs a JSON matrix for dynamic parallel job execution
     runs-on: ubuntu-latest
-    needs: [initialize-pipeline, stage-4-architecture]
+    needs: [initialize-pipeline, stage-4-decompose]
     if: |
       always() &&
-      (needs.stage-4-architecture.result == 'success' || github.event.inputs.stage == 'implementation' || github.event.inputs.stage == 'all')
+      (needs.stage-4-decompose.result == 'success' || github.event.inputs.stage == 'implement' || github.event.inputs.stage == 'all')
     outputs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
       has_tasks: ${{ steps.generate-matrix.outputs.has_tasks }}
@@ -1118,14 +1118,14 @@ jobs:
           echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
           echo "has_tasks=true" >> $GITHUB_OUTPUT
 
-  stage-5-a-start:
-    # Start implementation stage once before matrix execution
+  stage-5-implement-start:
+    # Start implement stage once before matrix execution
     runs-on: ubuntu-latest
-    needs: [initialize-pipeline, stage-4-b-dispatch]
+    needs: [initialize-pipeline, stage-4-decompose-dispatch]
     if: |
       always() &&
-      needs.stage-4-b-dispatch.result == 'success' &&
-      needs.stage-4-b-dispatch.outputs.has_tasks == 'true'
+      needs.stage-4-decompose-dispatch.result == 'success' &&
+      needs.stage-4-decompose-dispatch.outputs.has_tasks == 'true'
 
     steps:
       - name: Checkout repository
@@ -1142,7 +1142,7 @@ jobs:
       - name: Install Dependencies
         run: pip install filelock pyyaml
 
-      - name: Start Implementation Stage
+      - name: Start Implement Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
         run: |
@@ -1158,10 +1158,10 @@ jobs:
             '' \
             'state_manager.start_stage(' \
             '    project_id=project_id,' \
-            '    stage="implementation",' \
+            '    stage="implement",' \
             '    agent="implementer"' \
             ')' \
-            'print(f"Started implementation stage for {project_id}")' \
+            'print(f"Started implement stage for {project_id}")' \
             > /tmp/start_stage.py
 
           python3 /tmp/start_stage.py
@@ -1174,11 +1174,11 @@ jobs:
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
-            git commit -m "Start implementation stage"
+            git commit -m "Start implement stage"
             git push
           fi
 
-  stage-5-implementation:
+  stage-5-implement:
     # Agent Assignment: @copilot somas-implementer + Codex Coder
     # Supporting Agents:
     #   - @copilot somas-tester: Creates comprehensive test suites
@@ -1192,13 +1192,13 @@ jobs:
     # This job uses a matrix strategy driven by the simulation's execution_plan.yml
     # Tasks run in parallel based on the optimized task graph from Monte Carlo simulation
     runs-on: ubuntu-latest
-    needs: [initialize-pipeline, stage-4-b-dispatch, stage-5-a-start]
+    needs: [initialize-pipeline, stage-4-decompose-dispatch, stage-5-implement-start]
     if: |
       always() &&
-      needs.stage-5-a-start.result == 'success'
+      needs.stage-5-implement-start.result == 'success'
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.stage-4-b-dispatch.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.stage-4-decompose-dispatch.outputs.matrix) }}
 
     steps:
       - name: Checkout repository
@@ -1243,7 +1243,7 @@ jobs:
           for context_file in "${SPEC_FILE}" "${ARCH_FILE}" "${PLAN_FILE}"; do
             if [ ! -f "${context_file}" ]; then
               echo "ERROR: Required context file not found: ${context_file}"
-              echo "Ensure that specification, simulation, and architecture stages have completed successfully for project ${PROJECT_ID}."
+              echo "Ensure that specify, plan, and decompose stages have completed successfully for project ${PROJECT_ID}."
               exit 1
             fi
           done
@@ -1280,10 +1280,10 @@ jobs:
             echo "No changes to commit for task ${{ matrix.task_id }}"
           fi
 
-  stage-5-b-complete:
+  stage-5-implement-complete:
     # Complete implementation stage after all tasks finish
     runs-on: ubuntu-latest
-    needs: [initialize-pipeline, stage-5-implementation]
+    needs: [initialize-pipeline, stage-5-implement]
     if: always()
 
     steps:
@@ -1309,8 +1309,8 @@ jobs:
           git config user.email "somas-bot@users.noreply.github.com"
           git pull --rebase origin ${{ github.ref_name }} || true
 
-      - name: Complete Implementation Stage
-        if: needs.stage-5-implementation.result == 'success'
+      - name: Complete Implement Stage
+        if: needs.stage-5-implement.result == 'success'
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
         run: |
@@ -1326,17 +1326,17 @@ jobs:
             '' \
             'state_manager.complete_stage(' \
             '    project_id=project_id,' \
-            '    stage="implementation",' \
+            '    stage="implement",' \
             '    artifacts=["artifacts/tasks/"],' \
             '    create_checkpoint=True' \
             ')' \
-            'print(f"Completed implementation stage for {project_id}")' \
+            'print(f"Completed implement stage for {project_id}")' \
             > /tmp/complete_stage.py
 
           python3 /tmp/complete_stage.py
 
       - name: Record Stage Failure
-        if: needs.stage-5-implementation.result != 'success'
+        if: needs.stage-5-implement.result != 'success'
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id || format('project-{0}', github.event.issue.number) }}
         run: |
@@ -1352,17 +1352,17 @@ jobs:
             '' \
             'error = {' \
             '    "type": "WorkflowError",' \
-            '    "message": "Implementation stage failed"' \
+            '    "message": "Implement stage failed"' \
             '}' \
             '' \
             'state_manager.fail_stage(' \
             '    project_id=project_id,' \
-            '    stage="implementation",' \
+            '    stage="implement",' \
             '    agent="implementer",' \
             '    error=error,' \
             '    create_dead_letter=True' \
             ')' \
-            'print(f"Recorded failure for implementation stage in {project_id}")' \
+            'print(f"Recorded failure for implement stage in {project_id}")' \
             > /tmp/fail_stage.py
 
           python3 /tmp/fail_stage.py
@@ -1375,11 +1375,11 @@ jobs:
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
-            git commit -m "Update state for implementation stage"
+            git commit -m "Update state for implement stage"
             git push
           fi
 
-  stage-6-validation:
+  stage-6-verify:
     # Agent Assignment: Gemini Validator (primary)
     # Supporting Agents:
     #   - @copilot somas-reviewer: Pre-validation code review
@@ -1389,10 +1389,10 @@ jobs:
     # Responsible for: Independent quality verification and validation
     # Output: Validation report, test results, security scan results
     runs-on: ubuntu-latest
-    needs: [initialize-pipeline, stage-5-b-complete]
+    needs: [initialize-pipeline, stage-5-implement-complete]
     if: |
       always() &&
-      (needs.stage-5-b-complete.result == 'success' || github.event.inputs.stage == 'validation' || github.event.inputs.stage == 'all')
+      (needs.stage-5-implement-complete.result == 'success' || github.event.inputs.stage == 'verify' || github.event.inputs.stage == 'all')
 
     steps:
       - name: Checkout repository
@@ -1410,7 +1410,7 @@ jobs:
       - name: Install Dependencies
         run: pip install filelock pyyaml
 
-      - name: Start Validation Stage
+      - name: Start Verify Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
         run: |
@@ -1426,10 +1426,10 @@ jobs:
             '' \
             'state_manager.start_stage(' \
             '    project_id=project_id,' \
-            '    stage="validation",' \
+            '    stage="verify",' \
             '    agent="tester"' \
             ')' \
-            'print(f"Started validation stage for {project_id}")' \
+            'print(f"Started verify stage for {project_id}")' \
             > /tmp/start_stage.py
 
           python3 /tmp/start_stage.py
@@ -1525,7 +1525,7 @@ jobs:
                   `**Project ID:** ${projectId}`,
                   '**Status:** Validation failures could not be automatically resolved',
                   '',
-                  'Please review the validation reports and fix issues manually, then re-run the validation stage.'
+                  'Please review the verify reports and fix issues manually, then re-run the verify stage.'
                 ].join('\n')
               });
 
@@ -1541,12 +1541,12 @@ jobs:
                   `All quality gates met on attempt ${attempt}/${maxRetries}`,
                   '',
                   `**Project ID:** ${projectId}`,
-                  '**Status:** Ready for staging'
+                  '**Status:** Ready for integration'
                 ].join('\n')
               });
             }
 
-      - name: Complete Validation Stage
+      - name: Complete Verify Stage
         if: steps.validate.outcome == 'success'
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -1563,11 +1563,11 @@ jobs:
             '' \
             'state_manager.complete_stage(' \
             '    project_id=project_id,' \
-            '    stage="validation",' \
+            '    stage="verify",' \
             '    artifacts=["artifacts/test_results.json"],' \
             '    create_checkpoint=True' \
             ')' \
-            'print(f"Completed validation stage for {project_id}")' \
+            'print(f"Completed verify stage for {project_id}")' \
             > /tmp/complete_stage.py
 
           python3 /tmp/complete_stage.py
@@ -1589,17 +1589,17 @@ jobs:
             '' \
             'error = {' \
             '    "type": "ValidationError",' \
-            '    "message": "Validation stage failed"' \
+            '    "message": "Verify stage failed"' \
             '}' \
             '' \
             'state_manager.fail_stage(' \
             '    project_id=project_id,' \
-            '    stage="validation",' \
+            '    stage="verify",' \
             '    agent="tester",' \
             '    error=error,' \
             '    create_dead_letter=True' \
             ')' \
-            'print(f"Recorded failure for validation stage in {project_id}")' \
+            'print(f"Recorded failure for verify stage in {project_id}")' \
             > /tmp/fail_stage.py
 
           python3 /tmp/fail_stage.py
@@ -1612,11 +1612,11 @@ jobs:
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
-            git commit -m "Update state for validation stage"
+            git commit -m "Update state for verify stage"
             git push
           fi
 
-  stage-7-staging:
+  stage-7-integrate:
     # Agent Assignment: @copilot somas-merger + Codex Deployer
     # Supporting Agents:
     #   - @copilot somas-orchestrator: Final pipeline coordination
@@ -1624,10 +1624,10 @@ jobs:
     # Responsible for: Merge preparation and deployment staging
     # Output: Clean merge, deployment documentation, ready for human approval
     runs-on: ubuntu-latest
-    needs: [initialize-pipeline, stage-6-validation]
+    needs: [initialize-pipeline, stage-6-verify]
     if: |
       always() &&
-      (needs.stage-6-validation.result == 'success' || github.event.inputs.stage == 'staging' || github.event.inputs.stage == 'all')
+      (needs.stage-6-verify.result == 'success' || github.event.inputs.stage == 'integrate' || github.event.inputs.stage == 'all')
 
     steps:
       - name: Checkout repository
@@ -1654,7 +1654,7 @@ jobs:
       - name: Install Dependencies
         run: pip install filelock pyyaml
 
-      - name: Start Staging Stage
+      - name: Start Integrate Stage
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
         run: |
@@ -1670,16 +1670,16 @@ jobs:
             '' \
             'state_manager.start_stage(' \
             '    project_id=project_id,' \
-            '    stage="staging",' \
+            '    stage="integrate",' \
             '    agent="merger"' \
             ')' \
-            'print(f"Started staging stage for {project_id}")' \
+            'print(f"Started integrate stage for {project_id}")' \
             > /tmp/start_stage.py
 
           python3 /tmp/start_stage.py
 
-      - name: Run Staging Stage
-        # Invoke staging agents via issue comment
+      - name: Run Integrate Stage
+        # Invoke integrate agents via issue comment
         uses: actions/github-script@v7
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -1694,7 +1694,7 @@ jobs:
               repo: context.repo.repo,
               issue_number: issueNumber,
               body: [
-                '## 📝 Stage 7: Staging Started',
+                '## 📝 Stage 7: Integrate Started',
                 '',
                 '**Agents:**',
                 '- **@somas-merger** - Prepare for merge and resolve any conflicts',
@@ -1754,12 +1754,12 @@ jobs:
                   '',
                   '### 🔍 Validation',
                   'All 6 autonomous stages completed successfully:',
-                  '1. ✅ Ideation - Requirements analyzed and planned',
-                  '2. ✅ Specification - Complete SPEC.md generated',
-                  '3. ✅ Simulation - Optimal task sequence determined',
-                  '4. ✅ Architecture - System design completed',
-                  '5. ✅ Implementation - Code and tests generated',
-                  '6. ✅ Validation - Quality gates verified',
+                  '1. ✅ Intake - Request analyzed and planned',
+                  '2. ✅ Specify - Complete SPEC.md generated',
+                  '3. ✅ Plan - Optimal task sequence determined',
+                  '4. ✅ Decompose - System design completed',
+                  '5. ✅ Implement - Code and tests generated',
+                  '6. ✅ Verify - Quality gates verified',
                   '',
                   '### 👤 Human Action Required',
                   '**Review:** @scotlaclair Please review the generated artifacts and code, then approve and merge when ready.',
@@ -1821,7 +1821,7 @@ jobs:
               });
             }
 
-      - name: Complete Staging Stage
+      - name: Complete Integrate Stage
         if: steps.create_pr.outcome == 'success'
         env:
           PROJECT_ID: ${{ needs.initialize-pipeline.outputs.project_id || github.event.inputs.project_id }}
@@ -1838,11 +1838,11 @@ jobs:
             '' \
             'state_manager.complete_stage(' \
             '    project_id=project_id,' \
-            '    stage="staging",' \
+            '    stage="integrate",' \
             '    artifacts=["artifacts/pr_summary.md"],' \
             '    create_checkpoint=True' \
             ')' \
-            'print(f"Completed staging stage for {project_id}")' \
+            'print(f"Completed integrate stage for {project_id}")' \
             > /tmp/complete_stage.py
 
           python3 /tmp/complete_stage.py
@@ -1864,17 +1864,17 @@ jobs:
             '' \
             'error = {' \
             '    "type": "WorkflowError",' \
-            '    "message": "Staging stage failed"' \
+            '    "message": "Integrate stage failed"' \
             '}' \
             '' \
             'state_manager.fail_stage(' \
             '    project_id=project_id,' \
-            '    stage="staging",' \
+            '    stage="integrate",' \
             '    agent="merger",' \
             '    error=error,' \
             '    create_dead_letter=True' \
             ')' \
-            'print(f"Recorded failure for staging stage in {project_id}")' \
+            'print(f"Recorded failure for integrate stage in {project_id}")' \
             > /tmp/fail_stage.py
 
           python3 /tmp/fail_stage.py
@@ -1887,7 +1887,7 @@ jobs:
           # Check if there are state changes to commit
           if git status --porcelain .somas/projects/ | grep . >/dev/null; then
             git add .somas/projects/
-            git commit -m "Update state for staging stage"
+            git commit -m "Update state for integrate stage"
             git push
           fi
 
@@ -1907,7 +1907,7 @@ jobs:
 
   record-metrics:
     runs-on: ubuntu-latest
-    needs: [stage-7-staging]
+    needs: [stage-7-integrate]
     if: always()
 
     steps:
@@ -1925,13 +1925,13 @@ jobs:
             "project_id": "${PROJECT_ID}",
             "completed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "stages": {
-              "ideation": "${{ needs.stage-1-ideation.result }}",
-              "specification": "${{ needs.stage-2-specification.result }}",
-              "simulation": "${{ needs.stage-3-simulation.result }}",
-              "architecture": "${{ needs.stage-4-architecture.result }}",
-              "implementation": "${{ needs.stage-5-implementation.result }}",
-              "validation": "${{ needs.stage-6-validation.result }}",
-              "staging": "${{ needs.stage-7-staging.result }}"
+              "intake": "${{ needs.stage-1-intake.result }}",
+              "specify": "${{ needs.stage-2-specify.result }}",
+              "plan": "${{ needs.stage-3-plan.result }}",
+              "decompose": "${{ needs.stage-4-decompose.result }}",
+              "implement": "${{ needs.stage-5-implement.result }}",
+              "verify": "${{ needs.stage-6-verify.result }}",
+              "integrate": "${{ needs.stage-7-integrate.result }}"
             }
           }
           EOF

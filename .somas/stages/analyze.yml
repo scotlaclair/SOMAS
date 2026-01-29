@@ -1,0 +1,70 @@
+# Stage 11: ANALYZE - Metrics and documentation
+analyze:
+  id: "analyze"
+  order: 11
+  code_name: "ANALYZE"
+  objective: "Analyze pipeline execution and update documentation"
+
+  inputs:
+    - "All stage artifacts"
+    - "Pipeline execution metrics"
+    - "Issue comments and history"
+    - "Git commit history"
+
+  outputs:
+    - artifact: "analysis_report.md"
+      sections:
+        - "Pipeline Metrics"
+        - "Time Analysis"
+        - "Quality Metrics"
+        - "Lessons Learned"
+        - "Recommendations"
+    - artifact: "metrics.json"
+      contents:
+        - "total_duration"
+        - "stage_durations"
+        - "retry_counts"
+        - "efficiency_score"
+    - artifact: "CHANGELOG.md update"
+    - artifact: "Documentation updates"
+
+  agents:
+    primary: "analyzer"
+    secondary: "documenter"
+
+  analysis_areas:
+    - area: "performance"
+      metrics:
+        - "Time to completion"
+        - "Stage bottlenecks"
+        - "Retry frequency"
+    - area: "quality"
+      metrics:
+        - "Test coverage"
+        - "Bug density"
+        - "Technical debt"
+    - area: "process"
+      metrics:
+        - "Gate pass rates"
+        - "Human interventions"
+        - "Automation efficiency"
+
+  quality_gates:
+    - "Metrics collected and logged"
+    - "Lessons learned documented"
+    - "Knowledge base updated"
+    - "Issue closed with summary"
+
+  exit_criteria:
+    success_label: "somas:status:completed"
+    failure_label: "somas:status:meta-fail"
+
+  human_gate: false
+  auto_proceed: true
+  timeout_hours: 4
+
+  notes: |
+    The Analyze stage closes the feedback loop.
+    Analyzer agent computes metrics and identifies improvements.
+    Documenter agent updates knowledge base and changelogs.
+    Insights feed into APO (Autonomous Prompt Optimization).

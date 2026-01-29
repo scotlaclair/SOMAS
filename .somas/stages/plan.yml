@@ -1,0 +1,58 @@
+# Stage 3: PLAN - Design architecture and task graph
+plan:
+  id: "plan"
+  order: 3
+  code_name: "PLAN"
+  objective: "Design system architecture, run simulations, and create execution plan"
+
+  inputs:
+    - "docs/specs/ISSUE-{id}.md (from specify)"
+    - "triage_report.json (from intake)"
+
+  outputs:
+    - artifact: "docs/arch/ISSUE-{id}-design.md"
+      sections:
+        - "System Overview"
+        - "Architecture Style"
+        - "Component Architecture"
+        - "Data Architecture"
+        - "API Design"
+        - "Security Architecture"
+        - "Technology Stack"
+        - "ADRs (Architectural Decision Records)"
+    - artifact: "docs/plans/ISSUE-{id}-plan.json"
+      contents:
+        - "simulation_results"
+        - "critical_path"
+        - "parallel_phases"
+        - "high_risk_tasks"
+        - "dependencies"
+
+  agents:
+    primary: "planner"
+    secondary:
+      - "architect"
+      - "simulator"
+
+  quality_gates:
+    - "Architecture design valid and complete"
+    - "All components defined with responsibilities"
+    - "Simulation probability > 80%"
+    - "DAG is acyclic (no circular dependencies)"
+    - "Technology choices justified"
+
+  exit_criteria:
+    success_label: "somas:stage:04-decompose"
+    failure_label: "somas:status:plan-failed"
+
+  feedback_loop_enabled: true
+  max_feedback_iterations: 3
+  human_gate: false
+  auto_proceed: true
+  timeout_hours: 8
+
+  notes: |
+    The Plan stage creates the blueprint for implementation.
+    Architect designs system structure and components.
+    Simulator runs Monte Carlo simulations for risk assessment.
+    Planner creates the execution DAG with dependencies.

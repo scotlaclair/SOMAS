@@ -89,53 +89,52 @@
   color: "C5DEF5"
 
 # ============================================================================
-# STAGE LABELS - 11-Stage Neurology-Inspired Pipeline
+# STAGE LABELS - 11-Stage Aether Lifecycle
 # Track which pipeline stage is currently active
-# Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
 # ============================================================================
 
-- name: "stage:signal"
-  description: "Stage 1: SIGNAL (Intake) - Catch the initial request"
+- name: "stage:intake"
+  description: "Stage 1: INTAKE - Ingest issues and route requests"
   color: "E99695"
 
-- name: "stage:design"
-  description: "Stage 2: DESIGN (Specify) - Expand into requirements"
+- name: "stage:specify"
+  description: "Stage 2: SPECIFY - Convert intent into specifications"
   color: "E99695"
 
-- name: "stage:grid"
-  description: "Stage 3: GRID (Plan) - Map components & strategy"
+- name: "stage:plan"
+  description: "Stage 3: PLAN - Design architecture and task graph"
   color: "E99695"
 
-- name: "stage:line"
-  description: "Stage 4: LINE (Decompose) - Break into atomic tasks"
+- name: "stage:decompose"
+  description: "Stage 4: DECOMPOSE - Break into atomic tasks"
   color: "E99695"
 
-- name: "stage:mcp"
-  description: "Stage 5: MCP (Implement) - Generate code via AI agents"
+- name: "stage:implement"
+  description: "Stage 5: IMPLEMENT - Generate code and tests"
   color: "E99695"
 
-- name: "stage:pulse"
-  description: "Stage 6: PULSE (Verify) - Run tests, check heartbeat"
+- name: "stage:verify"
+  description: "Stage 6: VERIFY - Run tests and self-heal"
   color: "E99695"
 
-- name: "stage:synapse"
-  description: "Stage 7: SYNAPSE (Integrate) - Connect & merge"
+- name: "stage:integrate"
+  description: "Stage 7: INTEGRATE - Merge and validate contracts"
   color: "E99695"
 
-- name: "stage:overload"
-  description: "Stage 8: OVERLOAD (Harden) - Stress test & document"
+- name: "stage:harden"
+  description: "Stage 8: HARDEN - Security scanning and audits"
   color: "E99695"
 
-- name: "stage:velocity"
-  description: "Stage 9: VELOCITY (Release) - Deploy at speed"
+- name: "stage:release"
+  description: "Stage 9: RELEASE - Package and deploy artifacts"
   color: "E99695"
 
-- name: "stage:vibe"
-  description: "Stage 10: VIBE (Operate) - Monitor SLOs"
+- name: "stage:operate"
+  description: "Stage 10: OPERATE - Health checks and monitoring"
   color: "E99695"
 
-- name: "stage:whole"
-  description: "Stage 11: WHOLE (Learn) - Analyze & loop back"
+- name: "stage:analyze"
+  description: "Stage 11: ANALYZE - Metrics and documentation"
   color: "E99695"
 
 # ============================================================================

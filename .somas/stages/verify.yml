@@ -1,0 +1,78 @@
+# Stage 6: VERIFY - Run tests and self-heal
+verify:
+  id: "verify"
+  order: 6
+  code_name: "VERIFY"
+  objective: "Execute comprehensive tests with automatic debugging and fixes"
+
+  inputs:
+    - "Pull Request (from implement)"
+    - "docs/specs/ISSUE-{id}.md (from specify)"
+    - "source_code/"
+    - "tests/"
+
+  outputs:
+    - artifact: "test_results.json"
+      contents:
+        - "total_tests"
+        - "passed"
+        - "failed"
+        - "coverage_percent"
+    - artifact: "verification_report.md"
+      sections:
+        - "Test Results Summary"
+        - "Coverage Report"
+        - "Failed Tests Analysis"
+        - "Fixes Applied"
+
+  agents:
+    primary: "tester"
+    secondary: "debugger"
+
+  max_retries: 3
+  retry_strategy: "self_healing"
+
+  retry_behavior:
+    attempt_1:
+      description: "Standard test execution"
+      actions:
+        - "Run complete test suite"
+        - "Generate coverage report"
+        - "Identify failures"
+    attempt_2:
+      description: "Analyze and fix failures"
+      actions:
+        - "Debugger analyzes tracebacks"
+        - "Apply targeted fixes"
+        - "Re-run failed tests"
+    attempt_3:
+      description: "Deep analysis with fixes"
+      actions:
+        - "Comprehensive failure analysis"
+        - "Apply all possible fixes"
+        - "Run extended test suite"
+    escalation:
+      description: "After 3 failed attempts"
+      actions:
+        - "Document all failures"
+        - "Create detailed issue comment"
+        - "Tag for human review"
+
+  quality_gates:
+    - "All tests passing (100%)"
+    - "Code coverage >= 80%"
+    - "No regressions introduced"
+
+  exit_criteria:
+    success_label: "somas:stage:07-integrate"
+    failure_label: "somas:status:test-failed"
+
+  human_gate: false
+  auto_proceed: true
+  timeout_hours: 12
+
+  notes: |
+    The Verify stage ensures code quality through testing.
+    Tester agent runs comprehensive test suites.
+    Debugger agent automatically fixes failing tests.
+    Self-healing loop retries up to 3 times before escalation.
