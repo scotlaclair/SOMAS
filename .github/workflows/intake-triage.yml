@@ -1,0 +1,121 @@
+name: "SOMAS: Phase 1 (Intake)"
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  intake-triage:
+    if: contains(github.event.issue.labels.*.name, 'somas:change')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install openai PyYAML
+
+      # --- TRIAGE AGENT ---
+      - name: Run Triage Agent
+        id: triage
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Run agent and verify output file creation
+          python -m somas.core.runner \
+            --agent triage \
+            --issue_number ${{ github.event.issue.number }} \
+            --repo_root $GITHUB_WORKSPACE \
+            --output_file "triage_report.md"
+            
+          if [ -f "triage_report.md" ]; then
+            echo "Triage report generated successfully."
+          else
+            echo "Error: Triage report not found."
+            exit 1
+          fi
+
+      - name: Post Triage Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const issue_number = context.issue.number;
+            const report = fs.readFileSync('triage_report.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              body: "### 🕵️ Triage Agent Report\n\n" + report
+            });
+
+      # --- ADVISOR AGENT (Conditional) ---
+      - name: Run Advisor Agent
+        id: advisor
+        if: success()
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m somas.core.runner \
+            --agent advisor \
+            --issue_number ${{ github.event.issue.number }} \
+            --repo_root $GITHUB_WORKSPACE \
+            --output_file "advisor_report.md"
+
+      - name: Post Advisor Comment
+        if: success() && hashFiles('advisor_report.md') != ''
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const issue_number = context.issue.number;
+            
+            if (fs.existsSync('advisor_report.md')) {
+              const report = fs.readFileSync('advisor_report.md', 'utf8');
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number,
+                body: "### 🧠 Strategic Advisor Report\n\n" + report
+              });
+            }
+
+      # --- STATE TRANSITION ---
+      - name: Transition State
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue_number = context.issue.number;
+            
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              labels: ['somas:stage:02-specify']
+            });
+            
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number,
+                name: 'somas:change'
+              });
+            } catch (error) {
+              console.log("Label removal skipped: " + error.message);
+            }
