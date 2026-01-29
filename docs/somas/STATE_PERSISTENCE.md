@@ -95,38 +95,38 @@ Complete snapshot of project state including:
   "updated_at": "2026-01-26T21:30:00Z",
   "issue_number": 123,
   "branch": "somas/project-123",
-  "current_stage": "implementation",
+  "current_stage": "mcp",
   "status": "in_progress",
   "stages": {
-    "ideation": {
+    "signal": {
       "status": "completed",
       "started_at": "2026-01-26T21:00:00Z",
       "completed_at": "2026-01-26T21:05:00Z",
       "duration_seconds": 300,
       "agent": "planner",
       "retry_count": 0,
-      "artifacts": ["artifacts/initial_plan.md"]
+      "artifacts": ["artifacts/initial_plan.yml"]
     },
-    "implementation": {
+    "mcp": {
       "status": "in_progress",
       "started_at": "2026-01-26T21:25:00Z",
-      "agent": "coder",
+      "agent": "implementer",
       "retry_count": 0
     }
   },
   "checkpoints": [
     {
       "id": "chk-abc123",
-      "stage": "ideation",
+      "stage": "signal",
       "timestamp": "2026-01-26T21:05:00Z",
       "status": "success",
-      "artifacts": ["artifacts/initial_plan.md"]
+      "artifacts": ["artifacts/initial_plan.yml"]
     }
   ],
   "metrics": {
     "total_duration_seconds": 1800,
     "stage_durations": {
-      "ideation": 300
+      "signal": 300
     },
     "retry_count": 0,
     "agent_invocations": 2,
@@ -136,7 +136,7 @@ Complete snapshot of project state including:
   "recovery_info": {
     "last_successful_checkpoint": "chk-abc123",
     "can_resume": true,
-    "resume_from_stage": "implementation"
+    "resume_from_stage": "mcp"
   }
 }
 ```
