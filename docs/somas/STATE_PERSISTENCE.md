@@ -95,10 +95,10 @@ Complete snapshot of project state including:
   "updated_at": "2026-01-26T21:30:00Z",
   "issue_number": 123,
   "branch": "somas/project-123",
-  "current_stage": "mcp",
+  "current_stage": "implement",
   "status": "in_progress",
   "stages": {
-    "signal": {
+    "specify": {
       "status": "completed",
       "started_at": "2026-01-26T21:00:00Z",
       "completed_at": "2026-01-26T21:05:00Z",
@@ -107,7 +107,7 @@ Complete snapshot of project state including:
       "retry_count": 0,
       "artifacts": ["artifacts/initial_plan.yml"]
     },
-    "mcp": {
+    "implement": {
       "status": "in_progress",
       "started_at": "2026-01-26T21:25:00Z",
       "agent": "implementer",
@@ -117,7 +117,7 @@ Complete snapshot of project state including:
   "checkpoints": [
     {
       "id": "chk-abc123",
-      "stage": "signal",
+      "stage": "specify",
       "timestamp": "2026-01-26T21:05:00Z",
       "status": "success",
       "artifacts": ["artifacts/initial_plan.yml"]
@@ -126,7 +126,7 @@ Complete snapshot of project state including:
   "metrics": {
     "total_duration_seconds": 1800,
     "stage_durations": {
-      "signal": 300
+      "specify": 300
     },
     "retry_count": 0,
     "agent_invocations": 2,
@@ -136,7 +136,7 @@ Complete snapshot of project state including:
   "recovery_info": {
     "last_successful_checkpoint": "chk-abc123",
     "can_resume": true,
-    "resume_from_stage": "mcp"
+    "resume_from_stage": "implement"
   }
 }
 ```
@@ -212,7 +212,7 @@ Records every failure with full context for forensics, replay, and recovery:
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
       "timestamp": "2026-01-26T21:15:00Z",
-      "stage": "validation",
+      "stage": "verify",
       "agent": "validator",
       "attempt_number": 2,
       "error": {
@@ -233,7 +233,7 @@ Records every failure with full context for forensics, replay, and recovery:
           "tests/api.test.js"
         ],
         "state_snapshot": {
-          "current_stage": "validation",
+          "current_stage": "verify",
           "status": "in_progress"
         }
       },
@@ -257,7 +257,7 @@ Records every failure with full context for forensics, replay, and recovery:
         }
       ],
       "labels": {
-        "github": ["somas-project", "somas:validation"],
+        "github": ["somas-project", "somas:verify"],
         "custom": {"priority": "high"}
       },
       "recovery_attempted": true,
@@ -268,7 +268,7 @@ Records every failure with full context for forensics, replay, and recovery:
   "statistics": {
     "total_entries": 1,
     "by_stage": {
-      "validation": 1
+      "verify": 1
     },
     "by_agent": {
       "validator": 1
@@ -286,9 +286,9 @@ Append-only log of all state transitions in JSON Lines format (one JSON object p
 **Example entries:**
 ```jsonl
 {"id":"trans-001","timestamp":"2026-01-26T21:00:00Z","project_id":"project-123","event_type":"project_initialized","metadata":{"issue_number":123,"title":"Build REST API"}}
-{"id":"trans-002","timestamp":"2026-01-26T21:00:05Z","project_id":"project-123","event_type":"stage_started","stage":"ideation","agent":"planner"}
-{"id":"trans-003","timestamp":"2026-01-26T21:05:00Z","project_id":"project-123","event_type":"stage_completed","stage":"ideation","metadata":{"completed_at":"2026-01-26T21:05:00Z","duration_seconds":300},"checkpoint_id":"chk-abc123"}
-{"id":"trans-004","timestamp":"2026-01-26T21:15:00Z","project_id":"project-123","event_type":"error_recorded","stage":"validation","agent":"validator","error":{"type":"TestFailureError","message":"3 tests failed","dead_letter_id":"550e8400-e29b-41d4-a716-446655440000"}}
+{"id":"trans-002","timestamp":"2026-01-26T21:00:05Z","project_id":"project-123","event_type":"stage_started","stage":"specify","agent":"planner"}
+{"id":"trans-003","timestamp":"2026-01-26T21:05:00Z","project_id":"project-123","event_type":"stage_completed","stage":"specify","metadata":{"completed_at":"2026-01-26T21:05:00Z","duration_seconds":300},"checkpoint_id":"chk-abc123"}
+{"id":"trans-004","timestamp":"2026-01-26T21:15:00Z","project_id":"project-123","event_type":"error_recorded","stage":"verify","agent":"validator","error":{"type":"TestFailureError","message":"3 tests failed","dead_letter_id":"550e8400-e29b-41d4-a716-446655440000"}}
 ```
 
 ## State Manager API
@@ -315,14 +315,14 @@ state = state_manager.initialize_project(
 # Start a stage
 state_manager.start_stage(
     project_id="project-123",
-    stage="implementation",
+    stage="implement",
     agent="coder"
 )
 
 # Complete a stage
 state_manager.complete_stage(
     project_id="project-123",
-    stage="implementation",
+    stage="implement",
     artifacts=["src/api.js", "tests/api.test.js"],
     create_checkpoint=True
 )
@@ -330,7 +330,7 @@ state_manager.complete_stage(
 # Record a failure
 state_manager.fail_stage(
     project_id="project-123",
-    stage="validation",
+    stage="verify",
     agent="validator",
     error={
         "type": "TestFailureError",
@@ -359,7 +359,7 @@ python somas/core/runner.py \
   --context_files "SPEC.md,ARCH.md" \
   --output_path "artifacts/result.md" \
   --project_id "project-123" \
-  --stage "implementation"
+  --stage "implement"
 ```
 
 ## Recovery and Replay
@@ -408,7 +408,7 @@ Query the transition log for forensics:
 # Get all transitions for a stage
 transitions = state_manager.get_transitions(
     project_id="project-123",
-    stage="validation"
+    stage="verify"
 )
 
 # Get failures
@@ -472,7 +472,7 @@ State persistence is integrated into workflows:
     state_manager = StateManager()
     state_manager.start_stage(
         project_id="${PROJECT_ID}",
-        stage="implementation",
+        stage="implement",
         agent="coder"
     )
     PYTHON
@@ -490,7 +490,7 @@ State persistence is integrated into workflows:
     state_manager = StateManager()
     state_manager.complete_stage(
         project_id="${PROJECT_ID}",
-        stage="implementation",
+        stage="implement",
         artifacts=["src/api.js"],
         create_checkpoint=True
     )
@@ -529,7 +529,7 @@ PYTHON
 2. **Update state to reflect current progress:**
 ```python
 # Mark completed stages
-for stage in ["ideation", "specification"]:
+for stage in ["specify", "plan"]:
     state_manager.complete_stage(
         project_id="project-123",
         stage=stage,
@@ -674,7 +674,7 @@ Every pipeline stage follows a consistent state tracking pattern to ensure recov
 
 ### Lifecycle Events
 
-Each of the 7 pipeline stages (ideation, specification, simulation, architecture, implementation, validation, staging) implements three key lifecycle events:
+Each of the 11 Aether lifecycle stages (specify, plan, decompose, implement, verify, integrate, harden, release, operate, analyze, cycle) implements three key lifecycle events:
 
 1. **Stage Start** - `start_stage(project_id, stage, agent)`
    - Sets `current_stage` in state
@@ -703,13 +703,17 @@ Each stage has specific agents and expected artifacts:
 
 | Stage | Agent | Expected Artifacts |
 |-------|-------|-------------------|
-| ideation | planner | `artifacts/initial_plan.md` |
-| specification | specifier | `artifacts/SPEC.md` |
-| simulation | simulator | `artifacts/execution_plan.yml` |
-| architecture | architect | `artifacts/ARCHITECTURE.md` |
-| implementation | implementer | `artifacts/tasks/` (directory) |
-| validation | tester | `artifacts/test_results.json` |
-| staging | merger | `artifacts/pr_summary.md` |
+| specify | planner | `artifacts/initial_plan.md` |
+| plan | architect | `artifacts/ARCHITECTURE.md` |
+| decompose | decomposer | `artifacts/tasks/` (directory) |
+| implement | coder | `artifacts/source_code/` (directory) |
+| verify | tester | `artifacts/test_results.json` |
+| integrate | validator | `artifacts/integration_report.md` |
+| harden | security | `artifacts/security_scan.json` |
+| release | deployer | `artifacts/release_notes.md` |
+| operate | operator | `artifacts/health_check.json` |
+| analyze | analyzer | `artifacts/analytics_report.md` |
+| cycle | orchestrator | `artifacts/cycle_summary.md` |
 
 ### State File Structure After Full Pipeline
 
@@ -723,10 +727,10 @@ After a complete pipeline run, the state file includes all stages:
   "updated_at": "2026-01-27T15:30:00Z",
   "issue_number": 123,
   "branch": "somas/project-123",
-  "current_stage": "staging",
+  "current_stage": "analyze",
   "status": "in_progress",
   "stages": {
-    "ideation": {
+    "specify": {
       "status": "completed",
       "started_at": "2026-01-27T12:00:00Z",
       "completed_at": "2026-01-27T12:05:00Z",
@@ -734,7 +738,7 @@ After a complete pipeline run, the state file includes all stages:
       "agent": "planner",
       "artifacts": ["artifacts/initial_plan.md"]
     },
-    "specification": {
+    "plan": {
       "status": "completed",
       "started_at": "2026-01-27T12:05:30Z",
       "completed_at": "2026-01-27T12:25:30Z",
@@ -742,7 +746,7 @@ After a complete pipeline run, the state file includes all stages:
       "agent": "specifier",
       "artifacts": ["artifacts/SPEC.md"]
     },
-    "simulation": {
+    "decompose": {
       "status": "completed",
       "started_at": "2026-01-27T12:26:00Z",
       "completed_at": "2026-01-27T12:36:00Z",
@@ -750,7 +754,7 @@ After a complete pipeline run, the state file includes all stages:
       "agent": "simulator",
       "artifacts": ["artifacts/execution_plan.yml"]
     },
-    "architecture": {
+    "architect": {
       "status": "completed",
       "started_at": "2026-01-27T12:36:30Z",
       "completed_at": "2026-01-27T13:06:30Z",
@@ -758,15 +762,15 @@ After a complete pipeline run, the state file includes all stages:
       "agent": "architect",
       "artifacts": ["artifacts/ARCHITECTURE.md"]
     },
-    "implementation": {
+    "implement": {
       "status": "completed",
       "started_at": "2026-01-27T13:07:00Z",
       "completed_at": "2026-01-27T14:47:00Z",
       "duration_seconds": 6000,
-      "agent": "implementer",
+      "agent": "coder",
       "artifacts": ["artifacts/tasks/"]
     },
-    "validation": {
+    "verify": {
       "status": "completed",
       "started_at": "2026-01-27T14:47:30Z",
       "completed_at": "2026-01-27T15:07:30Z",
@@ -774,39 +778,39 @@ After a complete pipeline run, the state file includes all stages:
       "agent": "tester",
       "artifacts": ["artifacts/test_results.json"]
     },
-    "staging": {
+    "integrate": {
       "status": "in_progress",
       "started_at": "2026-01-27T15:08:00Z",
-      "agent": "merger"
+      "agent": "validator"
     }
   },
   "checkpoints": [
-    {"id": "chk-abc123", "stage": "ideation", "status": "success", "timestamp": "2026-01-27T12:05:00Z"},
-    {"id": "chk-def456", "stage": "specification", "status": "success", "timestamp": "2026-01-27T12:25:30Z"},
-    {"id": "chk-ghi789", "stage": "simulation", "status": "success", "timestamp": "2026-01-27T12:36:00Z"},
-    {"id": "chk-jkl012", "stage": "architecture", "status": "success", "timestamp": "2026-01-27T13:06:30Z"},
-    {"id": "chk-mno345", "stage": "implementation", "status": "success", "timestamp": "2026-01-27T14:47:00Z"},
-    {"id": "chk-pqr678", "stage": "validation", "status": "success", "timestamp": "2026-01-27T15:07:30Z"}
+    {"id": "chk-abc123", "stage": "specify", "status": "success", "timestamp": "2026-01-27T12:05:00Z"},
+    {"id": "chk-def456", "stage": "plan", "status": "success", "timestamp": "2026-01-27T12:25:30Z"},
+    {"id": "chk-ghi789", "stage": "decompose", "status": "success", "timestamp": "2026-01-27T12:36:00Z"},
+    {"id": "chk-jkl012", "stage": "architect", "status": "success", "timestamp": "2026-01-27T13:06:30Z"},
+    {"id": "chk-mno345", "stage": "implement", "status": "success", "timestamp": "2026-01-27T14:47:00Z"},
+    {"id": "chk-pqr678", "stage": "verify", "status": "success", "timestamp": "2026-01-27T15:07:30Z"}
   ],
   "metrics": {
     "total_duration_seconds": 11100,
     "stage_durations": {
-      "ideation": 300,
-      "specification": 1200,
-      "simulation": 600,
-      "architecture": 1800,
-      "implementation": 6000,
-      "validation": 1200
+      "specify": 300,
+      "plan": 1200,
+      "decompose": 600,
+      "architect": 1800,
+      "implement": 6000,
+      "verify": 1200
     },
     "retry_count": 0,
-    "agent_invocations": 7,
-    "artifacts_generated": 7,
+    "agent_invocations": 11,
+    "artifacts_generated": 11,
     "dead_letters": 0
   },
   "recovery_info": {
     "last_successful_checkpoint": "chk-pqr678",
     "can_resume": true,
-    "resume_from_stage": "staging"
+    "resume_from_stage": "integrate"
   }
 }
 ```
@@ -926,13 +930,17 @@ Comprehensive test coverage validates state tracking across all stages:
 # Test all stages tracked sequentially
 def test_all_stages_tracked_sequentially():
     stages = [
-        ("ideation", "planner", ["artifacts/initial_plan.md"]),
-        ("specification", "specifier", ["artifacts/SPEC.md"]),
-        ("simulation", "simulator", ["artifacts/execution_plan.yml"]),
-        ("architecture", "architect", ["artifacts/ARCHITECTURE.md"]),
-        ("implementation", "implementer", ["artifacts/tasks/"]),
-        ("validation", "tester", ["artifacts/test_results.json"]),
-        ("staging", "merger", ["artifacts/pr_summary.md"]),
+        ("specify", "planner", ["artifacts/initial_plan.md"]),
+        ("plan", "architect", ["artifacts/ARCHITECTURE.md"]),
+        ("decompose", "decomposer", ["artifacts/tasks/"]),
+        ("implement", "coder", ["artifacts/source_code/"]),
+        ("verify", "tester", ["artifacts/test_results.json"]),
+        ("integrate", "validator", ["artifacts/integration_report.md"]),
+        ("harden", "security", ["artifacts/security_scan.json"]),
+        ("release", "deployer", ["artifacts/release_notes.md"]),
+        ("operate", "operator", ["artifacts/health_check.json"]),
+        ("analyze", "analyzer", ["artifacts/analytics_report.md"]),
+        ("cycle", "orchestrator", ["artifacts/cycle_summary.md"]),
     ]
     
     for stage, agent, artifacts in stages:
