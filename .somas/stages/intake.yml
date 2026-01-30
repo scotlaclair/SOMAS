@@ -1,0 +1,51 @@
+# Stage 1: INTAKE - Ingest issues and route requests
+intake:
+  id: "intake"
+  order: 1
+  code_name: "INTAKE"
+  objective: "Analyze incoming requests, determine feasibility, and route appropriately"
+
+  inputs:
+    - "issue.title"
+    - "issue.body"
+    - "issue.labels"
+    - "project.goals (from config)"
+
+  outputs:
+    - artifact: "triage_report.json"
+      contents:
+        - "request_type"
+        - "feasibility_score"
+        - "priority"
+        - "complexity_estimate"
+        - "recommended_action"
+    - artifact: "alignment_report.md"
+      sections:
+        - "Strategic Alignment Score"
+        - "Project Goals Match"
+        - "Risk Assessment"
+        - "Recommendation"
+
+  agents:
+    primary: "triage"
+    secondary: "advisor"
+
+  quality_gates:
+    - "Request type classified"
+    - "Feasibility score > 0.7"
+    - "Alignment score > 0.5"
+    - "No blocking issues identified"
+
+  exit_criteria:
+    success_label: "somas:stage:02-specify"
+    failure_label: "somas:status:rejected"
+
+  human_gate: false
+  auto_proceed: true
+  timeout_hours: 2
+
+  notes: |
+    The Intake stage is the gatekeeper for all incoming requests.
+    Triage agent classifies and prioritizes the request.
+    Advisor agent checks strategic alignment with project goals.
+    Requests with feasibility < 0.7 are rejected with explanation.

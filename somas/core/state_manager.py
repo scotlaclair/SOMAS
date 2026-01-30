@@ -29,20 +29,19 @@ import yaml
 DEFAULT_MAX_CHECKPOINTS = 20
 
 
-# 11-Stage Neurology-Inspired Pipeline Stages
-# Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
+# 11-Stage SDLC Pipeline
 VALID_STAGES = [
-    "signal",      # Stage 1: SIGNAL (Intake) - Catch the initial request
-    "design",      # Stage 2: DESIGN (Specify) - Expand into requirements
-    "grid",        # Stage 3: GRID (Plan) - Map components & strategy
-    "line",        # Stage 4: LINE (Decompose) - Break into atomic tasks
-    "mcp",         # Stage 5: MCP (Implement) - Generate code via AI agents
-    "pulse",       # Stage 6: PULSE (Verify) - Run tests, check heartbeat
-    "synapse",     # Stage 7: SYNAPSE (Integrate) - Connect & merge
-    "overload",    # Stage 8: OVERLOAD (Harden) - Stress test & document
-    "velocity",    # Stage 9: VELOCITY (Release) - Deploy at speed
-    "vibe",        # Stage 10: VIBE (Operate) - Monitor SLOs
-    "whole",       # Stage 11: WHOLE (Learn) - Analyze & loop back
+    "intake",      # Stage 1: Ingest issues and route requests
+    "specify",     # Stage 2: Convert intent into specifications
+    "plan",        # Stage 3: Design architecture and task graph
+    "decompose",   # Stage 4: Break into atomic tasks
+    "implement",   # Stage 5: Generate code and tests
+    "verify",      # Stage 6: Run tests and self-heal
+    "integrate",   # Stage 7: Merge and validate contracts
+    "harden",      # Stage 8: Security scanning and audits
+    "release",     # Stage 9: Package and deploy artifacts
+    "operate",     # Stage 10: Health checks and monitoring
+    "analyze",     # Stage 11: Metrics and documentation
 ]
 
 
@@ -255,7 +254,7 @@ class StateManager:
             "updated_at": now,
             "issue_number": issue_number,
             "branch": branch,
-            "current_stage": "signal",
+            "current_stage": "intake",
             "status": "initializing",
             "stages": {
                 stage: {"status": "pending", "retry_count": 0}

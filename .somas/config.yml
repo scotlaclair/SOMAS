@@ -1,126 +1,132 @@
 # SOMAS Configuration
 # @copilot-context: Main configuration for Self-Sovereign Orchestrated Multi-Agent System
-# This file defines the 11-stage Neurology-inspired pipeline, AI agent providers, and optimization settings
-# Energy, Frequency, Vibration, Sound - autonomous, self-healing SOMAS
+# This file defines the 11-stage Aether Lifecycle pipeline, AI agent providers, and optimization settings
+# Autonomous, self-healing SOMAS with specialized AI agents
 # @copilot-review: Verify security settings when modifying agent configurations
 
 version: "1.0.0"
 name: "Self-Sovereign Orchestrated Multi-Agent System"
 description: "Configuration for AI-driven software development pipeline"
 
-# Pipeline Stages - 11-Stage Neurology-Inspired Architecture
+# Pipeline Stages - 11-Stage Aether Lifecycle
 
 pipeline:
   stages:
-    - id: "signal"
+    - id: "intake"
       order: 1
-      code_name: "SIGNAL"
-      description: "Intake - Catch the initial request"
+      code_name: "INTAKE"
+      description: "Ingest issues and route requests"
       enabled: true
-      agent: "planner"
+      agent: "triage"
+      secondary_agent: "advisor"
       human_gate: false
       auto_proceed: true
       timeout_hours: 2
-      
-    - id: "design"
+
+    - id: "specify"
       order: 2
-      code_name: "DESIGN"
-      description: "Specify - Expand into requirements"
+      code_name: "SPECIFY"
+      description: "Convert intent into specifications"
       enabled: true
       agent: "specifier"
       human_gate: false
       timeout_hours: 24
-      
-    - id: "grid"
+
+    - id: "plan"
       order: 3
-      code_name: "GRID"
-      description: "Plan - Map components & strategy"
+      code_name: "PLAN"
+      description: "Design architecture and task graph"
       enabled: true
-      agent: "simulator"
+      agent: "planner"
+      secondary_agents: ["architect", "simulator"]
       human_gate: false
       auto_proceed: true
       timeout_hours: 2
       feedback_loop_enabled: true
       max_feedback_iterations: 3
-      
-    - id: "line"
+
+    - id: "decompose"
       order: 4
-      code_name: "LINE"
-      description: "Decompose - Break into atomic tasks"
+      code_name: "DECOMPOSE"
+      description: "Break into atomic tasks"
       enabled: true
       agent: "decomposer"
       human_gate: false
       auto_proceed: true
       timeout_hours: 4
-      
-    - id: "mcp"
+
+    - id: "implement"
       order: 5
-      code_name: "MCP"
-      description: "Implement - Generate code via AI agents"
+      code_name: "IMPLEMENT"
+      description: "Generate code and tests"
       enabled: true
-      agent: "coder"
+      agent: "implementer"
+      secondary_agent: "copilot"
       human_gate: false
       auto_proceed: true
       timeout_hours: 48
       execution_mode: "single_shot"
-      
-    - id: "pulse"
+
+    - id: "verify"
       order: 6
-      code_name: "PULSE"
-      description: "Verify - Run tests, check heartbeat"
+      code_name: "VERIFY"
+      description: "Run tests and self-heal"
       enabled: true
-      agent: "validator"
+      agent: "tester"
+      secondary_agent: "debugger"
       human_gate: false
       auto_proceed: true
       timeout_hours: 12
       max_retries: 3
-      
-    - id: "synapse"
+
+    - id: "integrate"
       order: 7
-      code_name: "SYNAPSE"
-      description: "Integrate - Connect & merge"
+      code_name: "INTEGRATE"
+      description: "Merge and validate contracts"
       enabled: true
       agent: "merger"
+      secondary_agent: "validator"
       human_gate: false
       auto_proceed: true
       timeout_hours: 8
-      
-    - id: "overload"
+
+    - id: "harden"
       order: 8
-      code_name: "OVERLOAD"
-      description: "Harden - Stress test & document"
+      code_name: "HARDEN"
+      description: "Security scanning and audits"
       enabled: true
-      agent: "tester"
+      agent: "security"
       human_gate: false
       auto_proceed: true
       timeout_hours: 16
-      
-    - id: "velocity"
+
+    - id: "release"
       order: 9
-      code_name: "VELOCITY"
-      description: "Release - Deploy at speed"
+      code_name: "RELEASE"
+      description: "Package and deploy artifacts"
       enabled: true
       agent: "deployer"
       human_gate: false
       timeout_hours: 24
       auto_merge_to_dev: true
-      
-    - id: "vibe"
+
+    - id: "operate"
       order: 10
-      code_name: "VIBE"
-      description: "Operate - Monitor SLOs"
+      code_name: "OPERATE"
+      description: "Health checks and monitoring"
       enabled: true
       agent: "operator"
       human_gate: false
       auto_proceed: true
       timeout_hours: 8
-      
-    - id: "whole"
+
+    - id: "analyze"
       order: 11
-      code_name: "WHOLE"
-      description: "Learn - Analyze & loop back"
+      code_name: "ANALYZE"
+      description: "Metrics and documentation"
       enabled: true
       agent: "analyzer"
+      secondary_agent: "documenter"
       human_gate: false
       auto_proceed: true
       timeout_hours: 4
@@ -597,32 +603,32 @@ learning:
 # Quality Gates
 
 quality_gates:
-  specification:
+  specify:
     - "All requirements have unique IDs"
     - "All requirements are testable"
     - "No ambiguous language (TBD, maybe, etc.)"
     - "Open questions resolved or escalated"
     - "Security requirements defined"
-    
-  simulation:
+
+  plan:
     - "Task graph is acyclic"
     - "All tasks have duration estimates"
     - "Critical path identified"
     - "Parallelization opportunities documented"
-    
-  architecture:
+
+  decompose:
     - "All components defined"
     - "Interfaces specified"
     - "Data flows documented"
     - "Technology choices justified"
-    
-  implementation:
+
+  implement:
     - "All tests passing"
     - "Code coverage > 80%"
     - "No critical security vulnerabilities"
     - "Documentation complete"
-    
-  validation:
+
+  verify:
     - "All acceptance criteria met"
     - "Performance requirements satisfied"
     - "Security scan passed"
@@ -634,26 +640,26 @@ artifacts:
   storage: "projects/{project_id}/artifacts/"
   
   types:
-    specification:
+    specify:
       - "SPEC.md"
       - "requirements.yml"
-      
-    simulation:
+
+    plan:
       - "execution_plan.yml"
       - "task_graph.yml"
       - "simulation_results.json"
-      
-    architecture:
+
+    decompose:
       - "ARCHITECTURE.md"
       - "api_specs.yml"
       - "data_models.yml"
-      
-    implementation:
+
+    implement:
       - "source_code/"
       - "tests/"
       - "documentation/"
-      
-    validation:
+
+    verify:
       - "test_results.json"
       - "coverage_report.html"
       - "security_scan.json"
@@ -688,8 +694,8 @@ security:
     
   access_control:
     require_approval_for:
-      - "specification"
-      - "staging"
+      - "specify"
+      - "integrate"
     approvers:
       - "@scotlaclair"
       # Note: Consider using GitHub teams for better team management:
@@ -970,31 +976,31 @@ apo:
     inject_into_all_agents: true
     
     stage_specific_config:
-      ideation:
+      intake:
         primary_models: ["tree_of_thoughts", "first_principles"]
         chain: "strategic_diamond"
-      
-      specification:
+
+      specify:
         primary_models: ["inversion", "second_order_thinking"]
         chain: "collision"
-      
-      simulation:
+
+      plan:
         primary_models: ["tree_of_thoughts", "ooda_loop"]
         chain: "sequential"
-      
-      architecture:
+
+      decompose:
         primary_models: ["first_principles", "occams_razor"]
         chain: "strategic_diamond"
-      
-      implementation:
+
+      implement:
         primary_models: ["ooda_loop", "occams_razor"]
         chain: "sequential"
-      
-      validation:
+
+      verify:
         primary_models: ["inversion", "six_thinking_hats"]
         chain: "collision"
-      
-      staging:
+
+      integrate:
         primary_models: ["second_order_thinking", "inversion"]
         chain: "draft_critique_refine"
   

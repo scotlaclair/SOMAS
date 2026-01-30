@@ -1,0 +1,52 @@
+# Stage 2: SPECIFY - Convert intent into specifications
+specify:
+  id: "specify"
+  order: 2
+  code_name: "SPECIFY"
+  objective: "Produce complete, unambiguous specification document (PRD)"
+
+  inputs:
+    - "issue.body"
+    - "triage_report.json (from intake)"
+    - "alignment_report.md (from intake)"
+
+  outputs:
+    - artifact: "docs/specs/ISSUE-{id}.md"
+      sections:
+        - "Executive Summary"
+        - "Functional Requirements (REQ-F-XXX)"
+        - "Non-Functional Requirements (REQ-NF-XXX)"
+        - "User Stories with Acceptance Criteria"
+        - "Data Dictionary"
+        - "API Contracts (draft)"
+        - "UI/UX Requirements (if applicable)"
+        - "Security Requirements"
+        - "Integration Requirements"
+        - "Constraints & Assumptions"
+        - "Open Questions (must be zero to proceed)"
+
+  agents:
+    primary: "specifier"
+    secondary: "requirements"
+
+  quality_gates:
+    - "All requirements have unique IDs (REQ-XXX)"
+    - "All requirements are testable"
+    - "No ambiguous language (TBD, maybe, etc.)"
+    - "Open questions resolved or escalated"
+    - "Acceptance criteria defined for each requirement"
+
+  exit_criteria:
+    success_label: "somas:stage:03-plan"
+    failure_label: "somas:status:spec-failed"
+    review_label: "somas:gate:spec-review"
+
+  human_gate: false
+  auto_proceed: true
+  timeout_hours: 24
+
+  notes: |
+    The Specify stage transforms vague intent into strict specifications.
+    Specifier agent creates detailed PRD with enumerated requirements.
+    Requirements agent validates completeness and testability.
+    Output is stored in docs/specs/ for traceability.

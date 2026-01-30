@@ -50,7 +50,7 @@ class TestStateManager(unittest.TestCase):
         self.assertEqual(state["project_id"], self.project_id)
         self.assertEqual(state["issue_number"], self.issue_number)
         self.assertEqual(state["status"], "initializing")
-        self.assertEqual(state["current_stage"], "signal")
+        self.assertEqual(state["current_stage"], "intake")
         
         # Check files created
         project_dir = Path(self.test_dir) / self.project_id

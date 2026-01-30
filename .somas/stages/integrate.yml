@@ -1,0 +1,49 @@
+# Stage 7: INTEGRATE - Merge and validate contracts
+integrate:
+  id: "integrate"
+  order: 7
+  code_name: "INTEGRATE"
+  objective: "Merge code changes and validate integration contracts"
+
+  inputs:
+    - "Pull Request (from implement)"
+    - "test_results.json (from verify)"
+    - "docs/specs/ISSUE-{id}.md (from specify)"
+
+  outputs:
+    - artifact: "integration_report.md"
+      sections:
+        - "Merge Status"
+        - "Conflict Resolution"
+        - "Requirements Traceability Matrix"
+        - "Integration Test Results"
+    - artifact: "traceability_matrix.json"
+      contents:
+        - "requirement_id"
+        - "implementation_files"
+        - "test_coverage"
+        - "status"
+
+  agents:
+    primary: "merger"
+    secondary: "validator"
+
+  quality_gates:
+    - "No merge conflicts"
+    - "All integration tests pass"
+    - "Requirements traceability 100%"
+    - "No breaking changes to existing APIs"
+
+  exit_criteria:
+    success_label: "somas:stage:08-harden"
+    failure_label: "somas:status:conflict"
+
+  human_gate: false
+  auto_proceed: true
+  timeout_hours: 8
+
+  notes: |
+    The Integrate stage merges code and validates contracts.
+    Merger agent handles git operations and conflict resolution.
+    Validator agent traces requirements to implementation.
+    Ensures all requirements are covered by tests.

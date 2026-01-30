@@ -6,11 +6,22 @@ mental models and chain strategies based on complexity scores.
 
 @copilot-context: Critical for autonomous task routing
 """
-
 import logging
 from typing import Dict, Any, Optional, List
 from enum import Enum
 from dataclasses import dataclass
+
+from somas.apo.constants import (
+    AMBIGUITY_BASE, AMBIGUITY_WORD_MULTIPLIER, MAX_SCORE,
+    NOVELTY_BASE, NOVELTY_WORD_MULTIPLIER, DEPENDENCIES_BASE,
+    DEPENDENCIES_WORD_MULTIPLIER, RISK_BASE, RISK_WORD_MULTIPLIER,
+    RISK_CONTEXT_ADDITION, TECHNICAL_DEPTH_BASE,
+    TECHNICAL_DEPTH_WORD_MULTIPLIER, DEFAULT_SECURITY_RISK_MULTIPLIER,
+    DEFAULT_EXTERNAL_DEPENDENCY_MULTIPLIER,
+    DEFAULT_NOVEL_TECHNOLOGY_MULTIPLIER, HIGH_RISK_THRESHOLD,
+    AMBIGUOUS_WORDS, NOVEL_INDICATORS, DEPENDENCY_INDICATORS,
+    HIGH_RISK_INDICATORS, SPECIALIZED_TERMS
+)
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +88,7 @@ class APOTaskAnalyzer:
         self.config = config or self._default_config()
         self.thresholds = self.config.get('task_analyzer', {}).get('complexity_thresholds', {
             'simple': 2.0,
-            'moderate': 3.5,
+            'moderate': 3.0,
             'complex': 5.0
         })
         
@@ -88,16 +99,21 @@ class APOTaskAnalyzer:
                 'minimum_complexity_for_apo': 2.0,
                 'complexity_thresholds': {
                     'simple': 2.0,
-                    'moderate': 3.5,
+                    'moderate': 3.0,
                     'complex': 5.0
                 },
                 'auto_routing': {
                     'enabled': True,
                     'rules': [
-                        {'complexity': '> 3.5', 'model': 'claude_opus_4_5', 'chain': 'draft_critique_refine'},
-                        {'complexity': '2.0-3.5', 'model': 'claude_sonnet_4_5', 'chain': 'sequential'},
+                        {'complexity': '> 3.0', 'model': 'claude_opus_4_5', 'chain': 'draft_critique_refine'},
+                        {'complexity': '2.0-3.0', 'model': 'claude_sonnet_4_5', 'chain': 'sequential'},
                         {'complexity': '< 2.0', 'model': 'grok_code_fast_1', 'chain': 'sequential'}
                     ]
+                },
+                'risk_factors': {
+                    'security_risk_multiplier': DEFAULT_SECURITY_RISK_MULTIPLIER,
+                    'external_dependency_multiplier': DEFAULT_EXTERNAL_DEPENDENCY_MULTIPLIER,
+                    'novel_technology_multiplier': DEFAULT_NOVEL_TECHNOLOGY_MULTIPLIER
                 }
             }
         }
@@ -121,13 +137,11 @@ class APOTaskAnalyzer:
         """
         context = context or {}
         
-        # If advisor agent available, use it for sophisticated analysis
         if advisor_agent:
             return self._analyze_with_advisor(task_description, context, advisor_agent)
         
-        # Otherwise, use heuristic-based analysis
-        return self._analyze_heuristic(task_description, context)
-    
+        return self.__analyze_heuristic_task(task_description, context)
+        
     def _analyze_with_advisor(
         self,
         task_description: str,
@@ -141,13 +155,11 @@ class APOTaskAnalyzer:
         goes wrong while calling the advisor, we safely fall back to the
         heuristic result to avoid breaking task routing.
         """
-        # Start with heuristic analysis as a baseline
-        base_analysis = self._analyze_heuristic(task_description, context)
+        base_analysis = self.__analyze_heuristic_task(task_description, context)
 
         if advisor_agent is None:
             return base_analysis
 
-        # Best-effort advisory refinement; never fail hard here.
         try:
             advisor_method = getattr(advisor_agent, "analyze_task", None)
             if callable(advisor_method):
@@ -166,8 +178,6 @@ class APOTaskAnalyzer:
                     base_analysis=base_analysis,
                 )
 
-            # Allow the advisor to either return a fully-formed ComplexityAnalysis
-            # or a partial update as a mapping.
             if isinstance(advisor_result, ComplexityAnalysis):
                 return advisor_result
 
@@ -177,48 +187,20 @@ class APOTaskAnalyzer:
                 try:
                     return ComplexityAnalysis(**merged)
                 except TypeError:
-                    # If the advisor returns an unexpected structure, fall back.
                     logger.warning(
                         "Advisor returned incompatible dict structure; "
                         "falling back to heuristic analysis",
                     )
                     return base_analysis
-
         except Exception as exc:
             logger.warning(
                 "Advisor-based analysis failed; falling back to heuristic "
                 "analysis: %s",
                 exc,
             )
-
         return base_analysis
     
-    def _analyze_with_advisor(
-        self,
-        task_description: str,
-        context: Dict[str, Any],
-        advisor_agent: Any
-    ) -> ComplexityAnalysis:
-        """
-        Perform complexity analysis using advisor agent
-        
-        Note: This is a placeholder for POC. Production would call actual advisor.
-        Falls back to heuristic analysis if advisor fails.
-        
-        Args:
-            task_description: Task to analyze
-            context: Additional context
-            advisor_agent: Advisor agent instance (placeholder in POC)
-            
-        Returns:
-            ComplexityAnalysis from advisor or heuristic fallback
-        """
-        # TODO: Implement actual advisor agent integration
-        # For POC, fall back to heuristic analysis
-        logger.info("Advisor agent integration not yet implemented, using heuristics")
-        return self._analyze_heuristic(task_description, context)
-    
-    def _analyze_heuristic(
+    def __analyze_heuristic_task(
         self,
         task_description: str,
         context: Dict[str, Any]
@@ -233,27 +215,32 @@ class APOTaskAnalyzer:
         Returns:
             ComplexityAnalysis based on heuristics
         """
-        # Analyze each dimension using heuristics
-        dimensions = {
+        dimensions = self.__calculate_dimensions(task_description, context)
+        complexity_score = self.__calculate_complexity_score(dimensions, context)
+        return self.__generate_analysis_from_score(complexity_score, dimensions)
+
+    def __calculate_dimensions(self, task_description: str, context: Dict[str, Any]) -> Dict[str, float]:
+        """Calculate the complexity dimensions."""
+        return {
             'ambiguity': self._score_ambiguity(task_description),
-            'novelty': self._score_novelty(task_description, context),
-            'dependencies': self._score_dependencies(task_description, context),
+            'novelty': self._score_novelty(task_description),
+            'dependencies': self._score_dependencies(task_description),
             'risk': self._score_risk(task_description, context),
-            'technical_depth': self._score_technical_depth(task_description, context)
+            'technical_depth': self._score_technical_depth(task_description)
         }
-        
-        # Calculate overall complexity
-        complexity_score = sum(dimensions.values()) / len(dimensions)
-        
-        # Apply risk multipliers
-        complexity_score = self._apply_risk_multipliers(complexity_score, context)
-        
-        # Determine recommendations
+
+    def __calculate_complexity_score(self, dimensions: Dict[str, float], context: Dict[str, Any]) -> float:
+        """Calculate the overall complexity score."""
+        base_score = sum(dimensions.values()) / len(dimensions)
+        return self._apply_risk_multipliers(base_score, context)
+
+    def __generate_analysis_from_score(self, complexity_score: float, dimensions: Dict[str, float]) -> ComplexityAnalysis:
+        """Generate the full analysis from the complexity score."""
         complexity_level = self._determine_complexity_level(complexity_score)
         mental_models = self._select_mental_models(complexity_level, dimensions)
         chain_strategy = self._select_chain_strategy(complexity_level)
         recommended_model = self._route_to_model(complexity_score)
-        
+
         return ComplexityAnalysis(
             complexity_score=complexity_score,
             complexity_level=complexity_level,
@@ -261,10 +248,14 @@ class APOTaskAnalyzer:
             recommended_mental_model=mental_models,
             recommended_chain_strategy=chain_strategy,
             recommended_model=recommended_model,
-            confidence=0.7,  # Heuristic analysis is less confident
+            confidence=0.7,
             reasoning=f"Heuristic analysis: {complexity_level.value} complexity"
         )
     
+    def _cap_score(self, score: float) -> float:
+        """Cap the score at the maximum value."""
+        return min(score, MAX_SCORE)
+
     def _score_ambiguity(self, task_description: str) -> float:
         """
         Score ambiguity based on language patterns
@@ -272,30 +263,30 @@ class APOTaskAnalyzer:
         Note: Simple keyword matching for POC. Production would use NLP analysis.
         Known limitation: Can match keywords in unrelated contexts (e.g., "new" in "renew").
         """
-        ambiguous_words = ['maybe', 'probably', 'might', 'could', 'should', 'etc', 'and so on']
-        count = sum(1 for word in ambiguous_words if word in task_description.lower())
-        return min(5.0, 1.0 + (count * 0.5))
+        count = sum(1 for word in AMBIGUOUS_WORDS if word in task_description.lower())
+        score = AMBIGUITY_BASE + (count * AMBIGUITY_WORD_MULTIPLIER)
+        return self._cap_score(score)
     
-    def _score_novelty(self, task_description: str, context: Dict[str, Any]) -> float:
+    def _score_novelty(self, task_description: str) -> float:
         """
         Score novelty based on technology and patterns
         
         Note: Simple keyword matching for POC. Production would use contextual analysis.
         Known limitation: Matches partial words (e.g., "new" in "renew subscription").
         """
-        novel_indicators = ['new', 'novel', 'first time', 'unprecedented', 'experimental']
-        count = sum(1 for word in novel_indicators if word in task_description.lower())
-        return min(5.0, 2.0 + count)
+        count = sum(1 for word in NOVEL_INDICATORS if word in task_description.lower())
+        score = NOVELTY_BASE + (count * NOVELTY_WORD_MULTIPLIER)
+        return self._cap_score(score)
     
-    def _score_dependencies(self, task_description: str, context: Dict[str, Any]) -> float:
+    def _score_dependencies(self, task_description: str) -> float:
         """
         Score dependencies based on external mentions
         
         Note: Simple keyword matching for POC. Production would parse actual dependencies.
         """
-        dependency_indicators = ['api', 'service', 'external', 'integration', 'third-party']
-        count = sum(1 for word in dependency_indicators if word in task_description.lower())
-        return min(5.0, 1.0 + (count * 0.8))
+        count = sum(1 for word in DEPENDENCY_INDICATORS if word in task_description.lower())
+        score = DEPENDENCIES_BASE + (count * DEPENDENCIES_WORD_MULTIPLIER)
+        return self._cap_score(score)
     
     def _score_risk(self, task_description: str, context: Dict[str, Any]) -> float:
         """
@@ -304,39 +295,38 @@ class APOTaskAnalyzer:
         Note: Simple keyword matching for POC. Production would use risk modeling.
         Known limitation: Matches keywords in comments (e.g., "# security: this is safe").
         """
-        high_risk_indicators = ['security', 'authentication', 'payment', 'data loss', 'critical']
-        count = sum(1 for word in high_risk_indicators if word in task_description.lower())
+        count = sum(1 for word in HIGH_RISK_INDICATORS if word in task_description.lower())
         
-        # Check context for security flag
         if context.get('security_sensitive', False):
-            count += 2
+            count += RISK_CONTEXT_ADDITION
             
-        return min(5.0, 1.0 + (count * 0.7))
+        score = RISK_BASE + (count * RISK_WORD_MULTIPLIER)
+        return self._cap_score(score)
     
-    def _score_technical_depth(self, task_description: str, context: Dict[str, Any]) -> float:
+    def _score_technical_depth(self, task_description: str) -> float:
         """
         Score technical depth based on specialized terms
         
         Note: Simple keyword matching for POC. Production would assess actual complexity.
         """
-        specialized_terms = ['algorithm', 'optimization', 'cryptography', 'ml', 'ai', 'distributed']
-        count = sum(1 for word in specialized_terms if word in task_description.lower())
-        return min(5.0, 2.0 + (count * 0.6))
+        count = sum(1 for word in SPECIALIZED_TERMS if word in task_description.lower())
+        score = TECHNICAL_DEPTH_BASE + (count * TECHNICAL_DEPTH_WORD_MULTIPLIER)
+        return self._cap_score(score)
     
     def _apply_risk_multipliers(self, score: float, context: Dict[str, Any]) -> float:
         """Apply risk multipliers from configuration"""
         risk_factors = self.config.get('task_analyzer', {}).get('risk_factors', {})
         
         if context.get('security_risk', False):
-            score *= risk_factors.get('security_risk_multiplier', 2.5)
+            score *= risk_factors.get('security_risk_multiplier', DEFAULT_SECURITY_RISK_MULTIPLIER)
         
         if context.get('external_dependency', False):
-            score *= risk_factors.get('external_dependency_multiplier', 1.5)
+            score *= risk_factors.get('external_dependency_multiplier', DEFAULT_EXTERNAL_DEPENDENCY_MULTIPLIER)
         
         if context.get('novel_technology', False):
-            score *= risk_factors.get('novel_technology_multiplier', 2.0)
+            score *= risk_factors.get('novel_technology_multiplier', DEFAULT_NOVEL_TECHNOLOGY_MULTIPLIER)
         
-        return min(5.0, score)  # Cap at 5.0
+        return self._cap_score(score)
     
     def _determine_complexity_level(self, score: float) -> ComplexityLevel:
         """Determine complexity level from score"""
@@ -362,8 +352,7 @@ class APOTaskAnalyzer:
         else:
             models = [MentalModel.FIRST_PRINCIPLES, MentalModel.TREE_OF_THOUGHTS]
         
-        # Add inversion for high-risk tasks
-        if dimensions.get('risk', 0) > 3.5:
+        if dimensions.get('risk', 0) > HIGH_RISK_THRESHOLD:
             models.append(MentalModel.INVERSION)
         
         return models
@@ -380,28 +369,30 @@ class APOTaskAnalyzer:
     def _route_to_model(self, complexity_score: float) -> str:
         """Route to appropriate AI model based on complexity"""
         rules = self.config.get('task_analyzer', {}).get('auto_routing', {}).get('rules', [])
+        default_model = 'claude_sonnet_4_5'
         
         for rule in rules:
             complexity_range = rule.get('complexity', '')
-            
-            if '>' in complexity_range:
-                threshold = float(complexity_range.split('>')[1].strip())
-                if complexity_score > threshold:
-                    return rule.get('model', 'claude_sonnet_4_5')
-            
-            elif '-' in complexity_range:
-                low, high = map(float, complexity_range.split('-'))
-                if low <= complexity_score < high:
-                    return rule.get('model', 'claude_sonnet_4_5')
-            
-            elif '<' in complexity_range:
-                threshold = float(complexity_range.split('<')[1].strip())
-                if complexity_score < threshold:
-                    return rule.get('model', 'grok_code_fast_1')
-        
-        # Default to Claude Sonnet 4.5
-        return 'claude_sonnet_4_5'
+            model = rule.get('model', default_model)
 
+            try:
+                if '>' in complexity_range:
+                    threshold = float(complexity_range.split('>')[1].strip())
+                    if complexity_score > threshold:
+                        return model
+                
+                elif '-' in complexity_range:
+                    low, high = map(float, complexity_range.split('-'))
+                    if low <= complexity_score < high:
+                        return model
+                
+                elif '<' in complexity_range:
+                    threshold = float(complexity_range.split('<')[1].strip())
+                    if complexity_score < threshold:
+                        return model
+            except (ValueError, IndexError) as e:
+                logger.warning(f"Could not parse complexity rule '{complexity_range}': {e}")
+        return default_model
 
 def create_analyzer(config_path: Optional[str] = None) -> APOTaskAnalyzer:
     """
@@ -415,7 +406,6 @@ def create_analyzer(config_path: Optional[str] = None) -> APOTaskAnalyzer:
     """
     config = None
     if config_path:
-        # In production, load from YAML file
         logger.info(f"Loading configuration from {config_path}")
     
     return APOTaskAnalyzer(config)

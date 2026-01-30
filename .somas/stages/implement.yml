@@ -1,0 +1,59 @@
+# Stage 5: IMPLEMENT - Generate code and tests
+implement:
+  id: "implement"
+  order: 5
+  code_name: "IMPLEMENT"
+  objective: "Generate production-ready code with tests using single-shot protocol"
+
+  inputs:
+    - "docs/specs/ISSUE-{id}.md (from specify)"
+    - "docs/arch/ISSUE-{id}-design.md (from plan)"
+    - "docs/tasks/ISSUE-{id}-tasks.yml (from decompose)"
+
+  outputs:
+    - artifact: "Pull Request"
+      contents:
+        - "source_code/"
+        - "tests/"
+        - "documentation/"
+        - "configuration/"
+    - artifact: "implementation_report.md"
+      sections:
+        - "Files Created/Modified"
+        - "Test Coverage"
+        - "Requirements Traceability"
+
+  agents:
+    primary: "implementer"
+    secondary: "copilot"
+
+  execution_mode: "single_shot"
+  single_shot_protocol:
+    - phase: "analysis"
+      description: "Understand all requirements before coding"
+    - phase: "design"
+      description: "Plan implementation approach"
+    - phase: "implementation"
+      description: "Write complete code in one pass"
+    - phase: "verification"
+      description: "Self-check against requirements"
+
+  quality_gates:
+    - "Code compiles/runs without errors"
+    - "All new code has tests"
+    - "No critical linting errors"
+    - "Requirements traceability maintained"
+
+  exit_criteria:
+    success_label: "somas:stage:06-verify"
+    failure_label: "somas:status:build-failed"
+
+  human_gate: false
+  auto_proceed: true
+  timeout_hours: 48
+
+  notes: |
+    The Implement stage generates all production code.
+    Uses single-shot protocol for efficient implementation.
+    Creates a PR with code, tests, and documentation.
+    Copilot agent assists with code review and suggestions.
