@@ -95,7 +95,38 @@ jobs:
 
             return { issue, requestType };
 
-      - name: Add Triaged and Dev Labels
+      - name: Check for Recent Triage Comment
+        id: check_duplicate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Prevent duplicate triage comments from opened+labeled race condition
+            // Check if a triage comment was already posted in the last 60 seconds
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 10
+            });
+
+            const now = new Date();
+            const recentTriageComment = comments.data.find(c => {
+              const commentAge = now - new Date(c.created_at);
+              const isRecent = commentAge < 60000; // 60 seconds
+              const isTriageComment = c.body.includes('SOMAS Triage Agent Initiated') ||
+                                      c.body.includes('@copilot somas-triage');
+              return isRecent && isTriageComment;
+            });
+
+            if (recentTriageComment) {
+              core.info(`Duplicate triage detected - comment #${recentTriageComment.id} exists from ${recentTriageComment.created_at}`);
+              core.setOutput('is_duplicate', 'true');
+            } else {
+              core.setOutput('is_duplicate', 'false');
+            }
+
+      - name: Add Triaged Label
+        if: steps.check_duplicate.outputs.is_duplicate != 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -109,6 +140,7 @@ jobs:
             });
 
       - name: Invoke Triage Agent
+        if: steps.check_duplicate.outputs.is_duplicate != 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -165,6 +197,28 @@ jobs:
               **Confidence Threshold:** If confidence < 0.8, escalate to human (@scotlaclair).
               `
             });
+
+      - name: Add Project Label to Enable Pipeline
+        if: steps.check_duplicate.outputs.is_duplicate != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Add somas-project label to trigger the main pipeline
+            // This enables progression from triage to the full 11-stage pipeline
+            const requestType = '${{ steps.extract.outputs.request_type }}';
+
+            // Only add somas-project for actionable request types
+            if (['change', 'enhancement', 'bug'].includes(requestType)) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['somas-project']
+              });
+              core.info(`Added somas-project label for ${requestType} request to enable pipeline`);
+            } else {
+              core.info(`Skipping somas-project label for ${requestType} request type`);
+            }
 
   # Parse agent responses and advance pipeline
   orchestrate:

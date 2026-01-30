@@ -13,7 +13,8 @@ permissions:
 jobs:
   autonomous-execution:
     name: Autonomous Pipeline Execution
-    # Only trigger on somas:dev - somas-project triggers somas-pipeline.yml for initialization
+    # Only run on somas:dev label - let somas-pipeline.yml handle somas-project only cases
+    # This prevents duplicate pipeline executions when somas-project is added
     if: github.event.label.name == 'somas:dev'
     runs-on: ubuntu-latest
     timeout-minutes: 300
