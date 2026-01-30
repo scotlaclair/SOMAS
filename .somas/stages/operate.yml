@@ -1,0 +1,58 @@
+# Stage 10: OPERATE - Health checks and monitoring
+operate:
+  id: "operate"
+  order: 10
+  code_name: "OPERATE"
+  objective: "Verify deployment health and set up monitoring"
+
+  inputs:
+    - "Deployed release (from release)"
+    - "Deployment URL/environment"
+    - "SLO definitions"
+
+  outputs:
+    - artifact: "operations_report.yml"
+      contents:
+        - "health_status"
+        - "slo_compliance"
+        - "metrics"
+        - "alerts_configured"
+    - artifact: "monitoring_config.yml"
+      contents:
+        - "health_endpoints"
+        - "alert_thresholds"
+        - "dashboards"
+
+  agents:
+    primary: "operator"
+
+  health_checks:
+    - type: "http"
+      description: "HTTP endpoint health check"
+      expected: "200 OK"
+    - type: "latency"
+      description: "Response time check"
+      threshold: "p95 < 200ms"
+    - type: "availability"
+      description: "Uptime check"
+      threshold: "> 99.9%"
+
+  quality_gates:
+    - "Health endpoint returns 200"
+    - "Latency within SLO"
+    - "No error spikes"
+    - "Monitoring configured"
+
+  exit_criteria:
+    success_label: "somas:stage:11-analyze"
+    failure_label: "somas:status:unhealthy"
+
+  human_gate: false
+  auto_proceed: true
+  timeout_hours: 8
+
+  notes: |
+    The Operate stage ensures deployment stability.
+    Operator agent verifies health endpoints.
+    Sets up monitoring and alerting.
+    Confirms SLO compliance before moving to analysis.

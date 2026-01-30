@@ -286,73 +286,73 @@ jobs:
 
             const lastHuman = humanComments[humanComments.length - 1];
             if (lastHuman) {
-              // Stage 1: SIGNAL (Intake) - planner
+              // Stage 1: INTAKE - triage/advisor (planner is legacy)
               if (lastHuman.body.includes('@copilot somas-planner')) {
                 agentName = 'planner';
                 artifactName = 'initial_plan.yml';
                 nextAgent = 'specifier';
-                nextStage = 'design';
-              // Stage 2: DESIGN (Specify) - specifier
+                nextStage = 'specify';
+              // Stage 2: SPECIFY - specifier
               } else if (lastHuman.body.includes('@copilot somas-specifier')) {
                 agentName = 'specifier';
                 artifactName = 'SPEC.md';
                 nextAgent = 'simulator';
-                nextStage = 'grid';
-              // Stage 3: GRID (Plan) - simulator
+                nextStage = 'plan';
+              // Stage 3: PLAN - simulator/architect/planner
               } else if (lastHuman.body.includes('@copilot somas-simulator')) {
                 agentName = 'simulator';
                 artifactName = 'execution_plan.yml';
                 nextAgent = 'decomposer';
-                nextStage = 'line';
-              // Stage 4: LINE (Decompose) - decomposer
+                nextStage = 'decompose';
+              // Stage 4: DECOMPOSE - decomposer
               } else if (lastHuman.body.includes('@copilot somas-decomposer')) {
                 agentName = 'decomposer';
                 artifactName = 'task_decomposition.yml';
                 nextAgent = 'implementer';
-                nextStage = 'mcp';
-              // Stage 5: MCP (Implement) - implementer/coder
+                nextStage = 'implement';
+              // Stage 5: IMPLEMENT - implementer/copilot
               } else if (lastHuman.body.includes('@copilot somas-implementer') || lastHuman.body.includes('@copilot somas-coder')) {
                 agentName = 'implementer';
                 artifactName = 'source_code';
                 nextAgent = 'validator';
-                nextStage = 'pulse';
-              // Stage 6: PULSE (Verify) - validator
+                nextStage = 'verify';
+              // Stage 6: VERIFY - tester/debugger
               } else if (lastHuman.body.includes('@copilot somas-validator')) {
                 agentName = 'validator';
                 artifactName = 'test_results.json';
                 nextAgent = 'tester';
-                nextStage = 'pulse';
-              // Stage 6: PULSE (Verify) - security
+                nextStage = 'verify';
+              // Stage 8: HARDEN - security
               } else if (lastHuman.body.includes('@copilot somas-security')) {
                 agentName = 'security';
                 artifactName = 'security_scan.md';
                 nextAgent = 'reviewer';
-                nextStage = 'pulse';
-              // Stage 7: SYNAPSE (Integrate) - merger
+                nextStage = 'harden';
+              // Stage 7: INTEGRATE - merger/validator
               } else if (lastHuman.body.includes('@copilot somas-merger')) {
                 agentName = 'merger';
                 artifactName = 'integration_report.md';
                 nextAgent = 'deployer';
-                nextStage = 'velocity';
-              // Stage 6: PULSE (Verify) - tester
+                nextStage = 'release';
+              // Stage 6: VERIFY - tester
               } else if (lastHuman.body.includes('@copilot somas-tester')) {
                 agentName = 'tester';
                 artifactName = 'hardening_report.md';
                 nextAgent = 'security';
-                nextStage = 'pulse';
-              // Stage 9: VELOCITY (Release) - deployer
+                nextStage = 'verify';
+              // Stage 9: RELEASE - deployer
               } else if (lastHuman.body.includes('@copilot somas-deployer')) {
                 agentName = 'deployer';
                 artifactName = 'deployment_report.md';
                 nextAgent = 'operator';
-                nextStage = 'vibe';
-              // Stage 10: VIBE (Operate) - operator
+                nextStage = 'operate';
+              // Stage 10: OPERATE - operator
               } else if (lastHuman.body.includes('@copilot somas-operator')) {
                 agentName = 'operator';
                 artifactName = 'operations_report.md';
                 nextAgent = 'analyzer';
-                nextStage = 'whole';
-              // Stage 11: WHOLE (Learn) - analyzer
+                nextStage = 'analyze';
+              // Stage 11: ANALYZE - analyzer/documenter
               } else if (lastHuman.body.includes('@copilot somas-analyzer')) {
                 agentName = 'analyzer';
                 artifactName = 'analysis_report.md';
@@ -363,13 +363,13 @@ jobs:
                 agentName = 'reviewer';
                 artifactName = 'review_report.md';
                 nextAgent = 'merger';
-                nextStage = 'synapse';
+                nextStage = 'integrate';
               // Legacy support for architect
               } else if (lastHuman.body.includes('@copilot somas-architect')) {
                 agentName = 'architect';
                 artifactName = 'ARCHITECTURE.md';
                 nextAgent = 'implementer';
-                nextStage = 'mcp';
+                nextStage = 'implement';
               }
             }
 
@@ -558,12 +558,12 @@ jobs:
               - Task dependency graph
               - Acceptance criteria per task`,
 
-              // Stage 3: GRID (Plan)
+              // Stage 3: PLAN
               simulator: `@copilot somas-simulator
 
               Perform Monte Carlo simulation and create optimized execution plan based on SPEC.md above.
 
-              **Stage:** 3/11 - GRID (Plan)
+              **Stage:** 3/11 - PLAN
               **Input:** \`SPEC.md\` from specifier
 
               **Required Output Format:**
@@ -584,12 +584,12 @@ jobs:
                   mitigation: "..."
               \`\`\``,
 
-              // Stage 4: LINE (Decompose)
+              // Stage 4: DECOMPOSE
               decomposer: `@copilot somas-decomposer
 
               Break down the execution plan into atomic, parallelizable tasks.
 
-              **Stage:** 4/11 - LINE (Decompose)
+              **Stage:** 4/11 - DECOMPOSE
               **Input:** \`execution_plan.yml\` from simulator
 
               **Required Output Format:**
@@ -603,7 +603,7 @@ jobs:
                   parallelizable: true
               \`\`\``,
 
-              // Stage 5: MCP (Implement) - Legacy architect support
+              // Stage 5: IMPLEMENT - Legacy architect support
               architect: `@copilot somas-architect
 
               Design system architecture based on specification and execution plan above.
@@ -631,12 +631,12 @@ jobs:
               ...
               \`\`\``,
 
-              // Stage 5: MCP (Implement)
+              // Stage 5: IMPLEMENT
               implementer: `@copilot somas-implementer
 
               Implement the system based on decomposed tasks using single-shot protocol.
 
-              **Stage:** 5/11 - MCP (Implement)
+              **Stage:** 5/11 - IMPLEMENT
               **Inputs:** \`task_decomposition.yml\`, \`SPEC.md\`, \`execution_plan.yml\`
 
               **Single-Shot Protocol:**
@@ -647,12 +647,12 @@ jobs:
 
               **Output:** Complete working code with tests in markdown code blocks`,
 
-              // Stage 6: PULSE (Verify)
+              // Stage 6: VERIFY
               validator: `@copilot somas-validator
 
               Validate implementation against requirements and create test suite.
 
-              **Stage:** 6/11 - PULSE (Verify)
+              **Stage:** 6/11 - VERIFY
               **Input:** Implementation code and SPEC.md
 
               **Required Output:**
@@ -671,12 +671,12 @@ jobs:
               }
               \`\`\``,
 
-              // Stage 6: PULSE (Verify) - Legacy tester
+              // Stage 6: VERIFY - Legacy tester
               tester: `@copilot somas-tester
 
               Create comprehensive test suite and hardening report.
 
-              **Stage:** 6/11 - PULSE (Verify)
+              **Stage:** 6/11 - VERIFY
               **Input:** Implementation code and SPEC.md
 
               **Required Output:**
@@ -696,12 +696,12 @@ jobs:
               }
               \`\`\``,
 
-              // Stage 6: PULSE (Verify) - Security
+              // Stage 8: HARDEN - Security
               security: `@copilot somas-security
 
               Perform security vulnerability scan on the implementation.
 
-              **Stage:** 6/11 - PULSE (Verify - Security)
+              **Stage:** 8/11 - HARDEN
               **Input:** Implementation code and SPEC.md
 
               **Required Output:**
@@ -713,13 +713,13 @@ jobs:
               - High: 0
               \`\`\``,
 
-              // Stage 7: SYNAPSE (Integrate)
+              // Stage 7: INTEGRATE
               merger: `@copilot somas-merger
 
               Integrate code changes and resolve any conflicts.
 
-              **Stage:** 7/11 - SYNAPSE (Integrate)
-              **Input:** Validated code from pulse stage
+              **Stage:** 7/11 - INTEGRATE
+              **Input:** Validated code from verify stage
 
               **Output:**
               \`\`\`markdown
@@ -731,12 +731,12 @@ jobs:
               - Integration tests: PASS/FAIL
               \`\`\``,
 
-              // Stage 10: VIBE (Operate)
+              // Stage 10: OPERATE
               operator: `@copilot somas-operator
 
               Monitor operational metrics and SLO compliance.
 
-              **Stage:** 10/11 - VIBE (Operate)
+              **Stage:** 10/11 - OPERATE
               **Input:** Deployed system metrics
 
               **Output:**
@@ -749,12 +749,12 @@ jobs:
                   requests_per_second: 1000
               \`\`\``,
 
-              // Stage 11: WHOLE (Learn)
+              // Stage 11: ANALYZE
               analyzer: `@copilot somas-analyzer
 
               Analyze pipeline execution and generate insights for future improvements.
 
-              **Stage:** 11/11 - WHOLE (Learn)
+              **Stage:** 11/11 - ANALYZE
               **Input:** All pipeline artifacts and metrics
 
               **Output:**

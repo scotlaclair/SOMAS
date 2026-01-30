@@ -36,10 +36,38 @@ The SOMAS (Self-Sovereign Orchestrated Multi-Agent System) uses a team of **12 s
 ### Pipeline Agents (Sequential Execution)
 
 #### 1. **@somas-planner** - Ideation Agent
-- **Stage**: Ideation (Stage 1)
-- **Model**: GPT-4o
-- **Role**: Transform rough ideas into structured project plans
-- **Invocation**: `@somas-planner create initial plan for [project idea]`
+
+**Pattern:**
+1. Agent N completes work, stores artifact
+2. Orchestrator validates artifact
+3. Agent N+1 reads artifact, begins work
+
+**Example:**
+```markdown
+-# Issue: Create chat application
+-
+-Comment 1: @somas-planner create initial plan
+-→ Produces: initial_plan.yml
+-
+-Comment 2: @somas-specifier generate SPEC.md from initial_plan.yml
+-→ Produces: SPEC.md
+-
+-Comment 3: @somas-simulator run optimization on SPEC.md
+-→ Produces: execution_plan.yml
++# Issue: Create new feature
++
++Comment 1: @somas-planner create initial plan for new feature
++→ Stage 1 (`signal`) complete.
++
++Comment 2: @somas-specifier generate SPEC.md from the plan
++→ Stage 2 (`design`) complete.
++
++Comment 3: @somas-architect design architecture from SPEC.md
++→ Stage 3 (`grid`) sub-task complete.
++
++Comment 4: @somas-decomposer breakdown ARCHITECTURE.md into tasks
++→ Stage 4 (`line`) complete.
+- **Stage**: `signal` (Stage 1)
 - **Inputs**: 
   - Project idea (from issue description)
   - User requirements and constraints
@@ -60,13 +88,9 @@ The SOMAS (Self-Sovereign Orchestrated Multi-Agent System) uses a team of **12 s
 with end-to-end encryption, supporting 10,000 concurrent users
 ```
 
----
 
 #### 2. **@somas-specifier** - Specification Agent
-- **Stage**: Specification (Stage 2)
-- **Model**: GPT-4o
-- **Role**: Create complete, unambiguous specifications from project plans
-- **Invocation**: `@somas-specifier generate SPEC.md from initial_plan.yml`
+- **Stage**: `design` (Stage 2)
 - **Inputs**:
   - `initial_plan.yml` (from Planner)
   - Stakeholder feedback (issue comments)
@@ -89,13 +113,9 @@ with end-to-end encryption, supporting 10,000 concurrent users
 for authentication flows
 ```
 
----
 
 #### 3. **@somas-simulator** - Simulation Agent
-- **Stage**: Simulation (Stage 3)
-- **Model**: GPT-4o
-- **Role**: Optimize development execution through Monte Carlo simulation
-- **Invocation**: `@somas-simulator run optimization on SPEC.md`
+- **Stage**: `grid` (Stage 3)
 - **Inputs**:
   - `SPEC.md` (from Specifier)
   - Historical analytics (`.somas/analytics/`)
@@ -126,13 +146,9 @@ optimization:
 for external API integrations
 ```
 
----
 
 #### 4. **@somas-architect** - Architecture Agent
-- **Stage**: Architecture (Stage 4)
-- **Model**: GPT-4o
-- **Role**: Design system architecture and detailed technical specifications
-- **Invocation**: `@somas-architect design architecture from SPEC.md`
+- **Stage**: `grid` (Stage 3)
 - **Inputs**:
   - `SPEC.md` (from Specifier)
   - `execution_plan.yml` (from Simulator)
@@ -156,14 +172,32 @@ for external API integrations
 for this system, considering the 10K user requirement
 ```
 
+
+#### 5. **@somas-decomposer** - Decomposition Agent
+- **Stage**: `line` (Stage 4)
+- **Role**: Transform architecture documents into a detailed, actionable task breakdown.
+- **Invocation**: `@somas-decomposer breakdown ARCHITECTURE.md into tasks`
+- **Inputs**:
+  - `ARCHITECTURE.md` (from Architect)
+  - `execution_plan.yml` (from Simulator)
+- **Outputs**:
+  - Updated GitHub Issue with a task checklist
+  - `build_plan.yml` with atomic development tasks
+- **Agent File**: `.somas/agents/decomposer.yml`
+- **Best Used For**:
+  - Breaking down large features into small tasks
+  - Creating actionable development plans
+
+**Example Usage:**
+```markdown
+@somas-decomposer generate task list for the user authentication feature
+```
+
 ---
 
-#### 5. **@somas-implementer** - Implementation Agent
-- **Stage**: Implementation (Stage 5)
+#### 6. **@somas-implementer** - Implementation Agent
+- **Stage**: `mcp` (Stage 5)
 - **Model**: GPT-4o
-- **Role**: Generate production-ready source code
-- **Invocation**: `@somas-implementer implement [component] from ARCHITECTURE.md`
-- **Inputs**:
   - `ARCHITECTURE.md` (from Architect)
   - `execution_plan.yml` task definitions
   - Code templates (`.somas/templates/`)
@@ -185,13 +219,9 @@ for this system, considering the 10K user requirement
 as specified in ARCHITECTURE.md section 4.2
 ```
 
----
 
-#### 6. **@somas-tester** - Testing Agent
-- **Stage**: Validation (Stage 6)
-- **Model**: GPT-4o
-- **Role**: Comprehensive testing and quality validation
-- **Invocation**: `@somas-tester validate implementation against SPEC.md`
+-#### 7. **@somas-tester** - Testing Agent
+- **Stage**: `pulse` (Stage 6)
 - **Inputs**:
   - Source code (from Implementer)
   - `SPEC.md` requirements
@@ -215,14 +245,34 @@ as specified in ARCHITECTURE.md section 4.2
 and report results
 ```
 
+
+-#### 8. **@somas-merger** - Merge Agent
+- **Stage**: `synapse` (Stage 7)
+- **Role**: Merge Coordinator & Conflict Resolver responsible for analyzing and resolving merge conflicts.
+- **Invocation**: `@somas-merger merge feature/X into main`
+- **Inputs**:
+  - Multiple feature branches
+  - `git diff` outputs
+  - Conflict markers
+- **Outputs**:
+  - `MERGE_REPORT.md`
+  - Resolved conflicts
+  - Merged branches
+- **Agent File**: `.somas/agents/merger.yml`
+- **Best Used For**:
+  - Safely integrating changes from multiple branches
+  - Intelligent conflict resolution
+
+**Example Usage:**
+```markdown
+@somas-merger resolve conflicts between feature/auth and feature/roles
+```
+
 ---
 
-#### 7. **@somas-deployer** - Deployment Agent
-- **Stage**: Staging (Stage 7)
+#### 9. **@somas-deployer** - Deployment Agent
+- **Stage**: `velocity` (Stage 9)
 - **Model**: GPT-4o
-- **Role**: Prepare deployment artifacts and infrastructure
-- **Invocation**: `@somas-deployer prepare staging deployment`
-- **Inputs**:
   - Validated code (from Tester)
   - `ARCHITECTURE.md` deployment specs
 - **Outputs**:

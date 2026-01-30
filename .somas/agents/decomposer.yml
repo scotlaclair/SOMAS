@@ -1,11 +1,11 @@
 # Decomposer Agent Configuration
-# Task decomposition into atomic, parallelizable units (Stage 4: LINE)
+# Task decomposition into atomic, parallelizable units (Stage 4: DECOMPOSE)
 
 agent:
   name: "Decomposer"
   role: "Task Decomposition Specialist"
-  stage: "line"
-  stage_code: "LINE"
+  stage: "decompose"
+  stage_code: "DECOMPOSE"
   stage_description: "Decompose - Break into atomic tasks"
   provider: "claude_sonnet_4_5"
   inherits: "_base"

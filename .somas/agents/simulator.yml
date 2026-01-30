@@ -1,4 +1,4 @@
-# @copilot-context: Simulator agent configuration for SOMAS simulation stage
+# @copilot-context: Simulator agent configuration for SOMAS plan stage
 # This agent performs Monte Carlo simulation for task optimization
 # Provider: GPT-5.2 - General intelligence for complex analysis and optimization
 # @copilot-delegate: This is a GPT-5.2 agent for simulation tasks

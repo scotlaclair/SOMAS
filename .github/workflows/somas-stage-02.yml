@@ -1,0 +1,86 @@
+name: "SOMAS: Phase 2 (Specify & Plan)"
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  generate-specs:
+    if: github.event.label.name == 'somas:stage:02-specify'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install openai PyYAML
+
+      - name: Run Specifier Agent
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 1. Generate SPEC
+          python -m somas.core.runner \
+            --agent specifier \
+            --issue_number ${{ github.event.issue.number }} \
+            --repo_root $GITHUB_WORKSPACE \
+            --output_file "docs/specs/ISSUE-${{ github.event.issue.number }}.md"
+
+      - name: Commit SPEC
+        run: |
+          git config --global user.name "SOMAS Bot"
+          git config --global user.email "somas-bot@users.noreply.github.com"
+          git add docs/specs/
+          git commit -m "docs: generate SPEC for Issue #${{ github.event.issue.number }}" || echo "No changes to commit"
+          git push
+
+      - name: Run Architect Agent
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 2. Generate ARCH (Feeds in the just-created SPEC)
+          # Note: Runner needs to support reading the SPEC file we just made
+          python -m somas.core.runner \
+            --agent architect \
+            --issue_number ${{ github.event.issue.number }} \
+            --repo_root $GITHUB_WORKSPACE \
+            --context_file "docs/specs/ISSUE-${{ github.event.issue.number }}.md" \
+            --output_file "docs/arch/ISSUE-${{ github.event.issue.number }}.md"
+
+      - name: Commit ARCH
+        run: |
+          git add docs/arch/
+          git commit -m "docs: generate ARCH for Issue #${{ github.event.issue.number }}" || echo "No changes to commit"
+          git push
+
+      - name: Transition to Stage 04
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue_number = context.issue.number;
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              labels: ['somas:stage:04-decompose']
+            });
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              name: 'somas:stage:02-specify'
+            });

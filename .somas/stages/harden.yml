@@ -1,0 +1,59 @@
+# Stage 8: HARDEN - Security scanning and audits
+harden:
+  id: "harden"
+  order: 8
+  code_name: "HARDEN"
+  objective: "Perform security scanning, vulnerability assessment, and hardening"
+
+  inputs:
+    - "Pull Request (from implement)"
+    - "source_code/"
+    - "configuration/"
+    - "dependencies (package.json, requirements.txt, etc.)"
+
+  outputs:
+    - artifact: "security_report.md"
+      sections:
+        - "Vulnerability Summary"
+        - "SAST Results"
+        - "DAST Results"
+        - "Dependency Audit"
+        - "Secrets Scan"
+        - "Remediation Actions"
+    - artifact: "security_scan.sarif"
+      description: "SARIF format for GitHub Security tab"
+
+  agents:
+    primary: "security"
+
+  security_checks:
+    - type: "sast"
+      tool: "codeql"
+      description: "Static Application Security Testing"
+    - type: "dependency"
+      tool: "dependabot"
+      description: "Dependency vulnerability scan"
+    - type: "secrets"
+      tool: "gitleaks"
+      description: "Secrets and credentials scan"
+
+  quality_gates:
+    - "No critical vulnerabilities"
+    - "No high vulnerabilities"
+    - "No secrets in codebase"
+    - "Dependencies up to date"
+    - "Security best practices followed"
+
+  exit_criteria:
+    success_label: "somas:stage:09-release"
+    failure_label: "somas:status:vuln-found"
+
+  human_gate: false
+  auto_proceed: true
+  timeout_hours: 16
+
+  notes: |
+    The Harden stage ensures security before release.
+    Security agent runs SAST, DAST, and dependency scans.
+    Results are uploaded to GitHub Security tab.
+    Critical/high vulnerabilities block progression.

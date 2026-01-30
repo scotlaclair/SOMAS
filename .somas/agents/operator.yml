@@ -1,11 +1,11 @@
 # Operator Agent Configuration
-# Operational monitoring and SLO tracking (Stage 10: VIBE)
+# Operational monitoring and SLO tracking (Stage 10: OPERATE)
 
 agent:
   name: "Operator"
   role: "Operations & SLO Monitoring Specialist"
-  stage: "vibe"
-  stage_code: "VIBE"
+  stage: "operate"
+  stage_code: "OPERATE"
   stage_description: "Operate - Monitor SLOs"
   provider: "gemini_3_pro"
   inherits: "_base"
@@ -64,7 +64,7 @@ output_format: |
   Generate an operations report:
   
   ```yaml
-  # operations_report.yml - Stage 10: VIBE
+  # operations_report.yml - Stage 10: OPERATE
   
   report_metadata:
     timestamp: "[ISO-8601-TIMESTAMP]"

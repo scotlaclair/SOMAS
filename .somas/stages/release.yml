@@ -1,0 +1,54 @@
+# Stage 9: RELEASE - Package and deploy artifacts
+release:
+  id: "release"
+  order: 9
+  code_name: "RELEASE"
+  objective: "Merge PR, tag release, and generate changelog"
+
+  inputs:
+    - "Pull Request (verified and hardened)"
+    - "security_report.md (from harden)"
+    - "All previous stage artifacts"
+
+  outputs:
+    - artifact: "Merged commit to main/dev"
+    - artifact: "Git tag (vX.Y.Z)"
+    - artifact: "CHANGELOG.md entry"
+    - artifact: "GitHub Release"
+      contents:
+        - "Release notes"
+        - "Binary artifacts (if applicable)"
+        - "Documentation links"
+
+  agents:
+    primary: "deployer"
+
+  release_process:
+    - step: "merge"
+      description: "Merge PR to target branch"
+    - step: "tag"
+      description: "Create semantic version tag"
+    - step: "changelog"
+      description: "Update CHANGELOG.md"
+    - step: "release"
+      description: "Create GitHub Release"
+
+  quality_gates:
+    - "PR merged successfully"
+    - "Tag created"
+    - "Changelog updated"
+    - "Release published"
+
+  exit_criteria:
+    success_label: "somas:stage:10-operate"
+    failure_label: "somas:status:deploy-fail"
+
+  auto_merge_to_dev: true
+  human_gate: false
+  timeout_hours: 24
+
+  notes: |
+    The Release stage finalizes the development cycle.
+    Deployer agent merges PR and creates release artifacts.
+    Changelog is automatically generated from commits.
+    For production releases, human approval may be required.

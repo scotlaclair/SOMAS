@@ -183,7 +183,7 @@ Final stage creates the PR:
 
 ### Step 5: Review the Generated Code
 
-When the staging stage completes, you'll be notified with a comment like:
+When the integrate stage completes, you'll be notified with a comment like:
 
 ```
 🎉 SOMAS Pipeline Complete!
@@ -437,7 +437,7 @@ Edge cases to handle:
 
 ### Issue: Tests Failing
 
-**Symptoms**: Validation stage reports test failures
+**Symptoms**: Verify stage reports test failures
 
 **Solutions**:
 1. Review test output in the workflow logs

@@ -95,38 +95,38 @@ Complete snapshot of project state including:
   "updated_at": "2026-01-26T21:30:00Z",
   "issue_number": 123,
   "branch": "somas/project-123",
-  "current_stage": "implementation",
+  "current_stage": "mcp",
   "status": "in_progress",
   "stages": {
-    "ideation": {
+    "signal": {
       "status": "completed",
       "started_at": "2026-01-26T21:00:00Z",
       "completed_at": "2026-01-26T21:05:00Z",
       "duration_seconds": 300,
       "agent": "planner",
       "retry_count": 0,
-      "artifacts": ["artifacts/initial_plan.md"]
+      "artifacts": ["artifacts/initial_plan.yml"]
     },
-    "implementation": {
+    "mcp": {
       "status": "in_progress",
       "started_at": "2026-01-26T21:25:00Z",
-      "agent": "coder",
+      "agent": "implementer",
       "retry_count": 0
     }
   },
   "checkpoints": [
     {
       "id": "chk-abc123",
-      "stage": "ideation",
+      "stage": "signal",
       "timestamp": "2026-01-26T21:05:00Z",
       "status": "success",
-      "artifacts": ["artifacts/initial_plan.md"]
+      "artifacts": ["artifacts/initial_plan.yml"]
     }
   ],
   "metrics": {
     "total_duration_seconds": 1800,
     "stage_durations": {
-      "ideation": 300
+      "signal": 300
     },
     "retry_count": 0,
     "agent_invocations": 2,
@@ -136,7 +136,7 @@ Complete snapshot of project state including:
   "recovery_info": {
     "last_successful_checkpoint": "chk-abc123",
     "can_resume": true,
-    "resume_from_stage": "implementation"
+    "resume_from_stage": "mcp"
   }
 }
 ```
@@ -846,10 +846,10 @@ stage-N-example:
         state_manager = StateManager()
         state_manager.start_stage(
             project_id=project_id,
-            stage="specification",  # Change per stage
+            stage="specify",  # Change per stage
             agent="specifier"       # Change per stage
         )
-        print(f"Started specification stage for {project_id}")
+        print(f"Started specify stage for {project_id}")
         PYTHON
     
     # ... Agent invocation and artifact generation ...
@@ -867,11 +867,11 @@ stage-N-example:
         state_manager = StateManager()
         state_manager.complete_stage(
             project_id=project_id,
-            stage="specification",
+            stage="specify",
             artifacts=["artifacts/SPEC.md"],
             create_checkpoint=True
         )
-        print(f"Completed specification stage for {project_id}")
+        print(f"Completed specify stage for {project_id}")
         PYTHON
     
     - name: Record Stage Failure
@@ -887,7 +887,7 @@ stage-N-example:
         state_manager = StateManager()
         state_manager.fail_stage(
             project_id=project_id,
-            stage="specification",
+            stage="specify",
             agent="specifier",
             error={"type": "WorkflowError", "message": "Stage failed"},
             create_dead_letter=True
@@ -901,7 +901,7 @@ stage-N-example:
         
         if git status --porcelain .somas/projects/ | grep . >/dev/null; then
           git add .somas/projects/
-          git commit -m "Update state for specification stage"
+          git commit -m "Update state for specify stage"
           git push
         fi
 ```
@@ -910,7 +910,7 @@ stage-N-example:
 
 Applying state tracking to all pipeline stages provides:
 
-1. **Consistent Recovery**: Resume from any stage after failure, not just ideation
+1. **Consistent Recovery**: Resume from any stage after failure, not just intake
 2. **Complete Audit Trail**: Full execution history for compliance and debugging
 3. **Performance Metrics**: Stage duration tracking enables optimization
 4. **Failure Analysis**: Dead letters for every stage enable systematic debugging

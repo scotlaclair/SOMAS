@@ -180,8 +180,8 @@ List tasks that can now proceed:
 [How can we prevent similar delegations in the future?]
 
 **Examples:**
-- Add checklist item to specification stage
-- Include this scenario in architecture review
+- Add checklist item to specify stage
+- Include this scenario in decompose review
 - Update quality gate to catch this type of issue
 - Add this to agent instruction prompt
 

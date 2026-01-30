@@ -1,11 +1,11 @@
 # Merger Agent Configuration
-# Code integration and merge conflict resolution (Stage 7: SYNAPSE)
+# Code integration and merge conflict resolution (Stage 7: INTEGRATE)
 
 agent:
   name: "Merger"
   role: "Integration & Merge Specialist"
-  stage: "synapse"
-  stage_code: "SYNAPSE"
+  stage: "integrate"
+  stage_code: "INTEGRATE"
   stage_description: "Integrate - Connect & merge"
   provider: "claude_sonnet_4_5"
   inherits: "_base"
@@ -58,7 +58,7 @@ output_format: |
   Generate an integration report:
   
   ```markdown
-  # Integration Report - Stage 7: SYNAPSE
+  # Integration Report - Stage 7: INTEGRATE
   
   ## Merge Summary
   
@@ -124,7 +124,7 @@ output_format: |
   
   ---
   
-  **Status:** ✅ Integration Complete - Ready for OVERLOAD (Harden)
+  **Status:** ✅ Integration Complete - Ready for HARDEN
   ```
 
 quality_requirements:
