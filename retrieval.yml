@@ -1,0 +1,19 @@
+# SOMAS Knowledge Retrieval Configuration
+#
+# This file defines the sources for Retrieval-Augmented Generation (RAG)
+# to provide agents with contextual information beyond their base model knowledge.
+#
+# For the v1.0.0 POC, this is primarily for future-proofing.
+
+version: 1.0
+
+# Define knowledge sources that agents can query.
+knowledge_sources:
+  - name: "architectural_decisions"
+    type: "markdown_dir"
+    path: "docs/adr/"
+    enabled: false # Enable when ADRs are populated
+  - name: "internal_api_docs"
+    type: "openapi_spec"
+    path: "docs/api/openapi.json"
+    enabled: false
