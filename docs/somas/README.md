@@ -1089,11 +1089,32 @@ A: All major languages. Specify your preference in the project description. SOMA
 
 ## Additional Resources
 
+### Core Documentation
+
+- **[Architecture Diagrams](architecture-diagrams.md)** - Visual system architecture (Mermaid)
+- **[Configuration Reference](configuration-reference.md)** - Complete configuration options
+- **[Developer Guide](developer-guide.md)** - Extending and modifying SOMAS
+- **[Test Strategy](test-strategy.md)** - Testing philosophy and patterns
+- **[Operations Runbook](operations-runbook.md)** - Operational procedures
+
+### Guides
+
 - **[Optimization Guide](optimization-guide.md)** - Advanced optimization techniques
-- **[Copilot Integration](COPILOT_GUIDE.md)** - GitHub Copilot usage patterns  
+- **[Copilot Integration](COPILOT_GUIDE.md)** - GitHub Copilot usage patterns
+- **[APO Guide](apo-guide.md)** - Autonomous Prompt Optimization
 - **[Migration Guide](MIGRATION_GUIDE.md)** - Configuration migration
 - **[Troubleshooting](TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Configuration Reference](../../.somas/config.yml)** - Complete config options
+- **[State Persistence](STATE_PERSISTENCE.md)** - State management guide
+
+### API Reference
+
+- **[API Documentation](../api/)** - Auto-generated from docstrings (run `pdoc somas`)
+
+### Project Files
+
+- **[CONTRIBUTING.md](../../CONTRIBUTING.md)** - Contribution guidelines
+- **[CHANGELOG.md](../../CHANGELOG.md)** - Version history
+- **[Configuration](../../.somas/config.yml)** - Main config file
 
 ---
 

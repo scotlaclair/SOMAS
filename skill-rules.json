@@ -1,22 +1,32 @@
 {
   "frameworkSkillsPath": "../../frameworks/claude-dev-framework/skills",
-  "description": "Skill activation rules for this project",
   "skills": [
     {
-      "name": "Database",
-      "resourcePath": "database/",
+      "name": "AgentDesign",
+      "resourcePath": "agent-design/",
       "triggers": {
-        "keywords": ["database", "query", "N+1"]
+        "keywords": ["agent", "orchestrator", "SOMAS", "multi-agent"],
+        "filePathPatterns": ["somas/agents/.*", "scripts/agent.*"]
       },
       "triggerThreshold": 8
     },
     {
-      "name": "TypeScript",
-      "resourcePath": "typescript/",
+      "name": "PromptOptimization",
+      "resourcePath": "prompt-optimization/",
       "triggers": {
-        "keywords": ["TS error", "type mismatch"]
+        "keywords": ["APO", "prompt", "optimize", "reasoning"],
+        "filePathPatterns": ["somas/apo/.*"]
       },
-      "triggerThreshold": 6
+      "triggerThreshold": 8
+    },
+    {
+      "name": "AutonomousSystems",
+      "resourcePath": "autonomous-systems/",
+      "triggers": {
+        "keywords": ["autonomous", "zero-touch", "specification", "feedback"],
+        "filePathPatterns": ["somas/core/.*"]
+      },
+      "triggerThreshold": 8
     }
-  ]
 }
+

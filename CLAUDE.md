@@ -1,37 +1,34 @@
-# CLAUDE.md - [PROJECT_NAME] Context
+# CLAUDE.md - SOMAS (Python)
 
 ## Project Overview
-- **Name**: [PROJECT_NAME]
-- **Root**: [PROJECT_ROOT]
-- **Tech Stack**: TypeScript, Node.js, [OTHER_TECH]
+- **Name**: SOMAS (Self-Sovereign Orchestrated Multi-Agent System)
+- **Root**: ~/Developer/projects/somas
+- **Type**: Python monorepo
+- **Purpose**: Multi-agent orchestration with autonomous prompt optimization
 
-## Essential Constraints
-- **Performance SLAs**: [SPECIFIC_TARGETS]
-- **Deployment**: [DEPLOYMENT_STRATEGY]
-- **Team Capacity**: [CAPACITY] developers
+## Structure
+- `somas/agents/` — Agent implementations
+- `somas/apo/` — Autonomous Prompt Optimization
+- `somas/core/` — Core orchestration
+- `somas/analytics/` — Analysis tools
+- `scripts/` — Utility scripts
+- `tests/` — Test suite
 
-## Repos & Services
+## Tech Stack
+- Python 3.x
+- [What ML frameworks? PyTorch? TensorFlow?]
 
-| Service | Purpose | Port | Owner |
-|---------|---------|------|-------|
-| service-1 | [description] | [port] | [owner] |
-
-## Local Dev Setup
+## How to Run
 ```bash
-cd [PROJECT_ROOT]
-pnpm install
-pnpm build
-pm2 start ecosystem.config.js
+cd ~/Developer/projects/somas
+pip install -r requirements.txt  # or poetry, pdm, etc.
+python -m somas [command]
 ```
 
-## Quick Navigation
+## Skills to Use
+- `skills/agent-design/` — Multi-agent patterns
+- `skills/prompt-optimization/` — APO techniques
+- `skills/autonomous-systems/` — Zero-touch specifications
 
-**Skills** (reusable patterns): skills/ → See skills/index.md
-
-**Active Tasks** (current work): dev/active/
-
-**Completed Tasks**: dev/.completed-tasks/
-
----
-
-Generated: [TIMESTAMP]
+## Active Tasks
+See `dev/active/` for current work

@@ -5,3 +5,6 @@ filelock>=3.12.0
 
 # YAML parsing (used by workflows and agents)
 pyyaml
+
+# API documentation generation
+pdoc>=14.0.0
