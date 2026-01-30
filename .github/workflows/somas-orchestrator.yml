@@ -95,15 +95,17 @@ jobs:
 
             return { issue, requestType };
 
-      - name: Add Triaged Label
+      - name: Add Triaged and Dev Labels
         uses: actions/github-script@v7
         with:
           script: |
+            // Add somas:triaged to mark triage complete
+            // Add somas:dev to trigger autonomous pipeline
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              labels: ['somas:triaged']
+              labels: ['somas:triaged', 'somas:dev']
             });
 
       - name: Invoke Triage Agent
