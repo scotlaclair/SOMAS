@@ -75,13 +75,13 @@ Use a GitHub Action to automatically sync labels from `labels.yml`. Popular opti
 
 Track which agent is pending or in progress:
 
-- `state:pending-planner`
-- `state:pending-specifier`
-- `state:pending-simulator`
-- `state:pending-architect`
-- `state:pending-implementer`
-- `state:pending-tester`
-- `state:pending-deployer`
+- `somas-agent:pending-planner`
+- `somas-agent:pending-specifier`
+- `somas-agent:pending-simulator`
+- `somas-agent:pending-architect`
+- `somas-agent:pending-implementer`
+- `somas-agent:pending-tester`
+- `somas-agent:pending-deployer`
 - `state:complete`
 
 All use color 🔵 BFDADC except `state:complete` which uses C5DEF5.
@@ -92,21 +92,21 @@ All use color 🔵 BFDADC except `state:complete` which uses C5DEF5.
 
 | Label | Description | Color | Used By | Status |
 |-------|-------------|-------|---------|--------|
-| `stage:*` (11 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml, sync-stage-milestones.yml | ✅ Active |
+| `somas:stage:*` (11 labels) | Track pipeline stage | 🔴 E99695 | somas-project-sync.yml, sync-stage-milestones.yml | ✅ Active |
 
 Track the current pipeline stage:
 
-- `stage:intake` - Stage 1: INTAKE - Ingest issues and route requests
-- `stage:specify` - Stage 2: SPECIFY - Convert intent into specifications
-- `stage:plan` - Stage 3: PLAN - Design architecture and task graph
-- `stage:decompose` - Stage 4: DECOMPOSE - Break into atomic tasks
-- `stage:implement` - Stage 5: IMPLEMENT - Generate code and tests
-- `stage:verify` - Stage 6: VERIFY - Run tests and self-heal
-- `stage:integrate` - Stage 7: INTEGRATE - Merge and validate contracts
-- `stage:harden` - Stage 8: HARDEN - Security scanning and audits
-- `stage:release` - Stage 9: RELEASE - Package and deploy artifacts
-- `stage:operate` - Stage 10: OPERATE - Health checks and monitoring
-- `stage:analyze` - Stage 11: ANALYZE - Metrics and documentation
+- `somas:stage:intake` - Stage 1: INTAKE - Ingest issues and route requests
+- `somas:stage:specify` - Stage 2: SPECIFY - Convert intent into specifications
+- `somas:stage:plan` - Stage 3: PLAN - Design architecture and task graph
+- `somas:stage:decompose` - Stage 4: DECOMPOSE - Break into atomic tasks
+- `somas:stage:implement` - Stage 5: IMPLEMENT - Generate code and tests
+- `somas:stage:verify` - Stage 6: VERIFY - Run tests and self-heal
+- `somas:stage:integrate` - Stage 7: INTEGRATE - Merge and validate contracts
+- `somas:stage:harden` - Stage 8: HARDEN - Security scanning and audits
+- `somas:stage:release` - Stage 9: RELEASE - Package and deploy artifacts
+- `somas:stage:operate` - Stage 10: OPERATE - Health checks and monitoring
+- `somas:stage:analyze` - Stage 11: ANALYZE - Metrics and documentation
 
 All use color 🔴 E99695.
 
@@ -149,13 +149,13 @@ All use color 🟡 E4E669.
 
 Show which agents are actively working:
 
-- `agent:planner-working`
-- `agent:specifier-working`
-- `agent:simulator-working`
-- `agent:architect-working`
-- `agent:implementer-working`
-- `agent:tester-working`
-- `agent:deployer-working`
+- `somas-agent:planner-working`
+- `somas-agent:specifier-working`
+- `somas-agent:simulator-working`
+- `somas-agent:architect-working`
+- `somas-agent:implementer-working`
+- `somas-agent:tester-working`
+- `somas-agent:deployer-working`
 
 All use color 🔵 C5DEF5.
 
@@ -212,17 +212,17 @@ Uses these labels:
 
 Automatically creates and assigns milestones based on the 11-stage Aether Lifecycle labels:
 
-- `stage:intake` → Creates/assigns "INTAKE" milestone
-- `stage:specify` → Creates/assigns "SPECIFY" milestone
-- `stage:plan` → Creates/assigns "PLAN" milestone
-- `stage:decompose` → Creates/assigns "DECOMPOSE" milestone
-- `stage:implement` → Creates/assigns "IMPLEMENT" milestone
-- `stage:verify` → Creates/assigns "VERIFY" milestone
-- `stage:integrate` → Creates/assigns "INTEGRATE" milestone
-- `stage:harden` → Creates/assigns "HARDEN" milestone
-- `stage:release` → Creates/assigns "RELEASE" milestone
-- `stage:operate` → Creates/assigns "OPERATE" milestone
-- `stage:analyze` → Creates/assigns "ANALYZE" milestone
+- `somas:stage:intake` → Creates/assigns "INTAKE" milestone
+- `somas:stage:specify` → Creates/assigns "SPECIFY" milestone
+- `somas:stage:plan` → Creates/assigns "PLAN" milestone
+- `somas:stage:decompose` → Creates/assigns "DECOMPOSE" milestone
+- `somas:stage:implement` → Creates/assigns "IMPLEMENT" milestone
+- `somas:stage:verify` → Creates/assigns "VERIFY" milestone
+- `somas:stage:integrate` → Creates/assigns "INTEGRATE" milestone
+- `somas:stage:harden` → Creates/assigns "HARDEN" milestone
+- `somas:stage:release` → Creates/assigns "RELEASE" milestone
+- `somas:stage:operate` → Creates/assigns "OPERATE" milestone
+- `somas:stage:analyze` → Creates/assigns "ANALYZE" milestone
 
 **Features:**
 
@@ -250,7 +250,7 @@ Consider adding new labels when:
 
 Follow these conventions for consistency:
 
-- **Namespace prefix**: `somas:`, `state:`, `stage:`, `checkpoint:`, `agent:`, `quality:`
+- **Namespace prefix**: `somas:`, `somas-agent:`, `somas:stage:`, `checkpoint:`, `quality:`
 - **Lowercase**: Use lowercase for all label names
 - **Hyphens**: Separate words with hyphens (e.g., `pending-planner`)
 - **Descriptive**: Use clear, unambiguous names

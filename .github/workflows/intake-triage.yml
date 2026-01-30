@@ -106,7 +106,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue_number,
-              labels: ['somas:stage:02-specify']
+              labels: ['somas:stage:specify']
             });
             
             try {

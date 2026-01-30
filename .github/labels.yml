@@ -60,7 +60,15 @@
   description: "Planner agent is pending or in progress"
   color: "BFDADC"
 
+- name: "somas-agent:pending-planner"
+  description: "Planner agent is pending or in progress"
+  color: "BFDADC"
+
 - name: "state:pending-specifier"
+  description: "Specifier agent is pending or in progress"
+  color: "BFDADC"
+
+- name: "somas-agent:pending-specifier"
   description: "Specifier agent is pending or in progress"
   color: "BFDADC"
 
@@ -68,7 +76,15 @@
   description: "Simulator agent is pending or in progress"
   color: "BFDADC"
 
+- name: "somas-agent:pending-simulator"
+  description: "Simulator agent is pending or in progress"
+  color: "BFDADC"
+
 - name: "state:pending-architect"
+  description: "Architect agent is pending or in progress"
+  color: "BFDADC"
+
+- name: "somas-agent:pending-architect"
   description: "Architect agent is pending or in progress"
   color: "BFDADC"
 
@@ -76,11 +92,23 @@
   description: "Implementer agent is pending or in progress"
   color: "BFDADC"
 
+- name: "somas-agent:pending-implementer"
+  description: "Implementer agent is pending or in progress"
+  color: "BFDADC"
+
 - name: "state:pending-tester"
   description: "Tester/validator agent is pending or in progress"
   color: "BFDADC"
 
+- name: "somas-agent:pending-tester"
+  description: "Tester/validator agent is pending or in progress"
+  color: "BFDADC"
+
 - name: "state:pending-deployer"
+  description: "Deployer/staging agent is pending or in progress"
+  color: "BFDADC"
+
+- name: "somas-agent:pending-deployer"
   description: "Deployer/staging agent is pending or in progress"
   color: "BFDADC"
 
@@ -93,11 +121,11 @@
 # Track which pipeline stage is currently active
 # ============================================================================
 
-- name: "stage:intake"
+- name: "somas:stage:intake"
   description: "Stage 1: INTAKE - Ingest issues and route requests"
   color: "E99695"
 
-- name: "stage:specify"
+- name: "somas:stage:specify"
   description: "Stage 2: SPECIFY - Convert intent into specifications"
   color: "E99695"
 
@@ -105,7 +133,15 @@
   description: "Stage 3: PLAN - Design architecture and task graph"
   color: "E99695"
 
+- name: "somas:stage:plan"
+  description: "Stage 3: PLAN - Design architecture and task graph"
+  color: "E99695"
+
 - name: "stage:decompose"
+  description: "Stage 4: DECOMPOSE - Break into atomic tasks"
+  color: "E99695"
+
+- name: "somas:stage:decompose"
   description: "Stage 4: DECOMPOSE - Break into atomic tasks"
   color: "E99695"
 
@@ -113,7 +149,15 @@
   description: "Stage 5: IMPLEMENT - Generate code and tests"
   color: "E99695"
 
+- name: "somas:stage:implement"
+  description: "Stage 5: IMPLEMENT - Generate code and tests"
+  color: "E99695"
+
 - name: "stage:verify"
+  description: "Stage 6: VERIFY - Run tests and self-heal"
+  color: "E99695"
+
+- name: "somas:stage:verify"
   description: "Stage 6: VERIFY - Run tests and self-heal"
   color: "E99695"
 
@@ -121,7 +165,15 @@
   description: "Stage 7: INTEGRATE - Merge and validate contracts"
   color: "E99695"
 
+- name: "somas:stage:integrate"
+  description: "Stage 7: INTEGRATE - Merge and validate contracts"
+  color: "E99695"
+
 - name: "stage:harden"
+  description: "Stage 8: HARDEN - Security scanning and audits"
+  color: "E99695"
+
+- name: "somas:stage:harden"
   description: "Stage 8: HARDEN - Security scanning and audits"
   color: "E99695"
 
@@ -129,11 +181,23 @@
   description: "Stage 9: RELEASE - Package and deploy artifacts"
   color: "E99695"
 
+- name: "somas:stage:release"
+  description: "Stage 9: RELEASE - Package and deploy artifacts"
+  color: "E99695"
+
 - name: "stage:operate"
   description: "Stage 10: OPERATE - Health checks and monitoring"
   color: "E99695"
 
+- name: "somas:stage:operate"
+  description: "Stage 10: OPERATE - Health checks and monitoring"
+  color: "E99695"
+
 - name: "stage:analyze"
+  description: "Stage 11: ANALYZE - Metrics and documentation"
+  color: "E99695"
+
+- name: "somas:stage:analyze"
   description: "Stage 11: ANALYZE - Metrics and documentation"
   color: "E99695"
 
@@ -196,7 +260,15 @@
   description: "Planner agent is currently working"
   color: "C5DEF5"
 
+- name: "somas-agent:planner-working"
+  description: "Planner agent is currently working"
+  color: "C5DEF5"
+
 - name: "agent:specifier-working"
+  description: "Specifier agent is currently working"
+  color: "C5DEF5"
+
+- name: "somas-agent:specifier-working"
   description: "Specifier agent is currently working"
   color: "C5DEF5"
 
@@ -204,7 +276,15 @@
   description: "Simulator agent is currently working"
   color: "C5DEF5"
 
+- name: "somas-agent:simulator-working"
+  description: "Simulator agent is currently working"
+  color: "C5DEF5"
+
 - name: "agent:architect-working"
+  description: "Architect agent is currently working"
+  color: "C5DEF5"
+
+- name: "somas-agent:architect-working"
   description: "Architect agent is currently working"
   color: "C5DEF5"
 
@@ -212,11 +292,23 @@
   description: "Implementer agent is currently working"
   color: "C5DEF5"
 
+- name: "somas-agent:implementer-working"
+  description: "Implementer agent is currently working"
+  color: "C5DEF5"
+
 - name: "agent:tester-working"
   description: "Tester/validator agent is currently working"
   color: "C5DEF5"
 
+- name: "somas-agent:tester-working"
+  description: "Tester/validator agent is currently working"
+  color: "C5DEF5"
+
 - name: "agent:deployer-working"
+  description: "Deployer agent is currently working"
+  color: "C5DEF5"
+
+- name: "somas-agent:deployer-working"
   description: "Deployer agent is currently working"
   color: "C5DEF5"
 

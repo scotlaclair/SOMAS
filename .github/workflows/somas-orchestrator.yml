@@ -1004,7 +1004,7 @@ jobs:
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: issueNumber,
-                  labels: ['stage:mcp']
+                  labels: ['somas:stage:implement']
                 });
               } catch (e) {
                 core.info('Label may already exist or not be configured');

@@ -166,7 +166,7 @@ jobs:
           fi
 
   stage-1-intake:
-    # Agent Assignment: @copilot somas-requirements
+    # Agent Assignment: @copilot somas-triage, somas-advisor
     # Responsible for: Extracting and structuring requirements from issue
     # Output: requirements_analysis.md in project artifacts
     # Feeds into: Codex Specifier agent
@@ -1931,7 +1931,11 @@ jobs:
               "decompose": "${{ needs.stage-4-decompose.result }}",
               "implement": "${{ needs.stage-5-implement.result }}",
               "verify": "${{ needs.stage-6-verify.result }}",
-              "integrate": "${{ needs.stage-7-integrate.result }}"
+              "integrate": "${{ needs.stage-7-integrate.result }}",
+              "harden": "${{ needs.stage-8-harden.result }}",
+              "release": "${{ needs.stage-9-release.result }}",
+              "operate": "${{ needs.stage-10-operate.result }}",
+              "analyze": "${{ needs.stage-11-analyze.result }}"
             }
           }
           EOF

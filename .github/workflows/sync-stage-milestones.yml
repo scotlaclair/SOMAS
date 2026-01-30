@@ -1,7 +1,7 @@
 name: Sync Stage Labels to Milestones
 
 # Automatically create and assign milestones based on stage labels
-# Supports 11-stage neurology-inspired pipeline: signal, design, grid, line, mcp, pulse, synapse, overload, velocity, vibe, whole
+# Supports 11-stage Aether Lifecycle: intake, specify, plan, decompose, implement, verify, integrate, harden, release, operate, analyze
 # Enables milestone-based progress tracking, burndown charts, and planning
 
 on:
@@ -36,17 +36,17 @@ jobs:
             // Maps stage labels to their corresponding milestone names
             // 11-Stage Aether Lifecycle
             const stageMilestoneMap = {
-              'stage:intake': 'INTAKE',
-              'stage:specify': 'SPECIFY',
-              'stage:plan': 'PLAN',
-              'stage:decompose': 'DECOMPOSE',
-              'stage:implement': 'IMPLEMENT',
-              'stage:verify': 'VERIFY',
-              'stage:integrate': 'INTEGRATE',
-              'stage:harden': 'HARDEN',
-              'stage:release': 'RELEASE',
-              'stage:operate': 'OPERATE',
-              'stage:analyze': 'ANALYZE'
+              'somas:stage:intake': 'INTAKE',
+              'somas:stage:specify': 'SPECIFY',
+              'somas:stage:plan': 'PLAN',
+              'somas:stage:decompose': 'DECOMPOSE',
+              'somas:stage:implement': 'IMPLEMENT',
+              'somas:stage:verify': 'VERIFY',
+              'somas:stage:integrate': 'INTEGRATE',
+              'somas:stage:harden': 'HARDEN',
+              'somas:stage:release': 'RELEASE',
+              'somas:stage:operate': 'OPERATE',
+              'somas:stage:analyze': 'ANALYZE'
             };
             
             // Check if the label is a stage label
@@ -152,17 +152,17 @@ jobs:
             // Define stage-to-milestone mapping
             // 11-Stage Aether Lifecycle
             const stageMilestoneMap = {
-              'stage:intake': 'INTAKE',
-              'stage:specify': 'SPECIFY',
-              'stage:plan': 'PLAN',
-              'stage:decompose': 'DECOMPOSE',
-              'stage:implement': 'IMPLEMENT',
-              'stage:verify': 'VERIFY',
-              'stage:integrate': 'INTEGRATE',
-              'stage:harden': 'HARDEN',
-              'stage:release': 'RELEASE',
-              'stage:operate': 'OPERATE',
-              'stage:analyze': 'ANALYZE'
+              'somas:stage:intake': 'INTAKE',
+              'somas:stage:specify': 'SPECIFY',
+              'somas:stage:plan': 'PLAN',
+              'somas:stage:decompose': 'DECOMPOSE',
+              'somas:stage:implement': 'IMPLEMENT',
+              'somas:stage:verify': 'VERIFY',
+              'somas:stage:integrate': 'INTEGRATE',
+              'somas:stage:harden': 'HARDEN',
+              'somas:stage:release': 'RELEASE',
+              'somas:stage:operate': 'OPERATE',
+              'somas:stage:analyze': 'ANALYZE'
             };
             
             // Get current issue/PR to check milestone and labels
