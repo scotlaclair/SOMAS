@@ -1,0 +1,22 @@
+{
+  "frameworkSkillsPath": "../../frameworks/claude-dev-framework/skills",
+  "description": "Skill activation rules for this project",
+  "skills": [
+    {
+      "name": "Database",
+      "resourcePath": "database/",
+      "triggers": {
+        "keywords": ["database", "query", "N+1"]
+      },
+      "triggerThreshold": 8
+    },
+    {
+      "name": "TypeScript",
+      "resourcePath": "typescript/",
+      "triggers": {
+        "keywords": ["TS error", "type mismatch"]
+      },
+      "triggerThreshold": 6
+    }
+  ]
+}
