@@ -1,7 +1,7 @@
 name: 🤖 SOMAS Project Request
 description: Start a new autonomous development project with SOMAS
 title: "[SOMAS] "
-labels: ["somas:change", "somas-project"]
+labels: ["somas:dev", "somas-project"]
 body:
   - type: markdown
     attributes:
