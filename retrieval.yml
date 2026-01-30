@@ -17,3 +17,4 @@ knowledge_sources:
     type: "openapi_spec"
     path: "docs/api/openapi.json"
     enabled: false
+    
