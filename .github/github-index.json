@@ -1,0 +1,105 @@
+{
+  "version": "1.0.0",
+  "name": "SOMAS GitHub Configuration Index",
+  "description": "Machine-readable index of all GitHub configuration components",
+  "last_updated": "January 30, 2026 12:00 UTC",
+  "components": {
+    "issue_template": {
+      "description": "GitHub issue templates for structured reporting",
+      "count": 6,
+      "files": [
+        "config.yml",
+        "somas-bug.yml",
+        "somas-change.yml",
+        "somas-enhance.yml",
+        "somas-project.yml",
+        "somas-question.yml"
+      ],
+      "types": ["bug", "change", "enhancement", "project", "question"]
+    },
+    "agents": {
+      "description": "GitHub Copilot agent definitions and guides",
+      "count": 16,
+      "files": [
+        "README.md",
+        "somas-advisor.md",
+        "somas-architect.md",
+        "somas-debugger.md",
+        "somas-documenter.md",
+        "somas-implementer.md",
+        "somas-merger.md",
+        "somas-optimizer.md",
+        "somas-orchestrator.md",
+        "somas-planner.md",
+        "somas-requirements.md",
+        "somas-reviewer.md",
+        "somas-security.md",
+        "somas-simulator.md",
+        "somas-specifier.md",
+        "somas-tester.md",
+        "somas-triage.md"
+      ],
+      "agent_types": ["pipeline", "cross_stage", "strategic"]
+    },
+    "workflows": {
+      "description": "GitHub Actions workflows for automation",
+      "count": 12,
+      "files": [
+        "codeql.yml",
+        "intake-triage.yml",
+        "pr-checklist-detector.yml",
+        "pr-security.yml",
+        "semgrep.yml",
+        "somas-dev-autonomous.yml",
+        "somas-meta-capture.yml",
+        "somas-orchestrator.yml",
+        "somas-pipeline.yml",
+        "somas-pr-continue.yml",
+        "somas-project-sync.yml",
+        "somas-stage-02.yml",
+        "sync-stage-milestones.yml"
+      ],
+      "categories": ["security", "quality", "pipeline", "maintenance"]
+    }
+  },
+  "core_files": {
+    "copilot-config.yml": {
+      "description": "GitHub Copilot configuration",
+      "purpose": "AI-assisted development settings"
+    },
+    "copilot-instructions.md": {
+      "description": "Custom Copilot behavior instructions",
+      "purpose": "Repository-specific AI guidance"
+    },
+    "labeler.yml": {
+      "description": "Automated labeling configuration",
+      "purpose": "PR/issue classification automation"
+    },
+    "labels.yml": {
+      "description": "Label definitions and schemes",
+      "purpose": "Consistent issue management"
+    },
+    "project-template.yml": {
+      "description": "Project board templates",
+      "purpose": "Workflow board standardization"
+    },
+    "LABELS.md": {
+      "description": "Label documentation",
+      "purpose": "Label usage guidelines"
+    }
+  },
+  "statistics": {
+    "total_components": 3,
+    "total_files": 35,
+    "issue_templates": 6,
+    "copilot_agents": 16,
+    "automation_workflows": 12
+  },
+  "metadata": {
+    "schema_version": "1.0",
+    "generated_by": "SOMAS Configuration Management",
+    "integration_type": "github_platform",
+    "last_validated": "January 30, 2026 12:00 UTC"
+  }
+}</content>
+<parameter name="filePath">/Users/architect/Developer/projects/somas/.github/github-index.json

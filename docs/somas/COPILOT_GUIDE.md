@@ -23,16 +23,16 @@ SOMAS uses a multi-agent approach where different AI systems handle different st
 
 | Agent | Provider | Stage | Responsibility |
 |-------|----------|-------|----------------|
-| Planner | GPT-5.2 | Ideation | High-level planning |
-| Specifier | GPT-5.2 | Specification | Requirements documentation |
-| Simulator | GPT-5.2 | Simulation | Task optimization |
-| Architect | Claude Opus 4.5 | Architecture | System design |
-| **Implementer** | **GPT-5.2-Codex** | **Implementation** | **Code generation** |
-| Tester | Claude Sonnet 4.5 | Testing | Test suite creation |
-| Reviewer | Claude Sonnet 4.5 | Review | Code quality assessment |
-| Security | GPT-5.2 | Security | Vulnerability scanning |
-| Documenter | Gemini 3 Pro | Documentation | Technical writing |
-| Orchestrator | Grok Code Fast 1 | Coordination | Pipeline management |
+| Planner | GPT-5.2 | specify | High-level planning |
+| Specifier | GPT-5.2 | specify | Requirements documentation |
+| Simulator | GPT-5.2 | plan | Task optimization |
+| Architect | Claude Opus 4.5 | plan | System design |
+| **Implementer** | **GPT-5.2-Codex** | **implement** | **Code generation** |
+| Tester | Claude Sonnet 4.5 | verify | Test suite creation |
+| Reviewer | Claude Sonnet 4.5 | integrate | Code quality assessment |
+| Security | GPT-5.2 | harden | Vulnerability scanning |
+| Documenter | Gemini 3 Pro | release | Technical writing |
+| Orchestrator | Grok Code Fast 1 | operate | Pipeline management |
 
 ### Why Multiple Agents?
 
@@ -43,6 +43,8 @@ Each agent is specialized for its domain:
 - **GPT-5.2** excels at general intelligence tasks like requirements and security analysis
 - **Gemini 3 Pro** has massive context windows for comprehensive documentation
 - **Grok Code Fast 1** provides lowest latency for orchestration and routing
+
+The Aether lifecycle consists of 11 stages: specify → plan → decompose → implement → verify → integrate → harden → release → operate → analyze → (repeat)
 
 ---
 
@@ -74,10 +76,10 @@ As the **Implementation Agent**, Copilot handles:
 
 ### What Copilot Does NOT Do
 
-- **Specification Writing**: Delegate to Specifier agent
-- **Architecture Design**: Delegate to Architect agent
-- **Task Optimization**: Delegate to Simulator agent
-- **Final Validation**: Delegate to Validator agent
+- **Requirements Specification**: Delegate to Specifier agent (specify stage)
+- **System Architecture**: Delegate to Architect agent (plan stage)
+- **Task Planning**: Delegate to Simulator agent (plan stage)
+- **Quality Validation**: Delegate to Validator agent (integrate stage)
 
 ---
 

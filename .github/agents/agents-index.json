@@ -1,0 +1,165 @@
+{
+  "version": "1.0.0",
+  "name": "SOMAS GitHub Copilot Agents Index",
+  "description": "Machine-readable index of GitHub Copilot agent guides",
+  "last_updated": "January 30, 2026 12:00 UTC",
+  "agents": {
+    "somas-advisor": {
+      "file": "somas-advisor.md",
+      "role": "Strategic Advisor",
+      "model": "o1-preview",
+      "stage": "Cross-stage",
+      "function": "Strategic planning and oversight",
+      "capabilities": ["strategic_planning", "risk_assessment", "decision_support"]
+    },
+    "somas-architect": {
+      "file": "somas-architect.md",
+      "role": "System Architect",
+      "model": "GPT-4o",
+      "stage": "Plan (Stage 3)",
+      "function": "System design and architecture",
+      "capabilities": ["system_design", "architecture_patterns", "technical_leadership"]
+    },
+    "somas-debugger": {
+      "file": "somas-debugger.md",
+      "role": "Debug Specialist",
+      "model": "GPT-4o",
+      "stage": "Verify (Stage 6)",
+      "function": "Error diagnosis and debugging",
+      "capabilities": ["error_analysis", "debugging", "troubleshooting"]
+    },
+    "somas-documenter": {
+      "file": "somas-documenter.md",
+      "role": "Documentation Specialist",
+      "model": "GPT-4o",
+      "stage": "Analyze (Stage 11)",
+      "function": "Technical documentation and guides",
+      "capabilities": ["documentation", "api_docs", "user_guides"]
+    },
+    "somas-implementer": {
+      "file": "somas-implementer.md",
+      "role": "Code Implementer",
+      "model": "GPT-4o",
+      "stage": "Implement (Stage 5)",
+      "function": "Code implementation and development",
+      "capabilities": ["coding", "implementation", "code_quality"]
+    },
+    "somas-merger": {
+      "file": "somas-merger.md",
+      "role": "Integration Specialist",
+      "model": "GPT-4o",
+      "stage": "Integrate (Stage 7)",
+      "function": "Code integration and merging",
+      "capabilities": ["code_integration", "merge_conflict_resolution", "branch_management"]
+    },
+    "somas-optimizer": {
+      "file": "somas-optimizer.md",
+      "role": "Performance Optimizer",
+      "model": "GPT-4o",
+      "stage": "Harden (Stage 8)",
+      "function": "Performance optimization and tuning",
+      "capabilities": ["performance_optimization", "profiling", "optimization"]
+    },
+    "somas-orchestrator": {
+      "file": "somas-orchestrator.md",
+      "role": "Pipeline Orchestrator",
+      "model": "GPT-4o",
+      "stage": "Cross-stage",
+      "function": "Pipeline coordination and management",
+      "capabilities": ["orchestration", "workflow_management", "coordination"]
+    },
+    "somas-planner": {
+      "file": "somas-planner.md",
+      "role": "Project Planner",
+      "model": "GPT-4o",
+      "stage": "Ideation (Pre-Stage 1)",
+      "function": "Project planning and requirements",
+      "capabilities": ["project_planning", "requirements_analysis", "roadmapping"]
+    },
+    "somas-requirements": {
+      "file": "somas-requirements.md",
+      "role": "Requirements Analyst",
+      "model": "GPT-4o",
+      "stage": "Specify (Stage 2)",
+      "function": "Requirements gathering and analysis",
+      "capabilities": ["requirements_engineering", "stakeholder_analysis", "specification"]
+    },
+    "somas-reviewer": {
+      "file": "somas-reviewer.md",
+      "role": "Code Reviewer",
+      "model": "GPT-4o",
+      "stage": "Cross-stage",
+      "function": "Code review and quality assurance",
+      "capabilities": ["code_review", "quality_assurance", "feedback"]
+    },
+    "somas-security": {
+      "file": "somas-security.md",
+      "role": "Security Specialist",
+      "model": "GPT-4o",
+      "stage": "Harden (Stage 8)",
+      "function": "Security analysis and hardening",
+      "capabilities": ["security_analysis", "vulnerability_assessment", "security_hardening"]
+    },
+    "somas-simulator": {
+      "file": "somas-simulator.md",
+      "role": "System Simulator",
+      "model": "GPT-4o",
+      "stage": "Plan (Stage 3)",
+      "function": "System simulation and validation",
+      "capabilities": ["simulation", "modeling", "validation"]
+    },
+    "somas-specifier": {
+      "file": "somas-specifier.md",
+      "role": "Requirements Specifier",
+      "model": "GPT-4o",
+      "stage": "Specify (Stage 2)",
+      "function": "Detailed specification development",
+      "capabilities": ["specification", "requirements_refinement", "technical_writing"]
+    },
+    "somas-tester": {
+      "file": "somas-tester.md",
+      "role": "Test Engineer",
+      "model": "GPT-4o",
+      "stage": "Verify (Stage 6)",
+      "function": "Testing and quality validation",
+      "capabilities": ["testing", "test_automation", "quality_validation"]
+    },
+    "somas-triage": {
+      "file": "somas-triage.md",
+      "role": "Issue Triage Specialist",
+      "model": "GPT-4o",
+      "stage": "Intake (Stage 1)",
+      "function": "Issue classification and routing",
+      "capabilities": ["triage", "classification", "routing"]
+    }
+  },
+  "stages": {
+    "intake": ["somas-triage"],
+    "specify": ["somas-requirements", "somas-specifier"],
+    "plan": ["somas-architect", "somas-simulator"],
+    "implement": ["somas-implementer"],
+    "verify": ["somas-tester", "somas-debugger"],
+    "integrate": ["somas-merger"],
+    "harden": ["somas-security", "somas-optimizer"],
+    "cross_stage": ["somas-orchestrator", "somas-reviewer", "somas-advisor"],
+    "analyze": ["somas-documenter"]
+  },
+  "models": {
+    "gpt-4o": 15,
+    "o1-preview": 1
+  },
+  "statistics": {
+    "total_agents": 16,
+    "pipeline_agents": 13,
+    "cross_stage_agents": 3,
+    "stages_covered": 9,
+    "models_used": 2
+  },
+  "metadata": {
+    "schema_version": "1.0",
+    "platform": "github_copilot",
+    "pipeline_stages": 11,
+    "last_updated": "January 30, 2026 12:00 UTC"
+  }
+}</content>
+<parameter name="filePath">/Users/architect/Developer/projects/somas/.github/agents/agents-index.json

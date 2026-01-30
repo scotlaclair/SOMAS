@@ -15,7 +15,7 @@ Visual documentation of the SOMAS autonomous pipeline architecture.
 
 ## Pipeline Flow Diagram
 
-### 11-Stage Neurology-Inspired Pipeline
+### 11-Stage Aether Lifecycle Pipeline
 
 ```mermaid
 flowchart TB
@@ -24,30 +24,30 @@ flowchart TB
     end
 
     subgraph "Stage 1-4: Planning"
-        SIGNAL["1. SIGNAL<br/>Intake<br/>🎯"]
-        DESIGN["2. DESIGN<br/>Specify<br/>📐"]
-        GRID["3. GRID<br/>Plan<br/>🗺️"]
-        LINE["4. LINE<br/>Decompose<br/>📏"]
+        INTAKE["1. INTAKE<br/>Intake<br/>🎯"]
+        SPECIFY["2. SPECIFY<br/>Specify<br/>📐"]
+        PLAN["3. PLAN<br/>Plan<br/>🗺️"]
+        DECOMPOSE["4. DECOMPOSE<br/>Decompose<br/>📏"]
     end
 
     subgraph "Stage 5-7: Implementation"
-        MCP["5. MCP<br/>Implement<br/>⚙️"]
-        PULSE["6. PULSE<br/>Verify<br/>💓"]
-        SYNAPSE["7. SYNAPSE<br/>Integrate<br/>🔗"]
+        IMPLEMENT["5. IMPLEMENT<br/>Implement<br/>⚙️"]
+        VERIFY["6. VERIFY<br/>Verify<br/>💓"]
+        INTEGRATE["7. INTEGRATE<br/>Integrate<br/>🔗"]
     end
 
     subgraph "Stage 8-11: Delivery"
-        OVERLOAD["8. OVERLOAD<br/>Harden<br/>🏋️"]
-        VELOCITY["9. VELOCITY<br/>Release<br/>🚀"]
-        VIBE["10. VIBE<br/>Operate<br/>🎵"]
-        WHOLE["11. WHOLE<br/>Learn<br/>🧠"]
+        HARDEN["8. HARDEN<br/>Harden<br/>🏋️"]
+        RELEASE["9. RELEASE<br/>Release<br/>🚀"]
+        OPERATE["10. OPERATE<br/>Operate<br/>🎵"]
+        ANALYZE["11. ANALYZE<br/>Analyze<br/>🧠"]
     end
 
     subgraph Output
         PR[Pull Request]
     end
 
-    ISSUE --> SIGNAL
+    ISSUE --> INTAKE
     SIGNAL --> DESIGN
     DESIGN --> GRID
     GRID --> LINE

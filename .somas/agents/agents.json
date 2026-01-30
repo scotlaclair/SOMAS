@@ -1,0 +1,244 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "last_updated": "2026-01-30T12:00:00Z",
+    "total_agents": 17,
+    "active_agents": 17,
+    "archived_agents": 3,
+    "schema": "somas-agents-index-v1"
+  },
+  "agents": {
+    "orchestrator": {
+      "file": "orchestrator.yml",
+      "stage": "all",
+      "provider": "grok_code_fast_1",
+      "category": "governance",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "triage": {
+      "file": "triage.yml",
+      "stage": "specify",
+      "provider": "grok_code_fast_1",
+      "category": "governance",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "advisor": {
+      "file": "advisor.yml",
+      "stage": "specify",
+      "provider": "claude_opus_4_5",
+      "category": "governance",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "planner": {
+      "file": "planner.yml",
+      "stage": "specify",
+      "provider": "gpt_5_2",
+      "category": "governance",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "specifier": {
+      "file": "specifier.yml",
+      "stage": "specify",
+      "provider": "claude_sonnet_4_5",
+      "category": "analysis",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "architect": {
+      "file": "architect.yml",
+      "stage": "plan",
+      "provider": "claude_opus_4_5",
+      "category": "analysis",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "simulator": {
+      "file": "simulator.yml",
+      "stage": "plan",
+      "provider": "claude_sonnet_4_5",
+      "category": "analysis",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "decomposer": {
+      "file": "decomposer.yml",
+      "stage": "decompose",
+      "provider": "claude_sonnet_4_5",
+      "category": "implementation",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "implementer": {
+      "file": "implementer.yml",
+      "stage": "implement",
+      "provider": "claude_sonnet_4_5",
+      "category": "implementation",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "coder": {
+      "file": "coder.yml",
+      "stage": "implement",
+      "provider": "claude_sonnet_4_5",
+      "category": "implementation",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "tester": {
+      "file": "tester.yml",
+      "stage": "verify",
+      "provider": "claude_sonnet_4_5",
+      "category": "quality",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "validator": {
+      "file": "validator.yml",
+      "stage": "integrate",
+      "provider": "claude_sonnet_4_5",
+      "category": "quality",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "reviewer": {
+      "file": "reviewer.yml",
+      "stage": "integrate",
+      "provider": "claude_sonnet_4_5",
+      "category": "quality",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "merger": {
+      "file": "merger.yml",
+      "stage": "integrate",
+      "provider": "claude_sonnet_4_5",
+      "category": "operations",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "security": {
+      "file": "security.yml",
+      "stage": "harden",
+      "provider": "gpt_5_2",
+      "category": "quality",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "deployer": {
+      "file": "deployer.yml",
+      "stage": "release",
+      "provider": "claude_opus_4_5",
+      "category": "operations",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "operator": {
+      "file": "operator.yml",
+      "stage": "operate",
+      "provider": "gemini_3_pro",
+      "category": "operations",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "analyzer": {
+      "file": "analyzer.yml",
+      "stage": "analyze",
+      "provider": "claude_opus_4_5",
+      "category": "operations",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    },
+    "documenter": {
+      "file": "documenter.yml",
+      "stage": "analyze",
+      "provider": "gemini_3_pro",
+      "category": "operations",
+      "status": "active",
+      "last_modified": "2026-01-30T12:00:00Z"
+    }
+  },
+  "categories": {
+    "governance": {
+      "description": "Pipeline coordination and strategic guidance",
+      "agents": ["orchestrator", "triage", "advisor", "planner"],
+      "color": "#1f77b4"
+    },
+    "analysis": {
+      "description": "Requirements analysis and system design",
+      "agents": ["specifier", "architect", "simulator"],
+      "color": "#ff7f0e"
+    },
+    "implementation": {
+      "description": "Code generation and task execution",
+      "agents": ["decomposer", "implementer", "coder"],
+      "color": "#2ca02c"
+    },
+    "quality": {
+      "description": "Testing, validation, and security",
+      "agents": ["tester", "validator", "reviewer", "security"],
+      "color": "#d62728"
+    },
+    "operations": {
+      "description": "Deployment, monitoring, and documentation",
+      "agents": ["merger", "deployer", "operator", "analyzer", "documenter"],
+      "color": "#9467bd"
+    }
+  },
+  "stages": {
+    "specify": ["triage", "advisor", "planner", "specifier"],
+    "plan": ["architect", "simulator"],
+    "decompose": ["decomposer"],
+    "implement": ["implementer", "coder"],
+    "verify": ["tester"],
+    "integrate": ["validator", "reviewer", "merger"],
+    "harden": ["security"],
+    "release": ["deployer"],
+    "operate": ["operator"],
+    "analyze": ["analyzer", "documenter"],
+    "cycle": [],
+    "all": ["orchestrator"]
+  },
+  "providers": {
+    "grok_code_fast_1": {
+      "agents": ["orchestrator", "triage"],
+      "description": "Fast orchestration and routing"
+    },
+    "claude_opus_4_5": {
+      "agents": ["advisor", "architect", "deployer", "analyzer"],
+      "description": "Deep reasoning for complex tasks"
+    },
+    "claude_sonnet_4_5": {
+      "agents": ["specifier", "simulator", "decomposer", "implementer", "coder", "tester", "validator", "reviewer", "merger"],
+      "description": "Balanced power for coding and analysis"
+    },
+    "gpt_5_2": {
+      "agents": ["planner", "security"],
+      "description": "General intelligence for planning and security"
+    },
+    "gemini_3_pro": {
+      "agents": ["operator", "documenter"],
+      "description": "Large context for monitoring and documentation"
+    }
+  },
+  "archived": {
+    "advisor.yml.backup": {
+      "original": "advisor.yml",
+      "archived_date": "2026-01-30T12:00:00Z",
+      "reason": "Outdated configuration format"
+    },
+    "specifier.yml.backup": {
+      "original": "specifier.yml",
+      "archived_date": "2026-01-30T12:00:00Z",
+      "reason": "Outdated configuration format"
+    },
+    "triage.yml.backup": {
+      "original": "triage.yml",
+      "archived_date": "2026-01-30T12:00:00Z",
+      "reason": "Outdated configuration format"
+    }
+  }
+}

@@ -12,14 +12,14 @@ This phase operates entirely within the GitHub Issue context.
 
 | Step | Stage ID | Phase Name | GitHub Context | Workflow File | Job ID | Trigger Event | Primary Agent | Agent Operation | Model ID | Prompt Template | Exit Gate | Next State Label |
 |------|----------|------------|----------------|---------------|--------|---------------|---------------|-----------------|----------|-----------------|-----------|------------------|
-| 1 | 01 | INTAKE | Issue | somas-pipeline.yml | triage | Label: somas:change | triage | analyze_request_type | gpt-4o-mini | prompts/triage/classify.md | feasibility > 0.7 | somas:stage:02-specify |
-| 2 | 01 | INTAKE | Issue | somas-pipeline.yml | strategy | (Chained) | advisor | check_alignment | gpt-4o | prompts/advisor/alignment.md | score > 0.5 | somas:stage:02-specify |
-| 3 | 02 | SPECIFY | Issue | somas-orchestrator.yml | specifier | Label: stage:02 | specifier | generate_prd | gpt-4o | prompts/specifier/generate_prd.md | file_exists | somas:gate:spec-review |
-| 4 | 02 | SPECIFY | Issue | somas-orchestrator.yml | verify | Label: gate:review | requirements | validate_spec | gpt-4o | prompts/requirements/verify.md | reqs_clear | somas:stage:03-plan |
-| 5 | 03 | PLAN | Issue | somas-orchestrator.yml | architect | Label: stage:03 | architect | design_system | o1-preview | prompts/architect/system_design.md | design_valid | (Handover) |
+| 1 | 01 | INTAKE | Issue | somas-pipeline.yml | triage | Label: somas:change | triage | analyze_request_type | gpt-4o-mini | prompts/triage/classify.md | feasibility > 0.7 | somas:stage:specify |
+| 2 | 01 | INTAKE | Issue | somas-pipeline.yml | strategy | (Chained) | advisor | check_alignment | gpt-4o | prompts/advisor/alignment.md | score > 0.5 | somas:stage:specify |
+| 3 | 02 | SPECIFY | Issue | somas-orchestrator.yml | specifier | Label: somas:stage:specify | specifier | generate_prd | gpt-4o | prompts/specifier/generate_prd.md | file_exists | somas:gate:spec-review |
+| 4 | 02 | SPECIFY | Issue | somas-orchestrator.yml | verify | Label: gate:review | requirements | validate_spec | gpt-4o | prompts/requirements/verify.md | reqs_clear | somas:stage:plan |
+| 5 | 03 | PLAN | Issue | somas-orchestrator.yml | architect | Label: somas:stage:plan | architect | design_system | o1-preview | prompts/architect/system_design.md | design_valid | (Handover) |
 | 6 | 03 | PLAN | Issue | somas-orchestrator.yml | simulator | (Chained) | simulator | run_monte_carlo | gpt-4o-mini | prompts/simulator/monte_carlo.md | prob > 80% | (Handover) |
-| 7 | 03 | PLAN | Issue | somas-orchestrator.yml | planner | (Chained) | planner | create_dag | gpt-4o | prompts/planner/create_dag.md | dag_acyclic | somas:stage:04-decompose |
-| 8 | 04 | DECOMPOSE | Issue | somas-orchestrator.yml | decomposer | Label: stage:04 | decomposer | gen_tasks | gpt-4o | prompts/decomposer/breakdown.md | tasks > 0 | somas:stage:05-implement |
+| 7 | 03 | PLAN | Issue | somas-orchestrator.yml | planner | (Chained) | planner | create_dag | gpt-4o | prompts/planner/create_dag.md | dag_acyclic | somas:stage:decompose |
+| 8 | 04 | DECOMPOSE | Issue | somas-orchestrator.yml | decomposer | Label: somas:stage:decompose | decomposer | gen_tasks | gpt-4o | prompts/decomposer/breakdown.md | tasks > 0 | somas:stage:implement |
 
 ---
 
@@ -29,14 +29,14 @@ This phase bridges the Issue (Requirements) and the Pull Request (Code).
 
 | Step | Stage ID | Phase Name | GitHub Context | Workflow File | Job ID | Trigger Event | Primary Agent | Agent Operation | Model ID | Prompt Template | Exit Gate | Next State Label |
 |------|----------|------------|----------------|---------------|--------|---------------|---------------|-----------------|----------|-----------------|-----------|------------------|
-| 9 | 05 | IMPLEMENT | Issue | somas-dev-autonomous.yml | pr-create | Label: stage:05 | implementer | create_pr | gpt-3.5-turbo | prompts/implementer/create_pr.md | pr_created | (PR Context) |
-| 10 | 05 | IMPLEMENT | PR | somas-dev-autonomous.yml | autonomous-dev | Label: stage:05 | implementer | write_code | claude-3-5-sonnet | prompts/templates/single_shot_implementer.md | compile_ok | (Wait) |
-| 11 | 05 | IMPLEMENT | PR | somas-pr-continue.yml | review | synchronize | copilot | review_diff | gpt-4o | prompts/copilot/review.md | syntax_ok | somas:stage:06-verify |
-| 12 | 06 | VERIFY | PR | somas-dev-autonomous.yml | test | Label: stage:06 | tester | run_tests | gpt-4o-mini | prompts/tester/generate_tests.md | pass == 100% | somas:stage:07-integrate |
+| 9 | 05 | IMPLEMENT | Issue | somas-dev-autonomous.yml | pr-create | Label: somas:stage:implement | implementer | create_pr | gpt-3.5-turbo | prompts/implementer/create_pr.md | pr_created | (PR Context) |
+| 10 | 05 | IMPLEMENT | PR | somas-dev-autonomous.yml | autonomous-dev | Label: somas:stage:implement | implementer | write_code | claude-3-5-sonnet | prompts/templates/single_shot_implementer.md | compile_ok | (Wait) |
+| 11 | 05 | IMPLEMENT | PR | somas-pr-continue.yml | review | synchronize | copilot | review_diff | gpt-4o | prompts/copilot/review.md | syntax_ok | somas:stage:verify |
+| 12 | 06 | VERIFY | PR | somas-dev-autonomous.yml | test | Label: somas:stage:verify | tester | run_tests | gpt-4o-mini | prompts/tester/generate_tests.md | pass == 100% | somas:stage:integrate |
 | 13 | 06 | VERIFY | PR | somas-dev-autonomous.yml | heal | test_fail | debugger | self_heal | gpt-4o | prompts/debugger/analyze_traceback.md | retry <= 3 | (Loop) |
-| 14 | 07 | INTEGRATE | PR | pr-checklist-detector.yml | merge-check | Label: stage:07 | merger | check_conflict | git-native | N/A | conflicts == 0 | (Handover) |
-| 15 | 07 | INTEGRATE | PR | somas-orchestrator.yml | trace | (Chained) | validator | trace_reqs | gpt-4o | prompts/validator/traceability.md | met == 100% | somas:stage:08-harden |
-| 16 | 08 | HARDEN | PR | pr-security.yml | security | Label: stage:08 | security | run_scans | codeql | N/A | vuln == 0 | somas:stage:09-release |
+| 14 | 07 | INTEGRATE | PR | pr-checklist-detector.yml | merge-check | Label: somas:stage:integrate | merger | check_conflict | git-native | N/A | conflicts == 0 | (Handover) |
+| 15 | 07 | INTEGRATE | PR | somas-orchestrator.yml | trace | (Chained) | validator | trace_reqs | gpt-4o | prompts/validator/traceability.md | met == 100% | somas:stage:harden |
+| 16 | 08 | HARDEN | PR | pr-security.yml | security | Label: somas:stage:harden | security | run_scans | codeql | N/A | vuln == 0 | somas:stage:release |
 
 ---
 
@@ -46,10 +46,10 @@ Finalization and closure loops.
 
 | Step | Stage ID | Phase Name | GitHub Context | Workflow File | Job ID | Trigger Event | Primary Agent | Agent Operation | Model ID | Prompt Template | Exit Gate | Next State Label |
 |------|----------|------------|----------------|---------------|--------|---------------|---------------|-----------------|----------|-----------------|-----------|------------------|
-| 17 | 09 | RELEASE | PR | somas-project-sync.yml | merge | Label: stage:09 | deployer | merge_pr | git-native | N/A | merged | (Release) |
-| 18 | 09 | RELEASE | Release | somas-project-sync.yml | release | push:main | deployer | pub_release | git-native | N/A | published | somas:stage:10-operate |
-| 19 | 10 | OPERATE | Deploy | somas-orchestrator.yml | monitor | Label: stage:10 | operator | chk_health | curl/python | N/A | 200 OK | somas:stage:11-analyze |
-| 20 | 11 | ANALYZE | Issue | somas-meta-capture.yml | metrics | Label: stage:11 | analyzer | gen_metrics | gpt-4o-mini | prompts/analyzer/post_mortem.md | logged | (Handover) |
+| 17 | 09 | RELEASE | PR | somas-project-sync.yml | merge | Label: somas:stage:release | deployer | merge_pr | git-native | N/A | merged | (Release) |
+| 18 | 09 | RELEASE | Release | somas-project-sync.yml | release | push:main | deployer | pub_release | git-native | N/A | published | somas:stage:operate |
+| 19 | 10 | OPERATE | Deploy | somas-orchestrator.yml | monitor | Label: somas:stage:operate | operator | chk_health | curl/python | N/A | 200 OK | somas:stage:analyze |
+| 20 | 11 | ANALYZE | Issue | somas-meta-capture.yml | metrics | Label: somas:stage:analyze | analyzer | gen_metrics | gpt-4o-mini | prompts/analyzer/post_mortem.md | logged | (Handover) |
 | 21 | 11 | ANALYZE | Issue | somas-meta-capture.yml | close | (Chained) | documenter | update_kb | gpt-4o | prompts/documenter/changelog.md | closed | somas:status:completed |
 
 ---

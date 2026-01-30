@@ -1,0 +1,172 @@
+{
+  "version": "1.0.0",
+  "name": "SOMAS Root Directory Index",
+  "description": "Machine-readable index of all files in the SOMAS repository root directory",
+  "last_updated": "January 30, 2026 12:00 UTC",
+  "root_files": {
+    "README.md": {
+      "description": "Main project documentation with architecture overview and getting started guide",
+      "category": "documentation",
+      "purpose": "project_overview",
+      "audience": ["users", "contributors", "developers"],
+      "size": "large",
+      "format": "markdown",
+      "last_modified": "2026-01-30"
+    },
+    "CHANGELOG.md": {
+      "description": "Version history and release notes following Keep a Changelog format",
+      "category": "documentation",
+      "purpose": "version_history",
+      "audience": ["users", "contributors"],
+      "size": "large",
+      "format": "markdown",
+      "last_modified": "2026-01-30"
+    },
+    "CONTRIBUTING.md": {
+      "description": "Comprehensive contribution guidelines, development setup, and coding standards",
+      "category": "documentation",
+      "purpose": "contribution_guidelines",
+      "audience": ["contributors", "developers"],
+      "size": "large",
+      "format": "markdown",
+      "last_modified": "2026-01-30"
+    },
+    "SECURITY.md": {
+      "description": "Security policy, vulnerability reporting, and security model documentation",
+      "category": "documentation",
+      "purpose": "security_policy",
+      "audience": ["security_team", "contributors"],
+      "size": "large",
+      "format": "markdown",
+      "last_modified": "2026-01-30"
+    },
+    "requirements.txt": {
+      "description": "Python dependencies with version constraints and comments",
+      "category": "configuration",
+      "purpose": "python_dependencies",
+      "audience": ["developers", "ci_cd"],
+      "size": "small",
+      "format": "pip_requirements",
+      "last_modified": "2026-01-30"
+    },
+    "skill-rules.json": {
+      "description": "AI agent skill activation rules and trigger configurations",
+      "category": "configuration",
+      "purpose": "agent_skills",
+      "audience": ["ai_agents", "developers"],
+      "size": "small",
+      "format": "json",
+      "last_modified": "2026-01-30"
+    },
+    "retrieval.yml": {
+      "description": "Retrieval-Augmented Generation (RAG) knowledge source configuration",
+      "category": "configuration",
+      "purpose": "knowledge_retrieval",
+      "audience": ["ai_agents", "developers"],
+      "size": "small",
+      "format": "yaml",
+      "last_modified": "2026-01-30"
+    },
+    "AUTONOMOUS_PIPELINE_SUMMARY.md": {
+      "description": "Detailed summary of autonomous pipeline implementation and optimization",
+      "category": "implementation",
+      "purpose": "pipeline_documentation",
+      "audience": ["developers", "architects"],
+      "size": "large",
+      "format": "markdown",
+      "last_modified": "2026-01-30"
+    },
+    "COMMENT_DRIVEN_ORCHESTRATION.md": {
+      "description": "Guide for comment-driven orchestration system and GitHub integration",
+      "category": "implementation",
+      "purpose": "orchestration_guide",
+      "audience": ["developers", "devops"],
+      "size": "large",
+      "format": "markdown",
+      "last_modified": "2026-01-30"
+    },
+    "IMPLEMENTATION_SUMMARY.md": {
+      "description": "Technical implementation details for dynamic parallel orchestration",
+      "category": "implementation",
+      "purpose": "technical_implementation",
+      "audience": ["developers", "architects"],
+      "size": "large",
+      "format": "markdown",
+      "last_modified": "2026-01-30"
+    },
+    "CLAUDE.md": {
+      "description": "AI assistant guide for working with SOMAS codebase and architecture",
+      "category": "implementation",
+      "purpose": "ai_assistant_guide",
+      "audience": ["ai_assistants", "developers"],
+      "size": "large",
+      "format": "markdown",
+      "last_modified": "2026-01-30"
+    },
+    "CROSS_REFERENCE_MATRIX.md": {
+      "description": "Comprehensive cross-reference validation and dependency mapping for the repository",
+      "category": "implementation",
+      "purpose": "consistency_validation",
+      "audience": ["developers", "maintainers"],
+      "size": "large",
+      "format": "markdown",
+      "last_modified": "2026-01-30"
+    },
+    "resolve-pr1-conflicts.sh": {
+      "description": "Automated script for resolving PR #1 merge conflicts",
+      "category": "utility",
+      "purpose": "conflict_resolution",
+      "audience": ["maintainers", "devops"],
+      "size": "medium",
+      "format": "bash_script",
+      "last_modified": "2026-01-30"
+    }
+  },
+  "directory_summary": {
+    "total_root_files": 13,
+    "categories": {
+      "documentation": 4,
+      "configuration": 3,
+      "implementation": 5,
+      "utility": 1
+    },
+    "formats": {
+      "markdown": 8,
+      "json": 1,
+      "yaml": 1,
+      "pip_requirements": 1,
+      "bash_script": 1
+    },
+    "size_distribution": {
+      "small": 4,
+      "medium": 1,
+      "large": 8
+    }
+  },
+  "navigation_paths": {
+    "getting_started": ["README.md", "CONTRIBUTING.md"],
+    "development_setup": ["requirements.txt", "CONTRIBUTING.md"],
+    "security": ["SECURITY.md"],
+    "technical_details": ["AUTONOMOUS_PIPELINE_SUMMARY.md", "COMMENT_DRIVEN_ORCHESTRATION.md", "IMPLEMENTATION_SUMMARY.md", "CROSS_REFERENCE_MATRIX.md"],
+    "ai_integration": ["CLAUDE.md", "skill-rules.json", "retrieval.yml"],
+    "maintenance": ["CHANGELOG.md", "resolve-pr1-conflicts.sh"]
+  },
+  "file_relationships": {
+    "dependencies": {
+      "requirements.txt": ["somas/", "tests/"],
+      "skill-rules.json": ["skills/", ".somas/agents/"],
+      "retrieval.yml": ["docs/", ".somas/"]
+    },
+    "documentation_chain": {
+      "README.md": ["CONTRIBUTING.md", "SECURITY.md"],
+      "CONTRIBUTING.md": ["requirements.txt", "tests/"],
+      "AUTONOMOUS_PIPELINE_SUMMARY.md": [".github/workflows/", ".somas/"]
+    }
+  },
+  "maintenance": {
+    "update_frequency": "on_file_changes",
+    "review_cycle": "monthly",
+    "automation_eligible": true,
+    "last_audit": "2026-01-30"
+  }
+}

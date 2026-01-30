@@ -36,7 +36,7 @@ SOMAS is an AI-first Software Development Life Cycle (SDLC) that transforms proj
 - **Simulation-Based Optimization**: Monte Carlo analysis for optimal task sequencing
 - **Bounded Autonomy**: Human engagement only for final merge approval and unrecoverable failures
 - **Quality First**: 80%+ test coverage, security scanning, and comprehensive code review
-- **Neurology-Inspired**: 11-stage pipeline based on Energy, Frequency, Vibration, Sound principles
+- **Aether Lifecycle**: 11-stage autonomous development pipeline with specialized AI agents
 
 ---
 

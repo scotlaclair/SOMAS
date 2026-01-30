@@ -43,17 +43,17 @@ description: "Configuration for AI-driven software development pipeline"
 
 | Stage | Order | Code Name | Agent | Human Gate | Timeout |
 |-------|-------|-----------|-------|------------|---------|
-| signal | 1 | SIGNAL | planner | No | 2h |
-| design | 2 | DESIGN | specifier | No | 24h |
-| grid | 3 | GRID | simulator | No | 2h |
-| line | 4 | LINE | decomposer | No | 4h |
-| mcp | 5 | MCP | coder | No | 48h |
-| pulse | 6 | PULSE | validator | No | 12h |
-| synapse | 7 | SYNAPSE | merger | No | 8h |
-| overload | 8 | OVERLOAD | tester | No | 16h |
-| velocity | 9 | VELOCITY | deployer | No | 24h |
-| vibe | 10 | VIBE | operator | No | 8h |
-| whole | 11 | WHOLE | analyzer | No | 4h |
+| specify | 1 | SPECIFY | planner | No | 2h |
+| plan | 2 | PLAN | specifier | No | 24h |
+| decompose | 3 | DECOMPOSE | simulator | No | 2h |
+| implement | 4 | IMPLEMENT | decomposer | No | 4h |
+| verify | 5 | VERIFY | coder | No | 48h |
+| integrate | 6 | INTEGRATE | validator | No | 12h |
+| harden | 7 | HARDEN | merger | No | 8h |
+| release | 8 | RELEASE | tester | No | 16h |
+| operate | 9 | OPERATE | deployer | No | 24h |
+| analyze | 10 | ANALYZE | operator | No | 8h |
+| cycle | 11 | CYCLE | analyzer | No | 4h |
 
 ### Stage Configuration Fields
 
@@ -61,7 +61,7 @@ description: "Configuration for AI-driven software development pipeline"
 |-------|------|----------|-------------|
 | `id` | string | Yes | Unique stage identifier |
 | `order` | integer | Yes | Execution order (1-11) |
-| `code_name` | string | Yes | Neurology-inspired stage name |
+| `code_name` | string | Yes | Aether lifecycle stage name |
 | `description` | string | Yes | Human-readable description |
 | `enabled` | boolean | Yes | Whether stage is active |
 | `agent` | string | Yes | Primary agent for this stage |
@@ -78,10 +78,10 @@ description: "Configuration for AI-driven software development pipeline"
 ```yaml
 pipeline:
   stages:
-    - id: "pulse"
+    - id: "integrate"
       order: 6
-      code_name: "PULSE"
-      description: "Verify - Run tests, check heartbeat"
+      code_name: "INTEGRATE"
+      description: "Integrate - Merge validated changes"
       enabled: true
       agent: "validator"
       human_gate: false

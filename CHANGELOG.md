@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Documentation improvements and API reference generation with pdoc
+- **Cross-reference validation system**: Automated consistency checking across the repository
+- **Comprehensive repository documentation**: README.md and index.json files for all major directories
+- **Root directory navigation**: ROOT_README.md and root-index.json for project overview
+- **Skill system documentation**: Complete documentation for agent-design, prompt-optimization, and autonomous-systems skills
+
+### Fixed
+- JSON syntax errors in skill-rules.json and patterns.json files
+- YAML syntax errors in agent configuration files
+- Removed unused pulls/ directory and backup files
+
+### Infrastructure
+- CI/CD workflow for automated cross-reference validation
+- Repository consistency checking script (validate-consistency.sh)
+- Cross-reference matrix documentation (CROSS_REFERENCE_MATRIX.md)
 
 ---
 
@@ -17,18 +31,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 #### Core Pipeline
-- **11-Stage Neurology-Inspired Pipeline**: Complete autonomous development lifecycle
-  - SIGNAL (Intake): Request capture and initial analysis
-  - DESIGN (Specify): Requirements expansion and specification
-  - GRID (Plan): Monte Carlo simulation and task optimization
-  - LINE (Decompose): Atomic task decomposition
-  - MCP (Implement): AI-driven code generation
-  - PULSE (Verify): Testing and validation
-  - SYNAPSE (Integrate): Code integration and merging
-  - OVERLOAD (Harden): Stress testing and hardening
-  - VELOCITY (Release): Deployment preparation
-  - VIBE (Operate): SLO monitoring
-  - WHOLE (Learn): Post-mortem analysis and learning loop
+- **11-Stage Aether Lifecycle Pipeline**: Complete autonomous development lifecycle
+  - specify (Intake): Request capture and initial analysis
+  - plan (Specify): Requirements expansion and specification
+  - decompose (Plan): Task decomposition and optimization
+  - implement (Decompose): AI-driven code generation
+  - verify (Implement): Testing and validation
+  - integrate (Verify): Code integration and merging
+  - harden (Integrate): Security scanning and hardening
+  - release (Harden): Deployment preparation
+  - operate (Release): SLO monitoring
+  - analyze (Operate): Post-mortem analysis and learning loop
+  - cycle (Analyze): Continuous improvement cycle
 
 #### Agent System
 - **15 Specialized AI Agents**: Each optimized for specific pipeline tasks

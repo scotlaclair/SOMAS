@@ -1,0 +1,102 @@
+{
+  "version": "1.0.0",
+  "name": "SOMAS Issue Templates Index",
+  "description": "Machine-readable index of GitHub issue templates",
+  "last_updated": "January 30, 2026 12:00 UTC",
+  "templates": {
+    "somas-bug": {
+      "file": "somas-bug.yml",
+      "title": "🐛 SOMAS Bug Report",
+      "description": "Report bugs in SOMAS projects or pipeline",
+      "labels": ["somas:bug"],
+      "routing": {
+        "implementation_bug": "implementer",
+        "test_failure": "tester",
+        "specification_gap": "planner",
+        "documentation": "documenter"
+      },
+      "required_fields": ["project_id", "bug_type", "description", "reproduction_steps"],
+      "optional_fields": ["expected_behavior", "environment", "logs", "additional_context"]
+    },
+    "somas-change": {
+      "file": "somas-change.yml",
+      "title": "🔄 SOMAS Change Request",
+      "description": "Request modifications to existing projects",
+      "labels": ["somas:change"],
+      "routing": {
+        "default": "architect"
+      },
+      "required_fields": ["project_id", "current_state", "desired_state", "reason"],
+      "optional_fields": ["impact_assessment", "implementation_notes", "timeline"]
+    },
+    "somas-enhance": {
+      "file": "somas-enhance.yml",
+      "title": "✨ SOMAS Enhancement",
+      "description": "Propose new features or improvements",
+      "labels": ["somas:enhancement"],
+      "routing": {
+        "default": "planner"
+      },
+      "required_fields": ["enhancement_type", "description", "use_cases"],
+      "optional_fields": ["technical_requirements", "integration_points", "priority"]
+    },
+    "somas-project": {
+      "file": "somas-project.yml",
+      "title": "🚀 New SOMAS Project",
+      "description": "Initiate a new software development project",
+      "labels": ["somas:project"],
+      "routing": {
+        "default": "orchestrator"
+      },
+      "required_fields": ["project_name", "description", "requirements"],
+      "optional_fields": ["technical_constraints", "timeline", "budget", "priority"]
+    },
+    "somas-question": {
+      "file": "somas-question.yml",
+      "title": "❓ SOMAS Question",
+      "description": "Ask questions about SOMAS usage or configuration",
+      "labels": ["somas:question"],
+      "routing": {
+        "default": "advisor"
+      },
+      "required_fields": ["question_type", "question"],
+      "optional_fields": ["context", "project_id", "urgency"]
+    }
+  },
+  "configuration": {
+    "config.yml": {
+      "blank_issues_enabled": false,
+      "contact_links": [
+        {
+          "name": "📚 SOMAS Documentation",
+          "url": "https://github.com/scotlaclair/SOMAS/blob/main/docs/somas/README.md",
+          "about": "Read the SOMAS documentation for guidance"
+        },
+        {
+          "name": "💬 Ask a Question",
+          "url": "https://github.com/scotlaclair/SOMAS/discussions",
+          "about": "Ask questions and discuss ideas with the community"
+        },
+        {
+          "name": "🐛 Report a Bug",
+          "url": "https://github.com/scotlaclair/SOMAS/issues/new?template=bug_report.md",
+          "about": "Report bugs or issues with the SOMAS pipeline"
+        }
+      ]
+    }
+  },
+  "statistics": {
+    "total_templates": 5,
+    "total_files": 6,
+    "required_fields_total": 15,
+    "optional_fields_total": 18,
+    "routing_rules": 8
+  },
+  "metadata": {
+    "schema_version": "1.0",
+    "template_format": "github_issue_templates_v2",
+    "validation_enabled": true,
+    "last_updated": "January 30, 2026 12:00 UTC"
+  }
+}</content>
+<parameter name="filePath">/Users/architect/Developer/projects/somas/.github/ISSUE_TEMPLATE/issue-templates.json

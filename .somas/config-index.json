@@ -1,0 +1,143 @@
+{
+  "version": "1.0.0",
+  "name": "SOMAS Configuration Index",
+  "description": "Machine-readable index of all SOMAS configuration components",
+  "last_updated": "January 30, 2026 12:00 UTC",
+  "components": {
+    "agents": {
+      "description": "AI agent configurations and definitions",
+      "count": 17,
+      "files": [
+        "agents.json",
+        "_base.yml",
+        "advisor.yml",
+        "analyzer.yml",
+        "architect.yml",
+        "coder.yml",
+        "copilot.yml",
+        "debugger.yml",
+        "decomposer.yml",
+        "deployer.yml",
+        "documenter.yml",
+        "implementer.yml",
+        "merger.yml",
+        "operator.yml",
+        "orchestrator.yml",
+        "planner.yml",
+        "reviewer.yml",
+        "security.yml",
+        "simulator.yml",
+        "specifier.yml",
+        "tester.yml",
+        "triage.yml",
+        "validator.yml"
+      ],
+      "categories": ["orchestration", "development", "quality", "security", "analysis"]
+    },
+    "stages": {
+      "description": "Pipeline stage definitions (11-stage Aether Lifecycle)",
+      "count": 11,
+      "files": [
+        "analyze.yml",
+        "decompose.yml",
+        "harden.yml",
+        "implement.yml",
+        "intake.yml",
+        "integrate.yml",
+        "operate.yml",
+        "plan.yml",
+        "release.yml",
+        "specify.yml",
+        "verify.yml"
+      ],
+      "stages": ["intake", "analyze", "specify", "plan", "decompose", "implement", "integrate", "verify", "harden", "release", "operate"]
+    },
+    "templates": {
+      "description": "Artifact templates for pipeline outputs",
+      "count": 11,
+      "files": [
+        "SPEC.md",
+        "ai_delegation.md",
+        "architecture.md",
+        "dead_letters_schema.json",
+        "dead_letters_template.json",
+        "execution_plan.yml",
+        "meta-capture.md",
+        "plan.md",
+        "pr-review-examples.md",
+        "state_schema.json",
+        "state_template.json",
+        "transitions_schema.json"
+      ],
+      "types": ["markdown", "yaml", "json"]
+    },
+    "apo": {
+      "description": "Autonomous Pipeline Orchestration configurations",
+      "count": 4,
+      "files": [
+        "base-prompt.yml",
+        "mental-models.yml",
+        "task-analyzer.yml"
+      ],
+      "subdirectories": ["chains"]
+    },
+    "analytics": {
+      "description": "Analytics and metrics configuration schemas",
+      "count": 1,
+      "files": ["schema.yml"]
+    },
+    "patterns": {
+      "description": "Design patterns and best practices",
+      "count": 1,
+      "files": ["README.md"]
+    },
+    "config": {
+      "description": "Configuration management and validation",
+      "count": 0,
+      "files": []
+    },
+    "knowledge": {
+      "description": "Knowledge base and reference materials",
+      "count": 0,
+      "files": []
+    },
+    "prompts": {
+      "description": "Prompt engineering templates and strategies",
+      "count": 0,
+      "files": []
+    },
+    "architecture": {
+      "description": "Architecture patterns and reference designs",
+      "count": 0,
+      "files": []
+    }
+  },
+  "core_files": {
+    "config.yml": {
+      "description": "Main SOMAS configuration file",
+      "purpose": "Pipeline orchestration, agent providers, quality gates"
+    },
+    "backlog.md": {
+      "description": "Product backlog and roadmap items",
+      "purpose": "Feature planning and prioritization"
+    },
+    "roadmap.md": {
+      "description": "Strategic roadmap and milestones",
+      "purpose": "Long-term planning and objectives"
+    }
+  },
+  "statistics": {
+    "total_components": 10,
+    "total_files": 58,
+    "active_agents": 17,
+    "pipeline_stages": 11,
+    "artifact_templates": 11
+  },
+  "metadata": {
+    "schema_version": "1.0",
+    "generated_by": "SOMAS Configuration Management",
+    "validation_required": true,
+    "security_reviewed": true
+  }
+}</content>
+<parameter name="filePath">/Users/architect/Developer/projects/somas/.somas/config-index.json

@@ -1,0 +1,157 @@
+{
+  "version": "1.0.0",
+  "name": "SOMAS Workflows Index",
+  "description": "Machine-readable index of GitHub Actions workflows",
+  "last_updated": "January 30, 2026 12:00 UTC",
+  "workflows": {
+    "somas-pipeline": {
+      "file": "somas-pipeline.yml",
+      "name": "SOMAS Pipeline",
+      "description": "Main 11-stage Aether Lifecycle orchestration",
+      "category": "pipeline",
+      "triggers": ["workflow_dispatch", "schedule"],
+      "stages": 11,
+      "agents": 17,
+      "estimated_duration": "2-4 hours",
+      "permissions": ["contents", "pull-requests", "issues", "id-token"]
+    },
+    "somas-orchestrator": {
+      "file": "somas-orchestrator.yml",
+      "name": "SOMAS Orchestrator",
+      "description": "Pipeline coordination and artifact management",
+      "category": "pipeline",
+      "triggers": ["workflow_dispatch", "repository_dispatch"],
+      "function": "coordination",
+      "permissions": ["contents", "pull-requests", "issues"]
+    },
+    "somas-dev-autonomous": {
+      "file": "somas-dev-autonomous.yml",
+      "name": "SOMAS Autonomous Development",
+      "description": "AI-driven development with human oversight",
+      "category": "development",
+      "triggers": ["push", "workflow_dispatch"],
+      "branches": ["feature/*", "develop"],
+      "permissions": ["contents", "pull-requests", "issues"]
+    },
+    "somas-stage-02": {
+      "file": "somas-stage-02.yml",
+      "name": "SOMAS Stage 02 - Specify",
+      "description": "Requirements specification and analysis",
+      "category": "pipeline",
+      "triggers": ["workflow_dispatch"],
+      "stage": 2,
+      "permissions": ["contents", "issues"]
+    },
+    "somas-meta-capture": {
+      "file": "somas-meta-capture.yml",
+      "name": "SOMAS Meta Capture",
+      "description": "Project metadata collection and processing",
+      "category": "pipeline",
+      "triggers": ["workflow_dispatch"],
+      "function": "metadata",
+      "permissions": ["contents", "issues"]
+    },
+    "pr-security": {
+      "file": "pr-security.yml",
+      "name": "PR Security & Validation",
+      "description": "Security checks and dependency review for PRs",
+      "category": "security",
+      "triggers": ["pull_request"],
+      "checks": ["dependency-review", "security-scan"],
+      "permissions": ["contents", "pull-requests", "security-events"]
+    },
+    "validate-consistency": {
+      "file": "validate-consistency.yml",
+      "name": "Cross-Reference Validation",
+      "description": "Automated validation of repository cross-references and consistency",
+      "category": "validation",
+      "triggers": ["push", "pull_request"],
+      "checks": ["agent-configs", "skill-references", "template-files", "yaml-json-syntax"],
+      "permissions": ["contents", "pull-requests"]
+    },
+    "codeql": {
+      "file": "codeql.yml",
+      "name": "CodeQL Advanced",
+      "description": "Advanced security vulnerability detection",
+      "category": "security",
+      "triggers": ["push", "pull_request", "schedule"],
+      "languages": ["javascript", "python"],
+      "schedule": "weekly",
+      "permissions": ["contents", "security-events"]
+    },
+    "semgrep": {
+      "file": "semgrep.yml",
+      "name": "Semgrep Security Analysis",
+      "description": "Custom security rules and code quality checks",
+      "category": "security",
+      "triggers": ["push", "pull_request"],
+      "rules": ["security", "quality"],
+      "permissions": ["contents", "pull-requests", "security-events"]
+    },
+    "sync-stage-milestones": {
+      "file": "sync-stage-milestones.yml",
+      "name": "Sync Stage Milestones",
+      "description": "Automated milestone synchronization",
+      "category": "maintenance",
+      "triggers": ["milestone", "workflow_dispatch"],
+      "function": "milestone-sync",
+      "permissions": ["contents", "issues", "pull-requests"]
+    },
+    "somas-project-sync": {
+      "file": "somas-project-sync.yml",
+      "name": "SOMAS Project Sync",
+      "description": "Project board and issue synchronization",
+      "category": "maintenance",
+      "triggers": ["issues", "pull_request", "workflow_dispatch"],
+      "function": "project-sync",
+      "permissions": ["contents", "issues", "pull-requests"]
+    },
+    "intake-triage": {
+      "file": "intake-triage.yml",
+      "name": "Intake Triage",
+      "description": "Automated issue classification and routing",
+      "category": "maintenance",
+      "triggers": ["issues"],
+      "agents": ["triage"],
+      "permissions": ["contents", "issues", "pull-requests"]
+    },
+    "somas-pr-continue": {
+      "file": "somas-pr-continue.yml",
+      "name": "SOMAS PR Continue",
+      "description": "Continues autonomous development on PRs",
+      "category": "development",
+      "triggers": ["issue_comment"],
+      "function": "pr-continuation",
+      "permissions": ["contents", "pull-requests", "issues"]
+    },
+    "pr-checklist-detector": {
+      "file": "pr-checklist-detector.yml",
+      "name": "PR Checklist Detector",
+      "description": "Validates pull request checklists and requirements",
+      "category": "quality",
+      "triggers": ["pull_request"],
+      "checks": ["checklist", "approvals", "tests"],
+      "permissions": ["contents", "pull-requests"]
+    }
+  },
+  "categories": {
+    "pipeline": ["somas-pipeline", "somas-orchestrator", "somas-stage-02", "somas-meta-capture"],
+    "development": ["somas-dev-autonomous", "somas-pr-continue"],
+    "security": ["pr-security", "codeql", "semgrep"],
+    "validation": ["validate-consistency"],
+    "maintenance": ["sync-stage-milestones", "somas-project-sync", "intake-triage"],
+    "quality": ["pr-checklist-detector"]
+  },
+  "statistics": {
+    "total_workflows": 13,
+    "categories": 6,
+    "pipeline_workflows": 4,
+    "security_workflows": 3,
+    "validation_workflows": 1,
+    "maintenance_workflows": 3,
+    "development_workflows": 2,
+    "quality_workflows": 1,
+    "ai_agents": 17,
+    "last_updated": "January 30, 2026 12:00 UTC"
+  }
+}

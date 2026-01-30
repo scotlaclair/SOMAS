@@ -1,0 +1,91 @@
+{
+  "version": "1.0.0",
+  "name": "SOMAS Scripts Index",
+  "description": "Machine-readable index of utility scripts for repository maintenance",
+  "last_updated": "January 30, 2026 12:00 UTC",
+  "scripts": {
+    "validate-consistency.sh": {
+      "description": "Validates cross-references and consistency across the entire repository",
+      "purpose": "Ensure repository integrity and catch broken references",
+      "language": "bash",
+      "dependencies": ["python3", "pyyaml"],
+      "validation_checks": [
+        "agent_configurations_exist",
+        "skill_references_valid",
+        "template_files_present",
+        "yaml_json_syntax_valid",
+        "documentation_links_valid",
+        "workflow_dependencies_exist"
+      ],
+      "output_format": "colored_console_output",
+      "exit_codes": {
+        "0": "all_validations_passed",
+        "1": "validation_errors_found"
+      },
+      "usage": "./scripts/validate-consistency.sh",
+      "safe_to_run": true,
+      "destructive": false,
+      "ci_compatible": true
+    },
+    "fix_python_structure.sh": {
+      "description": "Fixes Python package structure by removing misplaced subdirectories",
+      "purpose": "Maintain clean Python package organization",
+      "language": "bash",
+      "dependencies": ["git"],
+      "target_directories": [
+        "somas/agents/apo",
+        "somas/agents/core",
+        "somas/agents/analytics",
+        "somas/agents/somas"
+      ],
+      "verification_checks": [
+        "somas/core",
+        "somas/apo",
+        "somas/analytics",
+        "somas/agents"
+      ],
+      "usage": "./scripts/fix_python_structure.sh",
+      "safe_to_run": true,
+      "destructive": true
+    },
+    "setup-labels.sh": {
+      "description": "Creates and manages GitHub repository labels using GitHub CLI",
+      "purpose": "Initialize and maintain repository label system",
+      "language": "bash",
+      "dependencies": ["gh (GitHub CLI)", ".github/labels.yml"],
+      "options": {
+        "--force": "Delete existing labels before creating new ones"
+      },
+      "label_categories": {
+        "priority": ["somas:priority-critical", "somas:priority-high", "somas:priority-medium", "somas:priority-low"],
+        "type": ["somas:bug", "somas:enhancement", "somas:question", "somas:project"],
+        "status": ["somas:status-in-progress", "somas:status-blocked", "somas:status-review-needed"],
+        "stage": ["somas:stage-intake", "somas:stage-planning", "somas:stage-implementation"]
+      },
+      "usage": "./scripts/setup-labels.sh [--force]",
+      "safe_to_run": false,
+      "destructive": false,
+      "requires_auth": true
+    }
+  },
+  "categories": {
+    "validation": ["validate-consistency.sh"],
+    "maintenance": ["fix_python_structure.sh"],
+    "repository_setup": ["setup-labels.sh"],
+    "automation": ["setup-labels.sh"]
+  },
+  "statistics": {
+    "total_scripts": 2,
+    "bash_scripts": 2,
+    "destructive_scripts": 1,
+    "auth_required_scripts": 1,
+    "safe_scripts": 1
+  },
+  "metadata": {
+    "schema_version": "1.0",
+    "script_types": ["bash"],
+    "execution_context": "repository_root",
+    "last_updated": "January 30, 2026 12:00 UTC"
+  }
+}</content>
+<parameter name="filePath">/Users/architect/Developer/projects/somas/scripts/scripts-index.json

@@ -1,0 +1,99 @@
+{
+  "version": "1.0.0",
+  "name": "SOMAS Test Suite Index",
+  "description": "Machine-readable index of unit tests for SOMAS core components",
+  "last_updated": "January 30, 2026 12:00 UTC",
+  "test_files": {
+    "test_circuit_breaker.py": {
+      "description": "Tests for circuit breaker functionality and agent invocation management",
+      "component": "circuit_breaker",
+      "test_class": "TestCircuitBreaker",
+      "test_count": 12,
+      "coverage_areas": [
+        "marker_creation",
+        "marker_detection",
+        "agent_invocation_counting",
+        "invocation_limits",
+        "stage_progression"
+      ],
+      "framework": "unittest",
+      "execution_time": "< 0.1s",
+      "dependencies": ["somas.core.circuit_breaker"]
+    },
+    "test_runner.py": {
+      "description": "Tests for SOMAS runner error handling and validation",
+      "component": "runner",
+      "test_class": "TestRunnerErrorHandling",
+      "test_count": 8,
+      "coverage_areas": [
+        "configuration_loading",
+        "agent_execution_errors",
+        "input_validation",
+        "file_path_security",
+        "error_handling"
+      ],
+      "framework": "unittest",
+      "execution_time": "< 0.5s",
+      "dependencies": ["somas.core.runner", "pathlib", "tempfile"]
+    },
+    "test_state_manager.py": {
+      "description": "Tests for state persistence, dead letter vault, and transition auditing",
+      "component": "state_manager",
+      "test_class": "TestStateManager",
+      "test_count": 25,
+      "coverage_areas": [
+        "project_initialization",
+        "state_persistence",
+        "dead_letter_vault",
+        "transition_auditing",
+        "concurrent_access",
+        "state_validation"
+      ],
+      "framework": "unittest",
+      "execution_time": "< 1.0s",
+      "dependencies": ["somas.core.state_manager", "tempfile", "threading"]
+    }
+  },
+  "test_metadata": {
+    "total_test_files": 3,
+    "total_test_classes": 3,
+    "total_test_methods": 45,
+    "framework": "unittest",
+    "python_version": ">=3.8",
+    "estimated_total_runtime": "< 2.0s"
+  },
+  "coverage_metrics": {
+    "circuit_breaker_coverage": "95%",
+    "runner_coverage": "90%",
+    "state_manager_coverage": "85%",
+    "overall_target": ">90%",
+    "critical_path_target": "100%"
+  },
+  "execution_requirements": {
+    "no_external_dependencies": true,
+    "isolated_execution": true,
+    "temp_file_usage": true,
+    "thread_safe": true,
+    "ci_compatible": true
+  },
+  "test_patterns": {
+    "naming_convention": "test_{component}.py",
+    "class_naming": "Test{ComponentName}",
+    "method_naming": "test_{behavior_description}",
+    "fixture_methods": ["setUp", "tearDown"],
+    "assertion_patterns": ["assertEqual", "assertTrue", "assertRaises", "assertIn"]
+  },
+  "ci_integration": {
+    "github_actions_compatible": true,
+    "parallel_execution_safe": true,
+    "artifact_generation": false,
+    "notification_on_failure": true
+  },
+  "maintenance": {
+    "update_frequency": "on_code_changes",
+    "review_cycle": "bi-weekly",
+    "deprecation_policy": "remove_obsolete_tests",
+    "documentation_required": true
+  }
+}</content>
+<parameter name="filePath">/Users/architect/Developer/projects/somas/tests/tests-index.json

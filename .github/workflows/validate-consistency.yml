@@ -1,0 +1,119 @@
+# Cross-Reference Consistency Validation
+# @copilot-context: Automated validation of repository cross-references
+# Runs on PRs and pushes to ensure changes don't break references
+# Validates configuration, agent, skill, and template consistency
+
+name: Cross-Reference Validation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate-consistency:
+    name: Validate Cross-References
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Make validation script executable
+        run: chmod +x scripts/validate-consistency.sh
+
+      - name: Run cross-reference validation
+        id: validate
+        run: |
+          if ./scripts/validate-consistency.sh; then
+            echo "validation_passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "validation_passed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR (if validation failed)
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## ❌ Cross-Reference Validation Failed\n\n' +
+                    'The cross-reference validation detected issues that need to be fixed:\n\n' +
+                    '### What this checks:\n' +
+                    '- Agent configurations referenced in workflows exist\n' +
+                    '- Skills referenced in `skill-rules.json` exist\n' +
+                    '- Templates referenced by agents exist\n' +
+                    '- Configuration files have valid syntax\n' +
+                    '- Documentation cross-references are valid\n\n' +
+                    '### How to fix:\n' +
+                    '1. Run `./scripts/validate-consistency.sh` locally to see detailed errors\n' +
+                    '2. Check the [Cross-Reference Matrix](CROSS_REFERENCE_MATRIX.md) for guidance\n' +
+                    '3. Fix any broken references or missing files\n' +
+                    '4. Commit and push the fixes\n\n' +
+                    '### Local validation:\n' +
+                    '```bash\n' +
+                    'chmod +x scripts/validate-consistency.sh\n' +
+                    './scripts/validate-consistency.sh\n' +
+                    '```'
+            })
+
+      - name: Success comment on PR
+        if: success() && github.event_name == 'pull_request' && steps.validate.outputs.validation_passed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## ✅ Cross-Reference Validation Passed\n\n' +
+                    'All cross-references in the repository are consistent. Good job! 🎉\n\n' +
+                    'The validation checked:\n' +
+                    '- ✅ Agent configurations exist and are valid\n' +
+                    '- ✅ Skills referenced in rules exist\n' +
+                    '- ✅ Templates referenced by agents exist\n' +
+                    '- ✅ Configuration files have valid syntax\n' +
+                    '- ✅ Documentation links are valid'
+            })
+
+  validate-json-yaml:
+    name: Validate JSON/YAML Syntax
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate YAML files
+        run: |
+          find . -name "*.yml" -o -name "*.yaml" | while read file; do
+            echo "Validating $file..."
+            python3 -c "import yaml; yaml.safe_load(open('$file'))" || exit 1
+          done
+
+      - name: Validate JSON files
+        run: |
+          find . -name "*.json" | while read file; do
+            echo "Validating $file..."
+            python3 -m json.tool "$file" >/dev/null || exit 1
+          done

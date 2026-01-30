@@ -1,0 +1,57 @@
+{
+  "version": "1.0.0",
+  "name": "SOMAS Code Package Index",
+  "description": "Machine-readable index of SOMAS Python package components",
+  "last_updated": "January 30, 2026 12:00 UTC",
+  "modules": {
+    "core": {
+      "description": "Core SOMAS functionality and execution engine",
+      "files": [
+        "__init__.py",
+        "runner.py",
+        "state_manager.py",
+        "circuit_breaker.py",
+        "feedback_loop.py"
+      ],
+      "purpose": "Pipeline execution, state management, error handling"
+    },
+    "agents": {
+      "description": "Agent-related utilities and cost tracking",
+      "files": [
+        "__init__.py",
+        "cost_tracker.py"
+      ],
+      "purpose": "Agent cost monitoring and utilities"
+    },
+    "analytics": {
+      "description": "Proof-of-concept metrics tracking",
+      "files": [
+        "__init__.py",
+        "poc_metrics.py"
+      ],
+      "purpose": "Performance metrics and ROI measurement"
+    },
+    "apo": {
+      "description": "Autonomous Pipeline Orchestration",
+      "files": [
+        "__init__.py",
+        "constants.py",
+        "task_complexity_analyzer.py"
+      ],
+      "purpose": "Task complexity analysis and routing"
+    }
+  },
+  "statistics": {
+    "total_modules": 4,
+    "total_files": 10,
+    "python_files": 10,
+    "test_files": 0
+  },
+  "metadata": {
+    "schema_version": "1.0",
+    "package_type": "code",
+    "documentation_complete": true,
+    "last_tested": "January 30, 2026 12:00 UTC"
+  }
+}</content>
+<parameter name="filePath">/Users/architect/Developer/projects/somas/somas/code-index.json
