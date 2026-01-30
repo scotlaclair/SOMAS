@@ -50,7 +50,7 @@ class TestStateManager(unittest.TestCase):
         self.assertEqual(state["project_id"], self.project_id)
         self.assertEqual(state["issue_number"], self.issue_number)
         self.assertEqual(state["status"], "initializing")
-        self.assertEqual(state["current_stage"], "ideation")
+        self.assertEqual(state["current_stage"], "signal")
         
         # Check files created
         project_dir = Path(self.test_dir) / self.project_id
@@ -62,7 +62,7 @@ class TestStateManager(unittest.TestCase):
         with open(project_dir / "state.json", 'r') as f:
             state_file = json.load(f)
         self.assertEqual(state_file["project_id"], self.project_id)
-        self.assertEqual(len(state_file["stages"]), 7)
+        self.assertEqual(len(state_file["stages"]), 11)  # 11-stage neurology-inspired pipeline
         self.assertEqual(state_file["metrics"]["dead_letters"], 0)
         
         # Check dead_letters.json content
@@ -581,15 +581,20 @@ class TestFullPipelineStateTracking(unittest.TestCase):
         manager = self.state_manager
         project_id = self.project_id
         manager.initialize_project(project_id, 100, "Full Pipeline Test")
-        
+
+        # 11-stage neurology-inspired pipeline
         stages = [
-            ("ideation", "planner", ["artifacts/initial_plan.md"]),
-            ("specification", "specifier", ["artifacts/SPEC.md"]),
-            ("simulation", "simulator", ["artifacts/execution_plan.yml"]),
-            ("architecture", "architect", ["artifacts/ARCHITECTURE.md"]),
-            ("implementation", "implementer", ["artifacts/tasks/"]),
-            ("validation", "tester", ["artifacts/test_results.json"]),
-            ("staging", "merger", ["artifacts/pr_summary.md"]),
+            ("signal", "planner", ["artifacts/initial_plan.md"]),
+            ("design", "specifier", ["artifacts/SPEC.md"]),
+            ("grid", "simulator", ["artifacts/execution_plan.yml"]),
+            ("line", "decomposer", ["artifacts/task_graph.yml"]),
+            ("mcp", "coder", ["artifacts/implementation/"]),
+            ("pulse", "validator", ["artifacts/test_results.json"]),
+            ("synapse", "merger", ["artifacts/merged_code/"]),
+            ("overload", "tester", ["artifacts/stress_results.json"]),
+            ("velocity", "deployer", ["artifacts/release_notes.md"]),
+            ("vibe", "operator", ["artifacts/slo_report.json"]),
+            ("whole", "analyzer", ["artifacts/retrospective.md"]),
         ]
         
         for stage, agent, artifacts in stages:
