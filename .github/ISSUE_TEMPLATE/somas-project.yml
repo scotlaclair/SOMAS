@@ -1,7 +1,7 @@
 name: 🤖 SOMAS Project Request
 description: Start a new autonomous development project with SOMAS
 title: "[SOMAS] "
-labels: ["somas:new"]
+labels: ["somas:change", "somas-project"]
 body:
   - type: markdown
     attributes:
@@ -31,7 +31,7 @@ body:
         6. **✅ Validation** - Quality, security, and performance validation
         7. **📝 Staging** - Final review and deployment preparation
         
-        Once you submit this issue and add the `somas:start` label, SOMAS will begin the autonomous development process.
+        Once you submit this issue, SOMAS will automatically begin the autonomous development process.
 
   - type: textarea
     id: project_idea
@@ -123,11 +123,10 @@ body:
         ---
         
         ## What happens next?
-        
-        1. **Submit** this issue
-        2. **Add the `somas:start` label** to trigger the pipeline
-        3. SOMAS will create a feature branch and draft PR
-        4. Watch as the autonomous pipeline progresses through stages:
+
+        1. **Submit** this issue (labels are applied automatically)
+        2. SOMAS will create a feature branch and draft PR
+        3. Watch as the autonomous pipeline progresses through stages:
            - 🎯 **Ideation** - @copilot somas-requirements extracts requirements
            - 📋 **Specification** - Codex Specifier creates detailed spec
            - 🔬 **Simulation** - Codex Simulator optimizes task execution
@@ -135,8 +134,8 @@ body:
            - ⚙️ **Implementation** - @copilot somas-implementer generates code
            - ✅ **Validation** - Multiple agents review quality and security
            - 📝 **Staging** - @copilot somas-merger prepares for deployment
-        5. You'll be notified (@scotlaclair) when human approval is needed
-        6. Review and approve the generated code
+        4. You'll be notified (@scotlaclair) when human approval is needed
+        5. Review and approve the generated code
         
         ### Interacting with Agents
         
