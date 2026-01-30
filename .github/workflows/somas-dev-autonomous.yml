@@ -13,7 +13,8 @@ permissions:
 jobs:
   autonomous-execution:
     name: Autonomous Pipeline Execution
-    if: github.event.label.name == 'somas:dev' || github.event.label.name == 'somas-project'
+    # Only trigger on somas:dev - somas-project triggers somas-pipeline.yml for initialization
+    if: github.event.label.name == 'somas:dev'
     runs-on: ubuntu-latest
     timeout-minutes: 300
 
