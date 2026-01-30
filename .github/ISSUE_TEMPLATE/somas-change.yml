@@ -1,7 +1,7 @@
 name: 🔄 SOMAS Change Request
 description: Request a change to an existing in-progress SOMAS project
 title: "[CHANGE] "
-labels: ["somas:change", "somas:dev"]
+labels: ["somas:dev"]
 body:
   - type: markdown
     attributes:
