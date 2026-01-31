@@ -1,0 +1,362 @@
+# Enhanced SOMAS Pipeline with Direct Agent Invocation
+# This workflow demonstrates how to integrate the AgentInvoker for autonomous execution
+# of new project issues without relying on GitHub Copilot comment-driven orchestration.
+
+name: SOMAS Project - Autonomous Execution (Enhanced)
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to process'
+        required: true
+        type: number
+      start_stage:
+        description: 'Stage to start from'
+        required: false
+        type: choice
+        default: 'planner'
+        options:
+          - planner
+          - specifier
+          - simulator
+          - architect
+          - decomposer
+          - implementer
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+# Prevent concurrent runs for same issue
+concurrency:
+  group: somas-autonomous-${{ github.event.issue.number || github.event.inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  # Job 1: Initialize project structure
+  initialize:
+    name: Initialize Project
+    if: |
+      (github.event_name == 'issues' && 
+       github.event.label.name == 'somas:autonomous') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      project_id: ${{ steps.setup.outputs.project_id }}
+      issue_number: ${{ steps.setup.outputs.issue_number }}
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          # Note: openai and anthropic are optional dependencies
+          # They will be installed if requirements.txt includes them
+      
+      - name: Initialize Project
+        id: setup
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.inputs.issue_number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          PROJECT_ID="project-${ISSUE_NUMBER}"
+          echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
+          echo "issue_number=${ISSUE_NUMBER}" >> $GITHUB_OUTPUT
+          
+          # Create project structure
+          mkdir -p .somas/projects/${PROJECT_ID}/{artifacts,logs}
+          
+          # Initialize state
+          python3 << 'PYTHON_SCRIPT'
+          import sys
+          import os
+          from pathlib import Path
+          sys.path.insert(0, 'somas')
+          from core.state_manager import StateManager
+          
+          project_id = os.environ['PROJECT_ID']
+          issue_number = int(os.environ['ISSUE_NUMBER'])
+          title = os.environ.get('ISSUE_TITLE', f'Project {project_id}')
+          
+          # Initialize state manager
+          state_manager = StateManager()
+          state = state_manager.initialize_project(
+              project_id=project_id,
+              issue_number=issue_number,
+              title=title,
+              branch=f"somas/{project_id}",
+              labels=["somas-project", "somas:autonomous"]
+          )
+          
+          print(f"✅ Initialized project {project_id}")
+          
+          # Save issue body as project request
+          if 'ISSUE_BODY' in os.environ:
+              artifact_path = Path(f'.somas/projects/{project_id}/artifacts/project_request.md')
+              artifact_path.parent.mkdir(parents=True, exist_ok=True)
+              artifact_path.write_text(os.environ['ISSUE_BODY'])
+              print(f"✅ Saved project request to artifacts")
+          PYTHON_SCRIPT
+      
+      - name: Create Feature Branch
+        env:
+          PROJECT_ID: ${{ steps.setup.outputs.project_id }}
+        run: |
+          git config --global user.name "SOMAS Bot"
+          git config --global user.email "somas-bot@users.noreply.github.com"
+          
+          BRANCH_NAME="somas/${PROJECT_ID}"
+          
+          # Check if branch exists remotely
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
+            echo "Branch exists, checking out..."
+            git fetch origin "$BRANCH_NAME:$BRANCH_NAME"
+            git checkout "$BRANCH_NAME"
+          else
+            echo "Creating new branch..."
+            git checkout -b "$BRANCH_NAME"
+          fi
+          
+          # Commit initial structure
+          git add .somas/projects/${PROJECT_ID}/
+          git commit -m "Initialize ${PROJECT_ID} structure" || echo "No changes to commit"
+          git push -u origin "$BRANCH_NAME"
+  
+  # Job 2: Execute Planning Stage
+  stage-planning:
+    name: Stage 1 - Planning (SIGNAL)
+    needs: initialize
+    runs-on: ubuntu-latest
+    outputs:
+      success: ${{ steps.invoke.outputs.success }}
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: somas/${{ needs.initialize.outputs.project_id }}
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Invoke Planning Agent
+        id: invoke
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PROJECT_ID: ${{ needs.initialize.outputs.project_id }}
+          ISSUE_NUMBER: ${{ needs.initialize.outputs.issue_number }}
+        run: |
+          python3 << 'PYTHON_SCRIPT'
+          import os
+          import sys
+          from pathlib import Path
+          
+          sys.path.insert(0, 'somas')
+          
+          try:
+              from core.agent_invoker import AgentInvoker
+              
+              project_id = os.environ['PROJECT_ID']
+              issue_number = os.environ['ISSUE_NUMBER']
+              
+              # Check if API keys are available
+              invoker = AgentInvoker()
+              if not invoker.is_available():
+                  print("❌ No LLM API keys available")
+                  print("   Set OPENAI_API_KEY or ANTHROPIC_API_KEY in repository secrets")
+                  print("   Falling back to comment-driven orchestration...")
+                  sys.exit(1)
+              
+              print(f"✅ LLM clients available: {', '.join(invoker.get_available_providers())}")
+              
+              # Load project request
+              request_file = Path(f'.somas/projects/{project_id}/artifacts/project_request.md')
+              if not request_file.exists():
+                  print("❌ Project request not found")
+                  sys.exit(1)
+              
+              project_request = request_file.read_text()
+              
+              # Prepare context for planner
+              context = {
+                  'issue_number': issue_number,
+                  'project_request': project_request,
+                  'stage': 'SIGNAL (Ideation)',
+                  'expected_output': 'initial_plan.yml'
+              }
+              
+              print(f"🤖 Invoking planner agent for {project_id}...")
+              
+              # Invoke agent
+              response = invoker.invoke_agent('planner', context, project_id)
+              
+              print(f"✅ Planner agent completed")
+              print(f"   Response length: {len(response)} characters")
+              
+              # Parse artifacts
+              artifacts = invoker.parse_artifacts(response, ['initial_plan.yml'])
+              
+              if not artifacts:
+                  print("⚠️  No artifacts extracted from response")
+                  print("   Response preview:")
+                  print(response[:500])
+                  sys.exit(1)
+              
+              # Save artifacts
+              saved_paths = invoker.save_artifacts(artifacts, project_id)
+              
+              print(f"✅ Saved {len(saved_paths)} artifact(s):")
+              for path in saved_paths:
+                  print(f"   - {path}")
+              
+              # Mark success
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write('success=true\n')
+              
+          except ImportError as e:
+              print(f"❌ Import error: {e}")
+              print("   Ensure required packages are installed")
+              sys.exit(1)
+          except Exception as e:
+              print(f"❌ Error: {e}")
+              import traceback
+              traceback.print_exc()
+              sys.exit(1)
+          PYTHON_SCRIPT
+      
+      - name: Commit Artifacts
+        if: steps.invoke.outputs.success == 'true'
+        env:
+          PROJECT_ID: ${{ needs.initialize.outputs.project_id }}
+        run: |
+          git config --global user.name "SOMAS Bot"
+          git config --global user.email "somas-bot@users.noreply.github.com"
+          
+          git add .somas/projects/${PROJECT_ID}/artifacts/
+          git commit -m "Stage 1 (SIGNAL): Planning complete" || echo "No changes"
+          git push
+      
+      - name: Post Comment on Success
+        if: steps.invoke.outputs.success == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectId = '${{ needs.initialize.outputs.project_id }}';
+            const issueNumber = ${{ needs.initialize.outputs.issue_number }};
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `## ✅ Stage 1 Complete: Planning (SIGNAL)
+              
+              **Project:** ${projectId}
+              
+              The planning agent has completed the initial analysis.
+              
+              **Generated Artifact:**
+              - \`initial_plan.yml\` - Project plan with features, tech stack, and risk assessment
+              
+              **Next Stage:** Specification (DESIGN) - Detailed requirements documentation
+              
+              **Branch:** \`somas/${projectId}\`
+              
+              View artifacts: [Browse](../tree/somas/${projectId}/.somas/projects/${projectId}/artifacts/)
+              `
+            });
+  
+  # Job 3: Fallback to Comment-Driven Orchestration
+  fallback-orchestration:
+    name: Fallback - Comment-Driven Mode
+    needs: [initialize, stage-planning]
+    if: needs.stage-planning.outputs.success != 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Post Invocation Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const projectId = '${{ needs.initialize.outputs.project_id }}';
+            const issueNumber = ${{ needs.initialize.outputs.issue_number }};
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `## 🔄 Autonomous Execution Unavailable
+              
+              **Project:** ${projectId}
+              
+              Direct LLM API integration is not available. This could be due to:
+              - Missing API keys (OPENAI_API_KEY or ANTHROPIC_API_KEY)
+              - Missing dependencies (openai or anthropic packages)
+              
+              **Falling back to comment-driven orchestration:**
+              
+              @copilot somas-planner
+              
+              Please analyze the project request and create an initial plan.
+              
+              **Context:**
+              - Project ID: ${projectId}
+              - Issue: #${issueNumber}
+              - Stage: 1/11 - SIGNAL (Ideation)
+              
+              **Required Output:**
+              Provide a YAML code block with the initial plan in this format:
+              
+              \`\`\`yaml
+              project_id: ${projectId}
+              title: "..."
+              description: "..."
+              features:
+                - feature_1
+                - feature_2
+              tech_stack:
+                - technology_1
+              risks:
+                - risk_1
+              \`\`\`
+              
+              **Template:** See \`.somas/templates/initial_plan.yml\` for complete format.
+              
+              ---
+              
+              **To enable autonomous mode:**
+              1. Add \`OPENAI_API_KEY\` or \`ANTHROPIC_API_KEY\` to repository secrets
+              2. Ensure \`openai\` and/or \`anthropic\` packages are in requirements.txt
+              3. Re-run this workflow or add label \`somas:autonomous\`
+              `
+            });
+
+# Note: Additional stages (specifier, simulator, architect, etc.) would follow
+# the same pattern as stage-planning job. For brevity, showing only stage 1.
+# 
+# In a complete implementation:
+# - Add jobs for stages 2-11 with needs: [previous-stage]
+# - Each job invokes appropriate agent (specifier, simulator, architect, etc.)
+# - Each job commits artifacts and triggers next stage
+# - Final job creates pull request with all artifacts
