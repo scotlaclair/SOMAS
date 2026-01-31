@@ -101,10 +101,19 @@ Table showing:
 - Initial workflows triggered
 
 #### Agent Invocation Sequence
-Visual ordering of 14 agents:
-1. Triage → 2. Specifier → 3. Simulator → 4. Architect → 5. Planner →
-6. Implementer → 7. Validator → 8. Tester → 9. Merger → 10. Security →
-11. Deployer → 12. Operator → 13. Analyzer → 14. Documenter
+Complete list of 20 specialized agents across 11 stages:
+- **Stage 1 (INTAKE)**: Triage, Advisor
+- **Stage 2 (SPECIFY)**: Specifier, Requirements
+- **Stage 3 (PLAN)**: Simulator, Architect, Planner
+- **Stage 4 (DECOMPOSE)**: Decomposer
+- **Stage 5 (IMPLEMENT)**: Implementer, Copilot
+- **Stage 6 (VERIFY)**: Validator, Tester, Debugger
+- **Stage 7 (INTEGRATE)**: Merger, Validator
+- **Stage 8 (HARDEN)**: Security
+- **Stage 9 (RELEASE)**: Deployer
+- **Stage 10 (OPERATE)**: Operator
+- **Stage 11 (ANALYZE)**: Analyzer, Documenter
+- **Supporting**: Orchestrator, Reviewer
 
 #### Label Lifecycle
 Flow chart showing:
