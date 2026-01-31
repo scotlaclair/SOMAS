@@ -79,10 +79,11 @@ This document provides a comprehensive validation framework for testing issue su
 - [ ] Title format includes emoji: `✨ SOMAS Enhancement`
 - [ ] Auto-labels applied: `somas:enhance`
 - [ ] Required fields present:
-  - [ ] Enhancement type (dropdown)
+  - [ ] Enhancement type (dropdown: feature_idea, improvement, optimization, documentation)
   - [ ] Description with benefits
-  - [ ] Priority level (dropdown)
+  - [ ] Priority level (dropdown: critical, high, medium, low, future)
   - [ ] Use cases
+  - [ ] Technical requirements (optional)
 
 #### Template: `somas-change.yml`
 - [ ] Title format includes emoji: `🔄 SOMAS Change Request`
@@ -336,18 +337,21 @@ When issue is submitted:
 
 **Workflow:** `somas-orchestrator.yml`
 
-**Agent Sequence (Project Type):**
+**Agent Sequence (Project Type - 14 Agents):**
 1. **Triage Agent** → Classification
-2. **Specifier Agent** → Spec.md
+2. **Specifier Agent** → Specification (SPEC.md)
 3. **Simulator Agent** → Simulation results
 4. **Architect Agent** → Architecture design
 5. **Planner Agent** → Execution plan
 6. **Implementer Agent** → Code generation
-7. **Validator Agent** → Testing
-8. **Merger Agent** → Integration
-9. **Security Agent** → Security review
-10. **Operator Agent** → Deployment
-11. **Analyzer Agent** → Documentation
+7. **Validator Agent** → Contract validation
+8. **Tester Agent** → Testing & test automation
+9. **Merger Agent** → Code integration
+10. **Security Agent** → Security hardening & scanning
+11. **Deployer Agent** → Release preparation
+12. **Operator Agent** → Operational monitoring (SLOs)
+13. **Analyzer Agent** → Metrics & analysis
+14. **Documenter Agent** → Documentation generation
 
 **Validation:**
 - [ ] Each agent invokes next agent in sequence
@@ -576,7 +580,7 @@ When issue is submitted:
 - [ ] Triage confidence < 0.8
 - [ ] Agent returns "requires_human_review"
 - [ ] Security scan finds vulnerabilities
-- [ ] Test coverage < 80%
+- [ ] Test coverage < 90%
 - [ ] Circuit breaker triggered
 - [ ] Multiple retries exhausted
 
@@ -683,12 +687,19 @@ Run this scenario and document:
 
 ### Scenario D: Enhancement Request Workflow
 
-**Test Issue Details:**
+**Test Issue Details (Example 1 - Feature Idea):**
 - Type: Enhancement
 - Title: "Add progress indicator to execution"
-- Type: feature_idea
+- Enhancement Type: feature_idea
 - Priority: Medium
 - Description: Visual progress indicator during agent execution
+
+**Test Issue Details (Example 2 - Performance Optimization):**
+- Type: Enhancement
+- Title: "Optimize agent invocation performance"
+- Enhancement Type: optimization
+- Priority: High
+- Description: Reduce latency in agent communication
 
 **Expected Outcomes:**
 - [ ] Added to backlog (not critical)

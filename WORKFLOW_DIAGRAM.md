@@ -156,7 +156,7 @@
 │  ├─ Agents: Validator, Tester, Debugger                                    │
 │  ├─ Output: Test results, bug fixes                                        │
 │  ├─ Artifacts: test_results.json, test coverage                            │
-│  ├─ Quality Gate: Test coverage > 80%                                      │
+│  ├─ Quality Gate: Test coverage > 90%                                      │
 │  ├─ Next Label: somas:stage:integrate                                      │
 │  └─ Time: ~10 min                                                            │
 │       │                                                                      │
@@ -283,7 +283,7 @@
 │  │  • Triage confidence < 0.8                                                │
 │  │  • Agent returns requires_human_review                                    │
 │  │  • Security scan finds vulnerabilities                                   │
-│  │  • Test coverage < 80%                                                    │
+│  │  • Test coverage < 90%                                                    │
 │  │  • Circuit breaker activated                                              │
 │  │  • Multiple retries exhausted                                             │
 │  │                                                                             │
