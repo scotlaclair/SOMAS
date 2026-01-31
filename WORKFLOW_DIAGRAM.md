@@ -369,52 +369,45 @@
 
 ## Agent Invocation Sequence (Project Type)
 
+> **Note**: This is a simplified linear view. Some stages may invoke multiple agents in parallel. See the [Complete Workflow Pipeline](#complete-workflow-pipeline) section above for complete stage-by-stage agent assignments.
+
 ```
 ┌────────────────────────────────────────────────────────────────┐
 │                  AGENT EXECUTION PIPELINE                      │
 └────────────────────────────────────────────────────────────────┘
 
-   1. TRIAGE AGENT
+   1. TRIAGE AGENT + ADVISOR AGENT
       ↓ routes to next agent based on classification
 
-   2. SPECIFIER AGENT
+   2. SPECIFIER AGENT + REQUIREMENTS AGENT
       ↓ (if project type)
 
-   3. SIMULATOR AGENT
-      ↓ (if planning needed)
+   3. SIMULATOR AGENT + ARCHITECT AGENT + PLANNER AGENT
+      ↓ (planning phase)
 
-   4. ARCHITECT AGENT
-      ↓ (design review)
+   4. DECOMPOSER AGENT
+      ↓ (task breakdown)
 
-   5. PLANNER AGENT
-      ↓ (execution planning)
-
-   6. IMPLEMENTER AGENT
+   5. IMPLEMENTER AGENT + COPILOT AGENT
       ↓ (code generation)
 
-   7. VALIDATOR AGENT
-      ↓ (contract validation)
+   6. TESTER AGENT + DEBUGGER AGENT
+      ↓ (testing & debugging with self-healing)
 
-   8. TESTER AGENT
-      ↓ (testing & debugging)
-
-   9. MERGER AGENT
+   7. MERGER AGENT + VALIDATOR AGENT
       ↓ (integration)
 
-   10. SECURITY AGENT
-       ↓ (hardening)
+   8. SECURITY AGENT
+      ↓ (hardening)
 
-   11. DEPLOYER AGENT
-       ↓ (release preparation)
+   9. DEPLOYER AGENT
+      ↓ (release preparation)
 
-   12. OPERATOR AGENT
+   10. OPERATOR AGENT
        ↓ (operational readiness)
 
-   13. ANALYZER AGENT
+   11. ANALYZER AGENT + DOCUMENTER AGENT
        ↓ (final analysis)
-
-   14. DOCUMENTER AGENT
-       ↓ (documentation)
 
    ✓ PIPELINE COMPLETE
        ↓

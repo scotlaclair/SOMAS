@@ -86,6 +86,8 @@ flowchart TB
 
 ## Agent Invocation Sequence
 
+> **Note**: The sequence diagrams below provide a simplified, high-level view of agent interaction patterns. For a comprehensive list of all 20 specialized agents and their stage assignments in the 11-stage Aether Lifecycle, see the [Complete Agent Reference](#complete-agent-reference) section below and [WORKFLOW_DIAGRAM.md](../../WORKFLOW_DIAGRAM.md#complete-workflow-pipeline).
+
 ### Standard Stage Execution
 
 ```mermaid
@@ -159,6 +161,33 @@ sequenceDiagram
     A2->>S: Load previous artifacts
     A2->>A2: Begin work
 ```
+
+### Complete Agent Reference
+
+The 11-stage Aether Lifecycle pipeline utilizes 20 specialized agents across different stages:
+
+| Stage | Agents | Role |
+|-------|--------|------|
+| **1. INTAKE** | Triage, Advisor | Issue classification and strategic guidance |
+| **2. SPECIFY** | Specifier | Requirements specification (PRD) |
+| **3. PLAN** | Simulator, Architect, Planner | Monte Carlo optimization, system design, task planning |
+| **4. DECOMPOSE** | Decomposer | Atomic task breakdown |
+| **5. IMPLEMENT** | Implementer, Copilot | Code generation and assistance |
+| **6. VERIFY** | Tester, Debugger | Testing and self-healing fixes |
+| **7. INTEGRATE** | Merger, Validator | Code integration and validation |
+| **8. HARDEN** | Security | Security scanning and audits |
+| **9. RELEASE** | Deployer | Deployment artifacts and release management |
+| **10. OPERATE** | Operator | SLO monitoring and operational health |
+| **11. ANALYZE** | Analyzer, Documenter | Metrics analysis and documentation |
+
+**Additional Supporting Agents:**
+- **Orchestrator**: Runtime engine managing state transitions
+- **Requirements**: Extracts and manages functional requirements (used with Specifier)
+- **Reviewer**: Static analysis and code reviews (quality gate)
+
+> **Total**: 20 specialized autonomous agents working across the 11-stage pipeline.
+
+For detailed stage-by-stage breakdown with timing estimates and artifacts, see [WORKFLOW_DIAGRAM.md](../../WORKFLOW_DIAGRAM.md#complete-workflow-pipeline).
 
 ---
 
