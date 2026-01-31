@@ -68,7 +68,7 @@ flowchart TB
 
 ### Stage Details
 
-> **Note**: This table shows the **primary agent** for each of the 11 pipeline stages. Additional supporting agents (Triage, Advisor, Debugger, Requirements, Reviewer, etc.) are used alongside these primary agents. See the [Complete Agent Reference](#complete-agent-reference) section for all 20 specialized agents.
+> **Note**: This table shows the **primary agent** for each of the 11 pipeline stages. Additional supporting agents (Triage, Advisor, Debugger, Requirements, Reviewer, etc.) are used alongside these primary agents. See the [Complete Agent Reference](#complete-agent-reference) section for all specialized agents.
 
 | Stage | Agent | Model | Purpose |
 |-------|-------|-------|---------|
@@ -88,7 +88,7 @@ flowchart TB
 
 ## Agent Invocation Sequence
 
-> **Note**: The sequence diagrams below provide a simplified, high-level view of agent interaction patterns. For a comprehensive list of all 20 specialized agents and their stage assignments in the 11-stage Aether Lifecycle, see the [Complete Agent Reference](#complete-agent-reference) section below and [WORKFLOW_DIAGRAM.md](../../WORKFLOW_DIAGRAM.md#complete-workflow-pipeline).
+> **Note**: The sequence diagrams below provide a simplified, high-level view of agent interaction patterns. For a comprehensive list of all specialized agents and their stage assignments in the 11-stage Aether Lifecycle, see the [Complete Agent Reference](#complete-agent-reference) section below and [WORKFLOW_DIAGRAM.md](../../WORKFLOW_DIAGRAM.md#complete-workflow-pipeline).
 
 ### Standard Stage Execution
 
@@ -166,7 +166,7 @@ sequenceDiagram
 
 ### Complete Agent Reference
 
-This section provides the **comprehensive list of all 20 specialized agents** used in the SOMAS pipeline. Unlike the simplified [Stage Details](#stage-details) table above which shows only primary agents, this reference includes all supporting and specialized agents:
+This section provides the **comprehensive list of all specialized agents** used in the SOMAS pipeline. Unlike the simplified [Stage Details](#stage-details) table above which shows only primary agents, this reference includes all supporting and specialized agents:
 
 **Agent Distribution Across 11 Stages:**
 
@@ -176,7 +176,7 @@ This section provides the **comprehensive list of all 20 specialized agents** us
 | **2. SPECIFY** | Specifier | Requirements specification (PRD) |
 | **3. PLAN** | Simulator, Architect, Planner | Monte Carlo optimization, system design, task planning |
 | **4. DECOMPOSE** | Decomposer | Atomic task breakdown |
-| **5. IMPLEMENT** | Implementer, Copilot | Code generation and assistance |
+| **5. IMPLEMENT** | Coder, Implementer, Copilot | Code generation and assistance |
 | **6. VERIFY** | Tester, Debugger | Testing and self-healing fixes |
 | **7. INTEGRATE** | Merger, Validator | Code integration and validation |
 | **8. HARDEN** | Security | Security scanning and audits |
@@ -189,7 +189,7 @@ This section provides the **comprehensive list of all 20 specialized agents** us
 - **Requirements**: Extracts and manages functional requirements (used with Specifier)
 - **Reviewer**: Static analysis and code reviews (quality gate)
 
-> **Total**: 20 specialized autonomous agents working across the 11-stage pipeline.
+> **Total**: 22 specialized autonomous agents working across the 11-stage pipeline.
 
 For detailed stage-by-stage breakdown with timing estimates and artifacts, see [WORKFLOW_DIAGRAM.md](../../WORKFLOW_DIAGRAM.md#complete-workflow-pipeline).
 

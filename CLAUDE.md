@@ -4,7 +4,7 @@ This document provides context for AI assistants working with the SOMAS (Self-So
 
 ## Project Overview
 
-SOMAS is an AI-first Software Development Life Cycle (SDLC) that orchestrates specialized AI agents to autonomously build production-ready software. It features an 11-stage Aether Lifecycle pipeline with 20 specialized AI agents powered by 2026 Frontier Tier models.
+SOMAS is an AI-first Software Development Life Cycle (SDLC) that orchestrates specialized AI agents to autonomously build production-ready software. It features an 11-stage Aether Lifecycle pipeline with 22 specialized AI agents powered by 2026 Frontier Tier models.
 
 **Key Concepts:**
 
