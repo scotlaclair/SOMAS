@@ -47,7 +47,8 @@ main() {
     local start_time
     start_time=$(date +%s)
     
-    local test_status="FAILED"
+    # Use global variable for test_status so cleanup_handler can access it
+    test_status="FAILED"
     local issue_number=""
     local pr_number=""
     

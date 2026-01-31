@@ -180,7 +180,8 @@ main() {
     done
     
     # Print summary
-    print_final_summary
+    local summary_result=0
+    print_final_summary || summary_result=$?
     
     local end_time
     end_time=$(date +%s)
@@ -190,12 +191,8 @@ main() {
     log_info "Test suite completed in ${total_duration}s"
     log_info "Combined log: ${COMBINED_LOG}"
     
-    # Exit with appropriate code
-    if [ ${failed_tests:-0} -eq 0 ]; then
-        exit 0
-    else
-        exit 1
-    fi
+    # Exit with appropriate code based on summary result
+    exit $summary_result
 }
 
 # Run main
