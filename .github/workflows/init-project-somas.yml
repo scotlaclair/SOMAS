@@ -52,16 +52,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: `SOMAS Pipeline - ${projectId}`,
-              body: `Default project board for SOMAS change request testing and integration.
-
-Project ID: ${projectId}
-Created: ${new Date().toISOString()}
-
-This project is used for:
-- Testing change request workflows
-- Integration testing with labels and milestones
-- Development and dogfooding of the SOMAS system
-`
+              body: `Default project board for SOMAS change request testing and integration.\n\nProject ID: ${projectId}\nCreated: ${new Date().toISOString()}\n\nThis project is used for:\n- Testing change request workflows\n- Integration testing with labels and milestones\n- Development and dogfooding of the SOMAS system`
             });
             
             console.log(`✅ Created project: ${project.html_url}`);
