@@ -51,16 +51,38 @@ jobs:
             // Pattern 1: Fixes/Closes #XX
             const fixesMatch = prBody.match(/(?:fixes|closes|resolves)\s+#(\d+)/i);
             if (fixesMatch) {
-              issueNumber = parseInt(fixesMatch[1]);
-              core.info(`Found issue via Fixes/Closes pattern: #${issueNumber}`);
+              const potentialIssue = parseInt(fixesMatch[1]);
+              try {
+                await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: potentialIssue
+                });
+                issueNumber = potentialIssue;
+                core.info(`Found issue via Fixes/Closes pattern: #${issueNumber}`);
+              } catch (e) {
+                if (e.status !== 404) throw e;
+                core.info(`Fixes/Closes pattern matched #${potentialIssue} but issue doesn't exist`);
+              }
             }
             
             // Pattern 2: Project ID in body
             if (!issueNumber) {
               const projectMatch = prBody.match(/project-(\d+)/i);
               if (projectMatch) {
-                issueNumber = parseInt(projectMatch[1]);
-                core.info(`Found issue via project ID pattern: #${issueNumber}`);
+                const potentialIssue = parseInt(projectMatch[1]);
+                try {
+                  await github.rest.issues.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: potentialIssue
+                  });
+                  issueNumber = potentialIssue;
+                  core.info(`Found issue via project ID pattern: #${issueNumber}`);
+                } catch (e) {
+                  if (e.status !== 404) throw e;
+                  core.info(`Project ID pattern matched #${potentialIssue} but issue doesn't exist`);
+                }
               }
             }
             
