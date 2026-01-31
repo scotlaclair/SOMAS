@@ -4,11 +4,14 @@
 # Ensures that changes in one area are reflected throughout the codebase
 #
 # This script checks:
+# - Configuration files are valid YAML/JSON
 # - Agent configurations referenced in workflows match actual files
+# - Agent count consistency (actual files vs DEVELOPMENT_PLAN.md documentation)
 # - Skills referenced in skill-rules.json exist
 # - Templates referenced by agents exist
-# - Configuration files are valid YAML/JSON
 # - Documentation cross-references are valid
+# - Workflow file references are valid
+# - Python dependencies are properly formatted
 
 set -e
 
@@ -144,7 +147,45 @@ print('\n'.join(sorted(agents)))
 fi
 
 echo ""
-echo "3. Validating Skill References..."
+echo "3. Validating Agent Counts..."
+echo "---------------------------"
+
+# Count actual agent configuration files (excluding base templates)
+if [[ -d "$REPO_ROOT/.somas/agents" ]]; then
+    ACTUAL_AGENT_COUNT=$(find "$REPO_ROOT/.somas/agents" -maxdepth 1 -name "*.yml" -type f ! -name "_*.yml" | wc -l)
+
+    # Count agents mentioned in DEVELOPMENT_PLAN.md
+    if [[ -f "$REPO_ROOT/DEVELOPMENT_PLAN.md" ]]; then
+        # Extract agent count claims from DEVELOPMENT_PLAN.md
+        PLAN_AGENT_COUNTS=$(grep -o "[0-9]\+ agents\|[0-9]\+/[0-9]\+ agents" "$REPO_ROOT/DEVELOPMENT_PLAN.md" | head -5)
+
+        # Count what we say we have: complete + minimal + critical gaps
+        COMPLETE_AGENTS=$(grep -oP '\*\*[0-9]+ Complete Agents:\*\*' "$REPO_ROOT/DEVELOPMENT_PLAN.md" | grep -oP '[0-9]+' | head -1)
+        MINIMAL_AGENTS=$(grep -oP '\*\*[0-9]+ Minimal Agents:\*\*' "$REPO_ROOT/DEVELOPMENT_PLAN.md" | grep -oP '[0-9]+' | head -1)
+        CRITICAL_GAPS=$(grep -oP '\*\*[0-9]+ Critical Gaps:\*\*' "$REPO_ROOT/DEVELOPMENT_PLAN.md" | grep -oP '[0-9]+' | head -1)
+
+        if [[ -n "$COMPLETE_AGENTS" && -n "$MINIMAL_AGENTS" && -n "$CRITICAL_GAPS" ]]; then
+            DOCUMENTED_AGENT_COUNT=$((COMPLETE_AGENTS + MINIMAL_AGENTS + CRITICAL_GAPS))
+
+            # Check if counts match
+            if [[ "$ACTUAL_AGENT_COUNT" -eq "$DOCUMENTED_AGENT_COUNT" ]]; then
+                success "Agent count consistent: $ACTUAL_AGENT_COUNT agents ($COMPLETE_AGENTS complete + $MINIMAL_AGENTS minimal + $CRITICAL_GAPS critical gaps)"
+            else
+                error "Agent count mismatch: File system has $ACTUAL_AGENT_COUNT agents (excluding templates), but DEVELOPMENT_PLAN.md documents $DOCUMENTED_AGENT_COUNT ($COMPLETE_AGENTS complete + $MINIMAL_AGENTS minimal + $CRITICAL_GAPS critical gaps)"
+                echo "  Actual agents: $(find "$REPO_ROOT/.somas/agents" -maxdepth 1 -name "*.yml" -type f ! -name "_*.yml" -exec basename {} .yml \; | sort | paste -sd ',' -)"
+            fi
+        else
+            warning "Could not parse agent counts from DEVELOPMENT_PLAN.md"
+        fi
+    else
+        warning "DEVELOPMENT_PLAN.md not found, skipping agent count verification"
+    fi
+else
+    error "Agent configuration directory not found: .somas/agents"
+fi
+
+echo ""
+echo "4. Validating Skill References..."
 echo "-------------------------------"
 
 # Check skills referenced in skill-rules.json exist
@@ -194,7 +235,7 @@ print('\n'.join(sorted(skills)))
 fi
 
 echo ""
-echo "4. Validating Template References..."
+echo "5. Validating Template References..."
 echo "----------------------------------"
 
 # Check templates referenced by agents exist
@@ -208,7 +249,7 @@ if [[ -d "$REPO_ROOT/.somas/templates" ]]; then
 fi
 
 echo ""
-echo "5. Validating Documentation Cross-References..."
+echo "6. Validating Documentation Cross-References..."
 echo "----------------------------------------------"
 
 # Check internal documentation links in README files
@@ -222,7 +263,7 @@ if [[ -f "$REPO_ROOT/README.md" ]]; then
 fi
 
 echo ""
-echo "6. Validating Workflow Dependencies..."
+echo "7. Validating Workflow Dependencies..."
 echo "------------------------------------"
 
 # Check that workflows reference existing files
@@ -250,7 +291,7 @@ for workflow in $WORKFLOW_FILES; do
 done
 
 echo ""
-echo "7. Validating Python Dependencies..."
+echo "8. Validating Python Dependencies..."
 echo "----------------------------------"
 
 # Check requirements.txt syntax
