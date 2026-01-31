@@ -86,7 +86,7 @@ flowchart TB
 
 ## Agent Invocation Sequence
 
-> **Note**: The sequence diagrams below provide a simplified, high-level view of agent interaction patterns. For a comprehensive list of all 20 specialized agents and their stage assignments in the 11-stage Aether Lifecycle, see the [Complete Agent Reference](#complete-agent-reference) section below and [WORKFLOW_DIAGRAM.md](../../WORKFLOW_DIAGRAM.md#aether-lifecycle-11-sequential-stages).
+> **Note**: The sequence diagrams below provide a simplified, high-level view of agent interaction patterns. For a comprehensive list of all 20 specialized agents and their stage assignments in the 11-stage Aether Lifecycle, see the [Complete Agent Reference](#complete-agent-reference) section below and [WORKFLOW_DIAGRAM.md](../../WORKFLOW_DIAGRAM.md#complete-workflow-pipeline).
 
 ### Standard Stage Execution
 
@@ -173,7 +173,7 @@ The 11-stage Aether Lifecycle pipeline utilizes 20 specialized agents across dif
 | **3. PLAN** | Simulator, Architect, Planner | Monte Carlo optimization, system design, task planning |
 | **4. DECOMPOSE** | Decomposer | Atomic task breakdown |
 | **5. IMPLEMENT** | Implementer, Copilot | Code generation and assistance |
-| **6. VERIFY** | Validator, Tester, Debugger | Testing, validation, and self-healing fixes |
+| **6. VERIFY** | Tester, Debugger | Testing and self-healing fixes |
 | **7. INTEGRATE** | Merger, Validator | Code integration and validation |
 | **8. HARDEN** | Security | Security scanning and audits |
 | **9. RELEASE** | Deployer | Deployment artifacts and release management |
@@ -187,7 +187,7 @@ The 11-stage Aether Lifecycle pipeline utilizes 20 specialized agents across dif
 
 > **Total**: 20 specialized autonomous agents working across the 11-stage pipeline.
 
-For detailed stage-by-stage breakdown with timing estimates and artifacts, see [WORKFLOW_DIAGRAM.md](../../WORKFLOW_DIAGRAM.md#aether-lifecycle-11-sequential-stages).
+For detailed stage-by-stage breakdown with timing estimates and artifacts, see [WORKFLOW_DIAGRAM.md](../../WORKFLOW_DIAGRAM.md#complete-workflow-pipeline).
 
 ---
 

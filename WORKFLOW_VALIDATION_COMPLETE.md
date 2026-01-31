@@ -107,7 +107,7 @@ Complete list of 20 specialized agents across 11 stages:
 - **Stage 3 (PLAN)**: Simulator, Architect, Planner
 - **Stage 4 (DECOMPOSE)**: Decomposer
 - **Stage 5 (IMPLEMENT)**: Implementer, Copilot
-- **Stage 6 (VERIFY)**: Validator, Tester, Debugger
+- **Stage 6 (VERIFY)**: Tester, Debugger
 - **Stage 7 (INTEGRATE)**: Merger, Validator
 - **Stage 8 (HARDEN)**: Security
 - **Stage 9 (RELEASE)**: Deployer

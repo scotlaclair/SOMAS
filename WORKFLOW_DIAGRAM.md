@@ -369,7 +369,7 @@
 
 ## Agent Invocation Sequence (Project Type)
 
-> **Note**: This is a simplified linear view. Some stages may invoke multiple agents in parallel. See the [AETHER LIFECYCLE](#aether-lifecycle-11-sequential-stages) section above for complete stage-by-stage agent assignments.
+> **Note**: This is a simplified linear view. Some stages may invoke multiple agents in parallel. See the [Complete Workflow Pipeline](#complete-workflow-pipeline) section above for complete stage-by-stage agent assignments.
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -391,7 +391,7 @@
    5. IMPLEMENTER AGENT + COPILOT AGENT
       ↓ (code generation)
 
-   6. VALIDATOR AGENT + TESTER AGENT + DEBUGGER AGENT
+   6. TESTER AGENT + DEBUGGER AGENT
       ↓ (testing & debugging with self-healing)
 
    7. MERGER AGENT + VALIDATOR AGENT
