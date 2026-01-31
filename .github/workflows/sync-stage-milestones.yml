@@ -180,7 +180,7 @@ jobs:
               // Check if there are other stage labels
               const otherStageLabels = current.labels
                 .map(l => l.name)
-                .filter(name => name.startsWith('stage:') && name !== removedLabel);
+                .filter(name => name.startsWith('somas:stage:') && name !== removedLabel);
               
               if (otherStageLabels.length > 0) {
                 // Reassign to the first remaining stage label's milestone (latest label wins)

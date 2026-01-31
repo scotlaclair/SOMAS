@@ -186,6 +186,43 @@ jobs:
             echo "No changes to commit"
           fi
 
+      - name: Add somas:dev label to trigger autonomous pipeline
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
+          script: |
+            // Verify SOMAS_PAT is configured
+            // GITHUB_TOKEN cannot trigger other workflows (see docs/somas/PAT-SETUP-GUIDE.md)
+            const hasPAT = '${{ secrets.SOMAS_PAT }}' !== '';
+            if (!hasPAT) {
+              core.setFailed(
+                'SOMAS_PAT is not configured. GITHUB_TOKEN cannot trigger somas-dev-autonomous.yml workflow. ' +
+                'Please configure SOMAS_PAT secret following docs/somas/PAT-SETUP-GUIDE.md to enable autonomous PR creation.'
+              );
+              return;
+            }
+            
+            // Add somas:dev label to trigger somas-dev-autonomous.yml workflow
+            // which will create the PR on the dev branch
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['somas:dev']
+              });
+              core.info('✓ Added somas:dev label to trigger autonomous PR creation');
+            } catch (error) {
+              // Handle specific error cases for better debugging
+              if (error.status === 422 && error.message.includes('already exists')) {
+                core.info('ℹ️ Label somas:dev already present, skipping addition');
+              } else if (error.status === 403 || error.status === 401) {
+                core.info(`ℹ️ Insufficient permissions to add label: ${error.message}`);
+              } else {
+                core.info(`ℹ️ Could not add label (error ${error.status}): ${error.message}`);
+              }
+            }
+
   stage-1-intake:
     # Agent Assignment: @copilot somas-triage, somas-advisor
     # Responsible for: Extracting and structuring requirements from issue

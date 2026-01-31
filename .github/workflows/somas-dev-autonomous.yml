@@ -185,6 +185,16 @@ jobs:
               });
 
               core.info(`✓ PR #${pr.data.number} created successfully`);
+              
+              // Add labels to the PR
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.data.number,
+                labels: ['somas:ready-for-review', 'somas-generated']
+              });
+              core.info('✓ Added labels: somas:ready-for-review, somas-generated');
+              
               core.info('Auto-merge will be handled by PR Checklist Completion Detector workflow');
               core.info('Agents must review and check off items before auto-merge is enabled');
 
