@@ -104,6 +104,37 @@ jobs:
             const projectId = `project-${issueNumber}`;
             const branchName = `somas/${projectId}`;
 
+            // Verify branch exists before attempting PR creation
+            try {
+              await github.rest.repos.getBranch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                branch: branchName
+              });
+              core.info(`✓ Branch ${branchName} exists`);
+            } catch (error) {
+              core.warning(`Branch ${branchName} does not exist yet. This may be normal if no commits were made.`);
+              
+              // Post comment about PR creation status
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: [
+                  '## ℹ️ PR Creation Deferred',
+                  '',
+                  `Branch \`${branchName}\` was not found.`,
+                  '',
+                  'This is normal if the autonomous pipeline did not make any commits yet.',
+                  'The PR will be created after the first commit is pushed to the branch.',
+                  '',
+                  `**Status:** Pipeline execution continuing...`
+                ].join('\n')
+              });
+              
+              return; // Skip PR creation, don't fail the workflow
+            }
+
             try {
               const pr = await github.rest.pulls.create({
                 owner: context.repo.owner,
@@ -161,6 +192,8 @@ jobs:
               // Handle case where branch is already up to date
               if (error.message && error.message.includes("No commits between")) {
                 console.log("PR creation skipped: Branch is already up to date with base.");
+              } else if (error.message && error.message.includes("A pull request already exists")) {
+                console.log("PR already exists for this branch.");
               } else {
                 core.setFailed(`Failed to create PR: ${error.message}`);
               }
