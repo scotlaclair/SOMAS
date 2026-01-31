@@ -62,7 +62,7 @@ class TestStateManager(unittest.TestCase):
         with open(project_dir / "state.json", 'r') as f:
             state_file = json.load(f)
         self.assertEqual(state_file["project_id"], self.project_id)
-        self.assertEqual(len(state_file["stages"]), 11)  # 11-stage neurology-inspired pipeline
+        self.assertEqual(len(state_file["stages"]), 11)  # 11-stage Aether Lifecycle pipeline
         self.assertEqual(state_file["metrics"]["dead_letters"], 0)
         
         # Check dead_letters.json content
@@ -108,16 +108,16 @@ class TestStateManager(unittest.TestCase):
         # Start stage
         state = self.state_manager.start_stage(
             project_id=self.project_id,
-            stage="implementation",
-            agent="coder"
+            stage="implement",
+            agent="implementer"
         )
-        
+
         # Check state updated
-        self.assertEqual(state["current_stage"], "implementation")
+        self.assertEqual(state["current_stage"], "implement")
         self.assertEqual(state["status"], "in_progress")
-        self.assertEqual(state["stages"]["implementation"]["status"], "in_progress")
-        self.assertEqual(state["stages"]["implementation"]["agent"], "coder")
-        self.assertIn("started_at", state["stages"]["implementation"])
+        self.assertEqual(state["stages"]["implement"]["status"], "in_progress")
+        self.assertEqual(state["stages"]["implement"]["agent"], "implementer")
+        self.assertIn("started_at", state["stages"]["implement"])
         
         # Check metrics updated
         self.assertEqual(state["metrics"]["agent_invocations"], 1)
@@ -126,8 +126,8 @@ class TestStateManager(unittest.TestCase):
         transitions = self.state_manager.get_transitions(self.project_id)
         stage_started = [t for t in transitions if t["event_type"] == "stage_started"]
         self.assertEqual(len(stage_started), 1)
-        self.assertEqual(stage_started[0]["stage"], "implementation")
-        self.assertEqual(stage_started[0]["agent"], "coder")
+        self.assertEqual(stage_started[0]["stage"], "implement")
+        self.assertEqual(stage_started[0]["agent"], "implementer")
     
     def test_complete_stage(self):
         """Test completing a pipeline stage."""
@@ -139,44 +139,44 @@ class TestStateManager(unittest.TestCase):
         )
         self.state_manager.start_stage(
             project_id=self.project_id,
-            stage="ideation",
+            stage="plan",
             agent="planner"
         )
-        
+
         # Complete stage
         artifacts = ["artifacts/plan.md"]
         state = self.state_manager.complete_stage(
             project_id=self.project_id,
-            stage="ideation",
+            stage="plan",
             artifacts=artifacts,
             create_checkpoint=True
         )
-        
+
         # Check state updated
-        self.assertEqual(state["stages"]["ideation"]["status"], "completed")
-        self.assertIn("completed_at", state["stages"]["ideation"])
-        self.assertIn("duration_seconds", state["stages"]["ideation"])
-        self.assertEqual(state["stages"]["ideation"]["artifacts"], artifacts)
-        
+        self.assertEqual(state["stages"]["plan"]["status"], "completed")
+        self.assertIn("completed_at", state["stages"]["plan"])
+        self.assertIn("duration_seconds", state["stages"]["plan"])
+        self.assertEqual(state["stages"]["plan"]["artifacts"], artifacts)
+
         # Check metrics updated
         self.assertEqual(state["metrics"]["artifacts_generated"], 1)
-        self.assertIn("ideation", state["metrics"]["stage_durations"])
-        
+        self.assertIn("plan", state["metrics"]["stage_durations"])
+
         # Check checkpoint created
         self.assertEqual(len(state["checkpoints"]), 1)
         checkpoint = state["checkpoints"][0]
-        self.assertEqual(checkpoint["stage"], "ideation")
+        self.assertEqual(checkpoint["stage"], "plan")
         self.assertEqual(checkpoint["status"], "success")
         self.assertEqual(checkpoint["artifacts"], artifacts)
-        
+
         # Check recovery info updated
         self.assertEqual(state["recovery_info"]["last_successful_checkpoint"], checkpoint["id"])
-        
+
         # Check transitions logged
         transitions = self.state_manager.get_transitions(self.project_id)
         completed = [t for t in transitions if t["event_type"] == "stage_completed"]
         self.assertEqual(len(completed), 1)
-        self.assertEqual(completed[0]["stage"], "ideation")
+        self.assertEqual(completed[0]["stage"], "plan")
         
         checkpoint_created = [t for t in transitions if t["event_type"] == "checkpoint_created"]
         self.assertEqual(len(checkpoint_created), 1)
@@ -191,10 +191,10 @@ class TestStateManager(unittest.TestCase):
         )
         self.state_manager.start_stage(
             project_id=self.project_id,
-            stage="validation",
-            agent="validator"
+            stage="verify",
+            agent="tester"
         )
-        
+
         # Fail stage
         error = {
             "type": "TestFailureError",
@@ -205,25 +205,25 @@ class TestStateManager(unittest.TestCase):
         }
         state = self.state_manager.fail_stage(
             project_id=self.project_id,
-            stage="validation",
-            agent="validator",
+            stage="verify",
+            agent="tester",
             error=error,
             context=context,
             create_dead_letter=True
         )
-        
+
         # Check state updated
-        self.assertEqual(state["stages"]["validation"]["status"], "failed")
-        self.assertEqual(state["stages"]["validation"]["error"], error["message"])
+        self.assertEqual(state["stages"]["verify"]["status"], "failed")
+        self.assertEqual(state["stages"]["verify"]["error"], error["message"])
         self.assertEqual(state["status"], "failed")
-        
+
         # Check dead letter created
         dead_letters = self.state_manager.get_dead_letters(self.project_id)
         self.assertEqual(len(dead_letters), 1)
-        
+
         dead_letter = dead_letters[0]
-        self.assertEqual(dead_letter["stage"], "validation")
-        self.assertEqual(dead_letter["agent"], "validator")
+        self.assertEqual(dead_letter["stage"], "verify")
+        self.assertEqual(dead_letter["agent"], "tester")
         self.assertEqual(dead_letter["error"]["type"], error["type"])
         self.assertEqual(dead_letter["error"]["message"], error["message"])
         self.assertIn("test_suite", dead_letter["context"])
@@ -310,12 +310,12 @@ class TestConcurrentAccess(unittest.TestCase):
         
         def start_worker():
             try:
-                self.state_manager.start_stage(project_id, "ideation", "planner")
+                self.state_manager.start_stage(project_id, "plan", "planner")
                 stage_started.set()  # Signal that stage has started
             except Exception as e:
                 with lock:
                     errors.append(f"start_worker: {str(e)}")
-        
+
         def complete_worker():
             try:
                 # Wait for stage to be started before completing
@@ -323,11 +323,11 @@ class TestConcurrentAccess(unittest.TestCase):
                     with lock:
                         errors.append("complete_worker: timeout waiting for stage to start")
                     return
-                self.state_manager.complete_stage(project_id, "ideation", artifacts=["test.md"])
+                self.state_manager.complete_stage(project_id, "plan", artifacts=["test.md"])
             except Exception as e:
                 with lock:
                     errors.append(f"complete_worker: {str(e)}")
-        
+
         threads = [
             threading.Thread(target=start_worker),
             threading.Thread(target=complete_worker),
@@ -336,13 +336,13 @@ class TestConcurrentAccess(unittest.TestCase):
             t.start()
         for t in threads:
             t.join()
-        
+
         # Should complete without corruption
         self.assertEqual(len(errors), 0, f"Errors during concurrent access: {errors}")
-        
+
         state = self.state_manager.get_state(project_id)
-        self.assertIn(state["stages"]["ideation"]["status"], ["in_progress", "completed"],
-                     f"Unexpected stage status: {state['stages']['ideation']['status']}")
+        self.assertIn(state["stages"]["plan"]["status"], ["in_progress", "completed"],
+                     f"Unexpected stage status: {state['stages']['plan']['status']}")
     
     def test_parallel_dead_letter_writes(self):
         """Verify dead letter writes don't corrupt under concurrency."""
@@ -582,19 +582,19 @@ class TestFullPipelineStateTracking(unittest.TestCase):
         project_id = self.project_id
         manager.initialize_project(project_id, 100, "Full Pipeline Test")
 
-        # 11-stage neurology-inspired pipeline
+        # 11-stage Aether Lifecycle pipeline
         stages = [
-            ("signal", "planner", ["artifacts/initial_plan.md"]),
-            ("design", "specifier", ["artifacts/SPEC.md"]),
-            ("grid", "simulator", ["artifacts/execution_plan.yml"]),
-            ("line", "decomposer", ["artifacts/task_graph.yml"]),
-            ("mcp", "coder", ["artifacts/implementation/"]),
-            ("pulse", "validator", ["artifacts/test_results.json"]),
-            ("synapse", "merger", ["artifacts/merged_code/"]),
-            ("overload", "tester", ["artifacts/stress_results.json"]),
-            ("velocity", "deployer", ["artifacts/release_notes.md"]),
-            ("vibe", "operator", ["artifacts/slo_report.json"]),
-            ("whole", "analyzer", ["artifacts/retrospective.md"]),
+            ("intake", "triage", ["artifacts/triage.md"]),
+            ("specify", "specifier", ["artifacts/SPEC.md"]),
+            ("plan", "planner", ["artifacts/execution_plan.yml"]),
+            ("decompose", "decomposer", ["artifacts/task_graph.yml"]),
+            ("implement", "implementer", ["artifacts/implementation/"]),
+            ("verify", "tester", ["artifacts/test_results.json"]),
+            ("integrate", "merger", ["artifacts/merged_code/"]),
+            ("harden", "security", ["artifacts/security_report.json"]),
+            ("release", "deployer", ["artifacts/release_notes.md"]),
+            ("operate", "operator", ["artifacts/slo_report.json"]),
+            ("analyze", "analyzer", ["artifacts/retrospective.md"]),
         ]
         
         for stage, agent, artifacts in stages:
@@ -640,28 +640,28 @@ class TestFullPipelineStateTracking(unittest.TestCase):
         manager.initialize_project(project_id, 101, "Failure Test")
         
         # Start and fail a stage
-        manager.start_stage(project_id, "simulation", "simulator")
+        manager.start_stage(project_id, "decompose", "decomposer")
         manager.fail_stage(
             project_id=project_id,
-            stage="simulation",
-            agent="simulator",
+            stage="decompose",
+            agent="decomposer",
             error={"type": "TimeoutError", "message": "Agent timed out"},
             create_dead_letter=True
         )
-        
+
         # Verify dead letter was created
         dead_letters = manager.get_dead_letters(project_id)
         self.assertEqual(len(dead_letters), 1, "Should have one dead letter")
-        
+
         dead_letter = dead_letters[0]
-        self.assertEqual(dead_letter["stage"], "simulation")
-        self.assertEqual(dead_letter["agent"], "simulator")
+        self.assertEqual(dead_letter["stage"], "decompose")
+        self.assertEqual(dead_letter["agent"], "decomposer")
         self.assertEqual(dead_letter["error"]["type"], "TimeoutError")
         self.assertEqual(dead_letter["error"]["message"], "Agent timed out")
-        
+
         # Verify state reflects failure
         state = manager.get_state(project_id)
-        self.assertEqual(state["stages"]["simulation"]["status"], "failed")
+        self.assertEqual(state["stages"]["decompose"]["status"], "failed")
         self.assertEqual(state["status"], "failed")
         self.assertEqual(state["metrics"]["dead_letters"], 1)
     
@@ -672,18 +672,18 @@ class TestFullPipelineStateTracking(unittest.TestCase):
         manager.initialize_project(project_id, 102, "Transitions Test")
         
         # Run through two stages
-        manager.start_stage(project_id, "ideation", "planner")
-        manager.complete_stage(project_id, "ideation", artifacts=["artifacts/plan.md"], create_checkpoint=True)
-        manager.start_stage(project_id, "specification", "specifier")
-        manager.complete_stage(project_id, "specification", artifacts=["artifacts/SPEC.md"], create_checkpoint=True)
-        
+        manager.start_stage(project_id, "plan", "planner")
+        manager.complete_stage(project_id, "plan", artifacts=["artifacts/plan.md"], create_checkpoint=True)
+        manager.start_stage(project_id, "specify", "specifier")
+        manager.complete_stage(project_id, "specify", artifacts=["artifacts/SPEC.md"], create_checkpoint=True)
+
         # Get transitions
         transitions = manager.get_transitions(project_id)
-        
-        # Should have: init, start_ideation, complete_ideation, checkpoint,
-        #              start_spec, complete_spec, checkpoint
+
+        # Should have: init, start_plan, complete_plan, checkpoint,
+        #              start_specify, complete_specify, checkpoint
         event_types = [t["event_type"] for t in transitions]
-        
+
         self.assertIn("project_initialized", event_types,
                      "Should have project initialization event")
         self.assertEqual(event_types.count("stage_started"), 2,
@@ -692,12 +692,12 @@ class TestFullPipelineStateTracking(unittest.TestCase):
                         "Should have two stage_completed events")
         self.assertGreaterEqual(event_types.count("checkpoint_created"), 2,
                                "Should have at least two checkpoint_created events")
-        
+
         # Verify stage names in transitions
         stage_started_events = [t for t in transitions if t["event_type"] == "stage_started"]
         stage_names = [t["stage"] for t in stage_started_events]
-        self.assertIn("ideation", stage_names, "Should track ideation stage start")
-        self.assertIn("specification", stage_names, "Should track specification stage start")
+        self.assertIn("plan", stage_names, "Should track plan stage start")
+        self.assertIn("specify", stage_names, "Should track specify stage start")
     
     def test_multiple_stage_failures_tracked(self):
         """Verify multiple stage failures are all tracked."""
@@ -707,11 +707,11 @@ class TestFullPipelineStateTracking(unittest.TestCase):
         
         # Fail multiple stages
         stages_to_fail = [
-            ("specification", "specifier", {"type": "ValidationError", "message": "Invalid spec"}),
-            ("implementation", "implementer", {"type": "SyntaxError", "message": "Code error"}),
-            ("validation", "tester", {"type": "TestFailure", "message": "Tests failed"}),
+            ("specify", "specifier", {"type": "ValidationError", "message": "Invalid spec"}),
+            ("implement", "implementer", {"type": "SyntaxError", "message": "Code error"}),
+            ("verify", "tester", {"type": "TestFailure", "message": "Tests failed"}),
         ]
-        
+
         for stage, agent, error in stages_to_fail:
             manager.start_stage(project_id, stage, agent)
             manager.fail_stage(
@@ -721,14 +721,14 @@ class TestFullPipelineStateTracking(unittest.TestCase):
                 error=error,
                 create_dead_letter=True
             )
-        
+
         # Verify all dead letters were created
         dead_letters = manager.get_dead_letters(project_id)
         self.assertEqual(len(dead_letters), 3, "Should have three dead letters")
-        
+
         # Verify each failure is tracked
         failed_stages = {dl["stage"] for dl in dead_letters}
-        expected_stages = {"specification", "implementation", "validation"}
+        expected_stages = {"specify", "implement", "verify"}
         self.assertEqual(failed_stages, expected_stages, "All failed stages should be tracked")
         
         # Verify metrics
@@ -741,13 +741,13 @@ class TestFullPipelineStateTracking(unittest.TestCase):
         project_id = "project-104"
         manager.initialize_project(project_id, 104, "Checkpoint Test")
         
-        stages = ["ideation", "specification", "simulation", "architecture", "implementation"]
-        
+        stages = ["intake", "specify", "plan", "decompose", "implement"]
+
         for i, stage in enumerate(stages):
             manager.start_stage(project_id, stage, f"agent-{i}")
             manager.complete_stage(
-                project_id, 
-                stage, 
+                project_id,
+                stage,
                 artifacts=[f"artifacts/{stage}.md"],
                 create_checkpoint=True
             )
