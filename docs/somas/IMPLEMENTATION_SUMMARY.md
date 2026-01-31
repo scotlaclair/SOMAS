@@ -76,7 +76,7 @@ if not file_path.resolve().is_relative_to(base_dir.resolve()):
 
 ### 2. Enhanced Autonomous Workflow
 
-**File:** `.github/workflows/somas-autonomous-enhanced.yml`
+**File:** `.github/workflows/somas-pipeline-llm.yml`
 
 **Architecture:**
 ```

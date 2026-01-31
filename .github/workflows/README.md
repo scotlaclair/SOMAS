@@ -19,10 +19,17 @@ The workflows directory contains GitHub Actions automation that powers the SOMAS
 **Triggers:** Pipeline events, agent completions
 **Function:** State management, error recovery, progress tracking
 
-#### `somas-dev-autonomous.yml` - Development Mode
-**Purpose:** Enables autonomous development with human oversight
-**Triggers:** Push to feature branches, manual dispatch
-**Features:** AI-driven implementation, automated testing, security validation
+#### `somas-pipeline-runner.yml` - Python Runner Mode
+
+**Purpose:** Autonomous execution via Python `somas/core/runner.py`
+**Triggers:** `somas:dev` label on issues
+**Features:** Python-based stage execution, state management integration
+
+#### `somas-pipeline-llm.yml` - Direct LLM API Mode
+
+**Purpose:** Direct LLM API integration (OpenAI/Anthropic) with fallback
+**Triggers:** `somas:autonomous` label on issues, manual dispatch
+**Features:** Direct API calls, graceful fallback to comment-driven mode
 
 ### Stage-Specific Workflows
 

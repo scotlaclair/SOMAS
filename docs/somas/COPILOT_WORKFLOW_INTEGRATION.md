@@ -205,7 +205,7 @@ await github.rest.issues.createComment({
 
 ### Pattern 2: Direct Workflow Dispatch (Alternative)
 
-**File:** `.github/workflows/somas-dev-autonomous.yml`
+**File:** `.github/workflows/somas-pipeline-runner.yml`
 
 #### How It Works
 

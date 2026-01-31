@@ -24,13 +24,22 @@
       "function": "coordination",
       "permissions": ["contents", "pull-requests", "issues"]
     },
-    "somas-dev-autonomous": {
-      "file": "somas-dev-autonomous.yml",
-      "name": "SOMAS Autonomous Development",
-      "description": "AI-driven development with human oversight",
+    "somas-pipeline-runner": {
+      "file": "somas-pipeline-runner.yml",
+      "name": "SOMAS Pipeline - Python Runner",
+      "description": "Autonomous execution via Python runner.py",
       "category": "development",
-      "triggers": ["push", "workflow_dispatch"],
-      "branches": ["feature/*", "develop"],
+      "triggers": ["issues"],
+      "labels": ["somas:dev"],
+      "permissions": ["contents", "pull-requests", "issues", "actions"]
+    },
+    "somas-pipeline-llm": {
+      "file": "somas-pipeline-llm.yml",
+      "name": "SOMAS Pipeline - Direct LLM API",
+      "description": "Direct LLM API integration (OpenAI/Anthropic)",
+      "category": "development",
+      "triggers": ["issues", "workflow_dispatch"],
+      "labels": ["somas:autonomous"],
       "permissions": ["contents", "pull-requests", "issues"]
     },
     "somas-stage-02": {
@@ -136,7 +145,7 @@
   },
   "categories": {
     "pipeline": ["somas-pipeline", "somas-orchestrator", "somas-stage-02", "somas-meta-capture"],
-    "development": ["somas-dev-autonomous", "somas-pr-continue"],
+    "development": ["somas-pipeline-runner", "somas-pipeline-llm", "somas-pr-continue"],
     "security": ["pr-security", "codeql", "semgrep"],
     "validation": ["validate-consistency"],
     "maintenance": ["sync-stage-milestones", "somas-project-sync", "intake-triage"],

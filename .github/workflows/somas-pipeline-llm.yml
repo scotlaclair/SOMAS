@@ -2,7 +2,7 @@
 # This workflow demonstrates how to integrate the AgentInvoker for autonomous execution
 # of new project issues without relying on GitHub Copilot comment-driven orchestration.
 
-name: SOMAS Project - Autonomous Execution (Enhanced)
+name: SOMAS Pipeline - Direct LLM API
 
 on:
   issues:
@@ -40,10 +40,12 @@ jobs:
   # Job 1: Initialize project structure
   initialize:
     name: Initialize Project
+    # Skip if circuit breaker has been tripped
     if: |
-      (github.event_name == 'issues' && 
+      !contains(github.event.issue.labels.*.name, 'somas:circuit-breaker') &&
+      ((github.event_name == 'issues' &&
        github.event.label.name == 'somas:autonomous') ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     outputs:
       project_id: ${{ steps.setup.outputs.project_id }}
@@ -66,7 +68,53 @@ jobs:
           pip install -r requirements.txt
           # Note: openai and anthropic are optional dependencies
           # They will be installed if requirements.txt includes them
-      
+
+      - name: Circuit Breaker Check
+        id: circuit_check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.issue?.number || ${{ github.event.inputs.issue_number || 0 }};
+            if (!issueNumber) {
+              core.info('No issue number available, skipping circuit breaker check');
+              return;
+            }
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+
+            // Count agent invocations (comments containing @copilot somas-* from non-bot users)
+            const invocations = comments.data.filter(c =>
+              c.body.includes('@copilot somas-') &&
+              !['copilot[bot]', 'Copilot'].includes(c.user.login)
+            ).length;
+
+            const MAX_INVOCATIONS = 20;
+
+            if (invocations >= MAX_INVOCATIONS) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `## Circuit Breaker Triggered\n\n<!-- SOMAS_CIRCUIT_BREAKER:max_invocations -->\n\n**Reason:** Maximum agent invocations (${MAX_INVOCATIONS}) reached\n**Workflow:** somas-pipeline-llm\n\n@scotlaclair - Human intervention required.\n\n**To resume:** Remove the \`somas:circuit-breaker\` label after addressing the issue.`
+              });
+
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: ['somas:circuit-breaker']
+              });
+
+              core.setFailed('Circuit breaker tripped: max invocations reached');
+              return;
+            }
+
+            core.info(`Circuit breaker OK: ${invocations}/${MAX_INVOCATIONS} invocations`);
+
       - name: Initialize Project
         id: setup
         env:

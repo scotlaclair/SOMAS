@@ -8,7 +8,7 @@ The SOMAS Autonomous Pipeline is designed to execute a complete software develop
 
 ```mermaid
 graph TD
-    Start[User Creates Issue] -->|Label 'somas:dev'| Trigger[Trigger somas-dev-autonomous.yml]
+    Start[User Creates Issue] -->|Label 'somas:dev'| Trigger[Trigger somas-pipeline-runner.yml]
 
     subgraph "GitHub Actions (Autonomous Mode)"
         Trigger --> Init[Initialize Pipeline]
@@ -117,6 +117,6 @@ Upon successful completion of Stage 6 (Validation):
 
 ## Reference Files
 
-* **Workflow Definition**: `.github/workflows/somas-dev-autonomous.yml`
+* **Workflow Definition**: `.github/workflows/somas-pipeline-runner.yml`
 * **Pipeline Logic**: `somas/core/runner.py`
 * **Agent Configs**: `.somas/agents/*.yml`

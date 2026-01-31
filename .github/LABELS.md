@@ -56,7 +56,7 @@ Use a GitHub Action to automatically sync labels from `labels.yml`. Popular opti
 
 | Label | Description | Color | Used By | Status |
 |-------|-------------|-------|---------|--------|
-| `somas:dev` | Trigger autonomous pipeline | 🟢 0E8A16 | somas-dev-autonomous.yml | ✅ Active |
+| `somas:dev` | Trigger autonomous pipeline | 🟢 0E8A16 | somas-pipeline-runner.yml | ✅ Active |
 | `somas-project` | New SOMAS project | 🔵 1D76DB | somas-pipeline.yml | ✅ Active |
 
 ### Triage Labels

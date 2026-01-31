@@ -68,7 +68,8 @@ concurrency:
 jobs:
   initialize-pipeline:
     runs-on: ubuntu-latest
-    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'somas-project') && !contains(github.event.issue.labels.*.name, 'somas:dev')
+    # Skip if somas:dev label present (let somas-pipeline-runner handle) or if circuit breaker tripped
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'somas-project') && !contains(github.event.issue.labels.*.name, 'somas:dev') && !contains(github.event.issue.labels.*.name, 'somas:circuit-breaker')
     outputs:
       project_id: ${{ steps.setup.outputs.project_id }}
       project_branch: ${{ steps.setup.outputs.project_branch }}
@@ -89,6 +90,63 @@ jobs:
 
       - name: Install Dependencies
         run: pip install filelock pyyaml
+
+      - name: Circuit Breaker Check
+        id: circuit_check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.issue?.number || context.payload.issue?.number;
+            if (!issueNumber) {
+              core.info('No issue number available, skipping circuit breaker check');
+              return;
+            }
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+
+            // Count agent invocations (comments containing @copilot somas-* from non-bot users)
+            const invocations = comments.data.filter(c =>
+              c.body.includes('@copilot somas-') &&
+              !['copilot[bot]', 'Copilot', 'github-actions[bot]'].includes(c.user?.login)
+            ).length;
+
+            // Also count stage comments to detect stage loops
+            const stageComments = comments.data.filter(c =>
+              c.body.includes('Stage') &&
+              (c.body.includes('Started') || c.body.includes('Complete'))
+            ).length;
+
+            const MAX_INVOCATIONS = 20;
+            const MAX_STAGE_COMMENTS = 30;  // 11 stages * ~2-3 comments each
+
+            if (invocations >= MAX_INVOCATIONS || stageComments >= MAX_STAGE_COMMENTS) {
+              const reason = invocations >= MAX_INVOCATIONS
+                ? `Maximum agent invocations (${MAX_INVOCATIONS}) reached`
+                : `Maximum stage iterations (${MAX_STAGE_COMMENTS}) reached`;
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `## Circuit Breaker Triggered\n\n<!-- SOMAS_CIRCUIT_BREAKER:pipeline_limit -->\n\n**Reason:** ${reason}\n**Workflow:** somas-pipeline\n\n@scotlaclair - Human intervention required.\n\n**To resume:** Remove the \`somas:circuit-breaker\` label after addressing the issue.`
+              });
+
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: ['somas:circuit-breaker']
+              });
+
+              core.setFailed('Circuit breaker tripped');
+              return;
+            }
+
+            core.info(`Circuit breaker OK: ${invocations}/${MAX_INVOCATIONS} invocations, ${stageComments}/${MAX_STAGE_COMMENTS} stage comments`);
 
       - name: Setup Project
         id: setup
@@ -196,13 +254,13 @@ jobs:
             const hasPAT = '${{ secrets.SOMAS_PAT }}' !== '';
             if (!hasPAT) {
               core.setFailed(
-                'SOMAS_PAT is not configured. GITHUB_TOKEN cannot trigger somas-dev-autonomous.yml workflow. ' +
+                'SOMAS_PAT is not configured. GITHUB_TOKEN cannot trigger somas-pipeline-runner.yml workflow. ' +
                 'Please configure SOMAS_PAT secret following docs/somas/PAT-SETUP-GUIDE.md to enable autonomous PR creation.'
               );
               return;
             }
             
-            // Add somas:dev label to trigger somas-dev-autonomous.yml workflow
+            // Add somas:dev label to trigger somas-pipeline-runner.yml workflow
             // which will create the PR on the dev branch
             try {
               await github.rest.issues.addLabels({

@@ -267,7 +267,7 @@ projects/project-{issue-number}/
 
 **Files Created:**
 
-- `.github/workflows/somas-dev-autonomous.yml`
+- `.github/workflows/somas-pipeline-runner.yml`
 
 **Changes:**
 
@@ -336,7 +336,7 @@ projects/project-{issue-number}/
 ✓ .somas/agents/simulator.yml: Valid YAML
 ✓ .somas/agents/implementer.yml: Valid YAML
 ✓ .somas/knowledge/approved_libraries.yml: Valid YAML
-✓ .github/workflows/somas-dev-autonomous.yml: Valid YAML
+✓ .github/workflows/somas-pipeline-runner.yml: Valid YAML
 ```
 
 ---
@@ -352,7 +352,7 @@ projects/project-{issue-number}/
 7. `somas/agents/__init__.py`
 8. `somas/analytics/poc_metrics.py`
 9. `somas/analytics/__init__.py`
-10. `.github/workflows/somas-dev-autonomous.yml`
+10. `.github/workflows/somas-pipeline-runner.yml`
 
 ## Files Modified (5 files)
 

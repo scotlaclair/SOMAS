@@ -29,11 +29,11 @@ This phase bridges the Issue (Requirements) and the Pull Request (Code).
 
 | Step | Stage ID | Phase Name | GitHub Context | Workflow File | Job ID | Trigger Event | Primary Agent | Agent Operation | Model ID | Prompt Template | Exit Gate | Next State Label |
 |------|----------|------------|----------------|---------------|--------|---------------|---------------|-----------------|----------|-----------------|-----------|------------------|
-| 9 | 05 | IMPLEMENT | Issue | somas-dev-autonomous.yml | pr-create | Label: somas:stage:implement | implementer | create_pr | gpt-3.5-turbo | prompts/implementer/create_pr.md | pr_created | (PR Context) |
-| 10 | 05 | IMPLEMENT | PR | somas-dev-autonomous.yml | autonomous-dev | Label: somas:stage:implement | implementer | write_code | claude-3-5-sonnet | prompts/templates/single_shot_implementer.md | compile_ok | (Wait) |
+| 9 | 05 | IMPLEMENT | Issue | somas-pipeline-runner.yml | pr-create | Label: somas:stage:implement | implementer | create_pr | gpt-3.5-turbo | prompts/implementer/create_pr.md | pr_created | (PR Context) |
+| 10 | 05 | IMPLEMENT | PR | somas-pipeline-runner.yml | autonomous-dev | Label: somas:stage:implement | implementer | write_code | claude-3-5-sonnet | prompts/templates/single_shot_implementer.md | compile_ok | (Wait) |
 | 11 | 05 | IMPLEMENT | PR | somas-pr-continue.yml | review | synchronize | copilot | review_diff | gpt-4o | prompts/copilot/review.md | syntax_ok | somas:stage:verify |
-| 12 | 06 | VERIFY | PR | somas-dev-autonomous.yml | test | Label: somas:stage:verify | tester | run_tests | gpt-4o-mini | prompts/tester/generate_tests.md | pass == 100% | somas:stage:integrate |
-| 13 | 06 | VERIFY | PR | somas-dev-autonomous.yml | heal | test_fail | debugger | self_heal | gpt-4o | prompts/debugger/analyze_traceback.md | retry <= 3 | (Loop) |
+| 12 | 06 | VERIFY | PR | somas-pipeline-runner.yml | test | Label: somas:stage:verify | tester | run_tests | gpt-4o-mini | prompts/tester/generate_tests.md | pass == 100% | somas:stage:integrate |
+| 13 | 06 | VERIFY | PR | somas-pipeline-runner.yml | heal | test_fail | debugger | self_heal | gpt-4o | prompts/debugger/analyze_traceback.md | retry <= 3 | (Loop) |
 | 14 | 07 | INTEGRATE | PR | pr-checklist-detector.yml | merge-check | Label: somas:stage:integrate | merger | check_conflict | git-native | N/A | conflicts == 0 | (Handover) |
 | 15 | 07 | INTEGRATE | PR | somas-orchestrator.yml | trace | (Chained) | validator | trace_reqs | gpt-4o | prompts/validator/traceability.md | met == 100% | somas:stage:harden |
 | 16 | 08 | HARDEN | PR | pr-security.yml | security | Label: somas:stage:harden | security | run_scans | codeql | N/A | vuln == 0 | somas:stage:release |

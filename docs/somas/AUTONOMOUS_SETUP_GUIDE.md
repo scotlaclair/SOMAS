@@ -165,9 +165,9 @@ Please analyze the project request...
 
 | File | Purpose |
 |------|---------|
-| `.github/workflows/somas-autonomous-enhanced.yml` | Enhanced autonomous workflow with direct API integration |
+| `.github/workflows/somas-pipeline-llm.yml` | Enhanced autonomous workflow with direct API integration |
 | `.github/workflows/somas-orchestrator.yml` | Comment-driven orchestration (fallback) |
-| `.github/workflows/somas-dev-autonomous.yml` | Original autonomous workflow (placeholder) |
+| `.github/workflows/somas-pipeline-runner.yml` | Original autonomous workflow (placeholder) |
 
 ## Architecture
 

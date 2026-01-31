@@ -1,4 +1,4 @@
-name: SOMAS Autonomous Dev Pipeline
+name: SOMAS Pipeline - Python Runner
 
 on:
   issues:
@@ -15,7 +15,8 @@ jobs:
     name: Autonomous Pipeline Execution
     # Only run on somas:dev label - let somas-pipeline.yml handle somas-project only cases
     # This prevents duplicate pipeline executions when somas-project is added
-    if: github.event.label.name == 'somas:dev'
+    # Skip if circuit breaker has been tripped
+    if: github.event.label.name == 'somas:dev' && !contains(github.event.issue.labels.*.name, 'somas:circuit-breaker')
     runs-on: ubuntu-latest
     timeout-minutes: 300
 
@@ -67,6 +68,46 @@ jobs:
           echo "Starting autonomous pipeline for Issue #$ISSUE_NUMBER"
           # Initialize project structure and metadata
           python3 -c "import os; from somas.core.state_manager import StateManager; StateManager().initialize_project(os.environ['PROJECT_ID'], int(os.environ['ISSUE_NUMBER']), os.environ['ISSUE_TITLE'])"
+
+      - name: Circuit Breaker Check
+        id: circuit_check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            // Count agent invocations (comments containing @copilot somas-* from non-bot users)
+            const invocations = comments.data.filter(c =>
+              c.body.includes('@copilot somas-') &&
+              !['copilot[bot]', 'Copilot'].includes(c.user.login)
+            ).length;
+
+            const MAX_INVOCATIONS = 20;
+
+            if (invocations >= MAX_INVOCATIONS) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `## Circuit Breaker Triggered\n\n<!-- SOMAS_CIRCUIT_BREAKER:max_invocations -->\n\n**Reason:** Maximum agent invocations (${MAX_INVOCATIONS}) reached\n**Workflow:** somas-pipeline-runner\n\n@scotlaclair - Human intervention required.\n\n**To resume:** Remove the \`somas:circuit-breaker\` label after addressing the issue.`
+              });
+
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['somas:circuit-breaker']
+              });
+
+              core.setFailed('Circuit breaker tripped: max invocations reached');
+              return;
+            }
+
+            core.info(`Circuit breaker OK: ${invocations}/${MAX_INVOCATIONS} invocations`);
 
       - name: Save Issue Context
         env:
