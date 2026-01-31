@@ -16,7 +16,7 @@ SOMAS is an autonomous AI-driven software development pipeline with a solid foun
 - **Configuration:** ~1,000+ lines in config.yml
 - **Documentation:** 20+ comprehensive markdown files
 - **Test Coverage:** 70% with 1,075 lines of tests
-- **Agent Configurations:** 22 agents (65% well-defined)
+- **Agent Configurations:** 21 agents (67% well-defined)
 - **Pipeline Stages:** All 11 stages fully defined with quality gates
 
 ---
@@ -64,9 +64,9 @@ SOMAS is an autonomous AI-driven software development pipeline with a solid foun
    - **2 Critical Gaps:** advisor (9 lines), specifier (48 lines)
 
 2. **Prompt Templates**
-   - Defined: 5/22 agents have prompt templates
+   - Defined: 5/21 agents have prompt templates
    - Coverage: architect, specifier, advisor, triage, implementer
-   - Missing: 17 of 22 agent-specific prompts
+   - Missing: 16 of 21 agent-specific prompts
 
 3. **Feedback Loop System**
    - Structure: ✓ Complete
@@ -217,9 +217,10 @@ SOMAS is an autonomous AI-driven software development pipeline with a solid foun
 **Objective:** Create prompt templates and expand agent configurations
 
 #### 3.1 Create Missing Prompt Templates
-- [ ] Create templates for remaining 17 agents:
-  - **Implement:** `planner`, `decomposer`, `tester`, `security`, `merger`, `validator`
-  - **Verify:** Matching agent responsibility definitions
+- [ ] Create templates for remaining 16 agents (currently have 5: architect, specifier, advisor, triage, implementer):
+  - **Priority 1 (Blocks stages):** planner, decomposer, tester, security, merger, validator
+  - **Priority 2 (Enhances stages):** coder, orchestrator, copilot, simulator, reviewer, operator, documenter, deployer, analyzer, debugger
+  - **Verification:** Ensure each template matches agent responsibility definitions
   - **Structure:** Follow existing template pattern (task, context, quality criteria)
 
 #### 3.2 Create Per-Agent Python Modules
@@ -314,13 +315,15 @@ SOMAS is an autonomous AI-driven software development pipeline with a solid foun
 **Recommended order for maximum efficiency:**
 
 1. **Complete agent configs** (all 3) - Small, high-impact
-2. **Implement agent invocation** - Enables testing
-3. **Create LLM integration** - Required for execution
+2. **Create LLM integration** - Required for execution (MUST precede agent invocation)
+3. **Implement agent invocation** - Enables testing (depends on LLM integration from step 2)
 4. **Create GitHub integration** - Enables issue/PR management
 5. **Implement graph algorithms** - Optimizes planning
 6. **Create prompt templates** - Improves agent quality
 7. **Add integration tests** - Validates everything works
 8. **Documentation pass** - Makes it operationalizable
+
+**Note on sequence:** Steps 2 and 3 have a hard dependency: agent invocation at runner.py:271 requires calling the LLM model, which is only available after LLM integration is complete. LLM integration must be done first.
 
 ---
 
@@ -358,7 +361,7 @@ SOMAS is an autonomous AI-driven software development pipeline with a solid foun
 
 - [ ] **M1 (Week 2):** All 3 incomplete agents complete, graph algorithms implemented
 - [ ] **M2 (Week 4):** Full LLM and GitHub integration operational
-- [ ] **M3 (Week 6):** All 22 agents have complete templates and Python modules
+- [ ] **M3 (Week 6):** All 21 agents have complete templates and Python modules
 - [ ] **M4 (Week 8):** 90%+ test coverage with integration and E2E tests passing
 - [ ] **M5 (Week 10):** Full documentation complete, monitoring operational
 
