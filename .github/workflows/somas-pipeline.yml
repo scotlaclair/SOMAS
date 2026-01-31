@@ -191,15 +191,30 @@ jobs:
         with:
           github-token: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
           script: |
+            // Verify SOMAS_PAT is configured
+            // GITHUB_TOKEN cannot trigger other workflows (see docs/somas/PAT-SETUP-GUIDE.md)
+            const hasPAT = '${{ secrets.SOMAS_PAT }}' !== '';
+            if (!hasPAT) {
+              core.setFailed(
+                'SOMAS_PAT is not configured. GITHUB_TOKEN cannot trigger somas-dev-autonomous.yml workflow. ' +
+                'Please configure SOMAS_PAT secret following docs/somas/PAT-SETUP-GUIDE.md to enable autonomous PR creation.'
+              );
+              return;
+            }
+            
             // Add somas:dev label to trigger somas-dev-autonomous.yml workflow
             // which will create the PR on the dev branch
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              labels: ['somas:dev']
-            });
-            core.info('✓ Added somas:dev label to trigger autonomous PR creation');
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['somas:dev']
+              });
+              core.info('✓ Added somas:dev label to trigger autonomous PR creation');
+            } catch (error) {
+              core.info(`ℹ️ Skipped adding somas:dev label (possibly already present or insufficient permissions): ${error.message}`);
+            }
 
   stage-1-intake:
     # Agent Assignment: @copilot somas-triage, somas-advisor
