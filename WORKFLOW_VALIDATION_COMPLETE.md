@@ -101,12 +101,12 @@ Table showing:
 - Initial workflows triggered
 
 #### Agent Invocation Sequence
-Complete list of 20 specialized agents across 11 stages:
+Complete list of 22 specialized agents across 11 stages:
 - **Stage 1 (INTAKE)**: Triage, Advisor
 - **Stage 2 (SPECIFY)**: Specifier, Requirements
 - **Stage 3 (PLAN)**: Simulator, Architect, Planner
 - **Stage 4 (DECOMPOSE)**: Decomposer
-- **Stage 5 (IMPLEMENT)**: Implementer, Copilot
+- **Stage 5 (IMPLEMENT)**: Coder, Implementer, Copilot
 - **Stage 6 (VERIFY)**: Tester, Debugger
 - **Stage 7 (INTEGRATE)**: Merger, Validator
 - **Stage 8 (HARDEN)**: Security
