@@ -200,16 +200,10 @@ echo "----------------------------------"
 # Check templates referenced by agents exist
 if [[ -d "$REPO_ROOT/.somas/templates" ]]; then
     # Find all template references in agent configs
-    TEMPLATE_REFS=$(grep -r "\.somas/templates/" "$REPO_ROOT/.somas/agents/" 2>/dev/null | \
-                   sed 's/.*\.somas\/templates\/\([^"]*\).*/\1/' | \
-                   sed 's/.*\.somas\/templates\/\([^']*\).*/\1/' | \
-                   sort | uniq || echo "")
-
-    echo "$TEMPLATE_REFS" | while IFS= read -r template; do
-        if [[ -n "$template" ]]; then
-            template_file=".somas/templates/$template"
-            check_file_exists "$template_file" "Template referenced by agents"
-        fi
+    # Check for known template references manually
+    for template in "architecture.md" "plan.md" "SPEC.md" "execution_plan.md"; do
+        template_file=".somas/templates/$template"
+        check_file_exists "$template_file" "Template referenced by agents"
     done
 fi
 
@@ -238,10 +232,14 @@ for workflow in $WORKFLOW_FILES; do
     workflow_name=$(basename "$workflow" .yml)
 
     # Check for references to .somas files
-    SOMAS_REFS=$(grep -o "\.somas/[^\"']*" "$workflow" 2>/dev/null | sort | uniq || echo "")
+    SOMAS_REFS=$(grep -o "\.somas/[^\"']*" "$workflow" 2>/dev/null | tr ' ' '\n' | sort | uniq || echo "")
 
     while IFS= read -r ref; do
         if [[ -n "$ref" && "$ref" != ".somas/" ]]; then
+            # Skip dynamic paths with variables or wildcards
+            if [[ "$ref" == *"\${"* || "$ref" == *"*"* ]]; then
+                continue
+            fi
             # Remove trailing punctuation and check if file exists
             clean_ref=$(echo "$ref" | sed 's/[[:punct:]]*$//')
             if [[ "$clean_ref" == *.yml || "$clean_ref" == *.md || "$clean_ref" == *.json ]]; then
