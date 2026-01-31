@@ -276,7 +276,7 @@ class StateManager:
             "recovery_info": {
                 "last_successful_checkpoint": None,
                 "can_resume": True,
-                "resume_from_stage": "signal"
+                "resume_from_stage": "intake"
             }
         }
         
@@ -359,9 +359,17 @@ class StateManager:
             # Apply updates
             state.update(updates)
             state["updated_at"] = datetime.utcnow().isoformat() + 'Z'
-            
-            # Perform atomic write while lock is held
-            self._atomic_write_json_unlocked(state_path, state)
+
+            # Perform atomic write while lock is held (inline, same as other methods)
+            tmp_path = state_path.with_suffix('.tmp')
+            try:
+                with open(tmp_path, 'w') as f:
+                    json.dump(state, f, indent=2)
+                tmp_path.replace(state_path)
+            except Exception as e:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+                raise
         
         # Log transition if requested (outside the lock)
         if log_transition:

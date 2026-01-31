@@ -95,5 +95,4 @@
     "deprecation_policy": "remove_obsolete_tests",
     "documentation_required": true
   }
-}</content>
-<parameter name="filePath">/Users/architect/Developer/projects/somas/tests/tests-index.json
+}
