@@ -6,6 +6,28 @@ The scripts directory contains utility scripts for maintaining and managing the 
 
 ## Available Scripts
 
+### Workflow Testing Scripts
+
+See [TEST_SCRIPTS_README.md](TEST_SCRIPTS_README.md) for comprehensive documentation on workflow test automation.
+
+**Quick overview:**
+- `test-workflow-simple-project.sh` - Full end-to-end project workflow test
+- `test-workflow-bug-report.sh` - Bug report workflow test
+- `test-workflow-enhancement.sh` - Enhancement workflow test  
+- `test-workflow-all.sh` - Master script running all test scenarios
+- `lib/workflow-test-helpers.sh` - Reusable helper functions
+
+**Usage:**
+```bash
+# Run all workflow tests
+./scripts/test-workflow-all.sh
+
+# Or run individual test
+./scripts/test-workflow-simple-project.sh
+```
+
+### Maintenance Scripts
+
 ### `validate-consistency.sh`
 **Purpose:** Validates cross-references and consistency across the entire repository
 
