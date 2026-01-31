@@ -1,0 +1,125 @@
+name: Initialize project-somas
+
+# This workflow creates the default project-somas GitHub Project
+# for testing change request workflows and integration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  create-project-somas:
+    runs-on: ubuntu-latest
+    name: Create project-somas GitHub Project
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Create project-somas GitHub Project
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
+          script: |
+            const projectId = 'project-somas';
+            
+            console.log(`Creating GitHub Project for ${projectId}...`);
+            
+            // Check if project already exists
+            const existingProjects = await github.rest.projects.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            
+            const existingProject = existingProjects.data.find(p => 
+              p.name === `SOMAS Pipeline - ${projectId}`
+            );
+            
+            if (existingProject) {
+              console.log(`Project already exists: ${existingProject.html_url}`);
+              core.setOutput('project_id', existingProject.id);
+              core.setOutput('project_url', existingProject.html_url);
+              core.setOutput('already_exists', 'true');
+              return;
+            }
+            
+            // Create new project
+            const { data: project } = await github.rest.projects.createForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: `SOMAS Pipeline - ${projectId}`,
+              body: `Default project board for SOMAS change request testing and integration.\n\nProject ID: ${projectId}\nCreated: ${new Date().toISOString()}\n\nThis project is used for:\n- Testing change request workflows\n- Integration testing with labels and milestones\n- Development and dogfooding of the SOMAS system`
+            });
+            
+            console.log(`✅ Created project: ${project.html_url}`);
+            
+            // Create columns for the 11-stage Aether Lifecycle
+            const columns = [
+              '1️⃣ INTAKE - Signal',
+              '2️⃣ SPECIFY - Design', 
+              '3️⃣ PLAN - Grid',
+              '4️⃣ DECOMPOSE - Line',
+              '5️⃣ IMPLEMENT - MCP',
+              '6️⃣ VERIFY - Pulse',
+              '7️⃣ INTEGRATE - Synapse',
+              '8️⃣ HARDEN - Shield',
+              '9️⃣ RELEASE - Velocity',
+              '🔟 OPERATE - Monitor',
+              '1️⃣1️⃣ ANALYZE - Learn',
+              '✅ Done'
+            ];
+            
+            for (const columnName of columns) {
+              const { data: column } = await github.rest.projects.createColumn({
+                project_id: project.id,
+                name: columnName
+              });
+              console.log(`✅ Created column: ${columnName}`);
+            }
+            
+            // Store project metadata
+            const fs = require('fs');
+            const projectMeta = {
+              project_id: projectId,
+              github_project_id: project.id,
+              github_project_url: project.html_url,
+              created_at: new Date().toISOString(),
+              status: 'active',
+              purpose: 'Default project for change request testing',
+              type: 'system'
+            };
+            
+            const metaPath = `.somas/projects/${projectId}/project_metadata.json`;
+            fs.mkdirSync(`.somas/projects/${projectId}`, { recursive: true });
+            fs.writeFileSync(metaPath, JSON.stringify(projectMeta, null, 2));
+            
+            console.log(`✅ Saved project metadata to ${metaPath}`);
+            
+            core.setOutput('project_id', project.id);
+            core.setOutput('project_url', project.html_url);
+            core.setOutput('already_exists', 'false');
+      
+      - name: Commit Project Metadata
+        run: |
+          git config --global user.name "SOMAS Bot"
+          git config --global user.email "somas-bot@users.noreply.github.com"
+          
+          git add .somas/projects/project-somas/
+          git commit -m "Initialize project-somas metadata" || echo "No changes to commit"
+          git push || echo "No changes to push"
+      
+      - name: Summary
+        run: |
+          echo "## ✅ project-somas Initialization Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Project ID:** project-somas" >> $GITHUB_STEP_SUMMARY
+          echo "**GitHub Project:** [View Project Board](${{ steps.create-project-somas.outputs.project_url }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Test change request workflow by creating an issue with the 'somas:change' label" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify project ID defaults to 'project-somas'" >> $GITHUB_STEP_SUMMARY
+          echo "3. Check that labels and milestones are properly linked" >> $GITHUB_STEP_SUMMARY

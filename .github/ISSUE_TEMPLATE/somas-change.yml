@@ -30,8 +30,8 @@ body:
     id: project_id
     attributes:
       label: Related Project ID
-      description: Which project does this change affect? (e.g., project-123)
-      placeholder: "project-123"
+      description: Which project does this change affect?
+      value: "project-somas"
     validations:
       required: true
 
