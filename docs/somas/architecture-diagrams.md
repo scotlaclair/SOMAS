@@ -68,6 +68,8 @@ flowchart TB
 
 ### Stage Details
 
+> **Note**: This table shows the **primary agent** for each of the 11 pipeline stages. Additional supporting agents (Triage, Advisor, Debugger, Requirements, Reviewer, etc.) are used alongside these primary agents. See the [Complete Agent Reference](#complete-agent-reference) section for all 20 specialized agents.
+
 | Stage | Agent | Model | Purpose |
 |-------|-------|-------|---------|
 | SIGNAL | Planner | GPT-5.2 | Catch initial request |
@@ -164,7 +166,9 @@ sequenceDiagram
 
 ### Complete Agent Reference
 
-The 11-stage Aether Lifecycle pipeline utilizes 20 specialized agents across different stages:
+This section provides the **comprehensive list of all 20 specialized agents** used in the SOMAS pipeline. Unlike the simplified [Stage Details](#stage-details) table above which shows only primary agents, this reference includes all supporting and specialized agents:
+
+**Agent Distribution Across 11 Stages:**
 
 | Stage | Agents | Role |
 |-------|--------|------|
