@@ -189,7 +189,7 @@ jobs:
       - name: Add somas:dev label to trigger autonomous pipeline
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.SOMAS_PAT || secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.SOMAS_PAT || github.token }}
           script: |
             // Add somas:dev label to trigger somas-dev-autonomous.yml workflow
             // which will create the PR on the dev branch
