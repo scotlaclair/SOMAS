@@ -240,7 +240,35 @@ jobs:
         with:
           script: |
             const issue = context.issue.number;
-            const projectId = `project-${issue}`;
+            let projectId = `project-${issue}`;
+            
+            // For change requests, extract project ID from issue body or default to project-somas
+            const issueLabels = context.payload.issue.labels.map(l => l.name);
+            if (issueLabels.includes('somas:change')) {
+              const issueBody = context.payload.issue.body || '';
+              
+              // Try to extract "Related Project ID" from issue body
+              // GitHub issue forms format: ### Related Project ID\n\nproject-name
+              const projectIdMatch = issueBody.match(/###\s*Related Project ID\s*\n\s*([a-zA-Z0-9_-]+)/i);
+              
+              if (projectIdMatch && projectIdMatch[1]) {
+                projectId = projectIdMatch[1].trim();
+                core.info(`Extracted project ID from issue body: ${projectId}`);
+              } else {
+                // Default to project-somas for change requests
+                projectId = 'project-somas';
+                core.info(`Defaulting to project-somas for change request`);
+              }
+              
+              // Validate project ID format
+              if (!/^project-[a-zA-Z0-9_-]+$/.test(projectId)) {
+                core.warning(`Invalid project ID format: ${projectId}, defaulting to project-somas`);
+                projectId = 'project-somas';
+              }
+            }
+            
+            core.info(`Using project ID: ${projectId}`);
+            
             const comment = context.payload.comment.body;
             const commentAuthor = context.payload.comment.user.login;
 
