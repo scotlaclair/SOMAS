@@ -213,7 +213,14 @@ jobs:
               });
               core.info('✓ Added somas:dev label to trigger autonomous PR creation');
             } catch (error) {
-              core.info(`ℹ️ Skipped adding somas:dev label (possibly already present or insufficient permissions): ${error.message}`);
+              // Handle specific error cases for better debugging
+              if (error.status === 422 && error.message.includes('already exists')) {
+                core.info('ℹ️ Label somas:dev already present, skipping addition');
+              } else if (error.status === 403 || error.status === 401) {
+                core.info(`ℹ️ Insufficient permissions to add label: ${error.message}`);
+              } else {
+                core.info(`ℹ️ Could not add label (error ${error.status}): ${error.message}`);
+              }
             }
 
   stage-1-intake:
