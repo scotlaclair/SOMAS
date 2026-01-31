@@ -14,7 +14,6 @@ Security Considerations:
 import os
 import re
 import yaml
-import json
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 import logging
@@ -163,10 +162,23 @@ class AgentInvoker:
                 path = Path(value) if isinstance(value, str) else value
                 
                 if path.exists() and path.is_file():
-                    # Include file content
+                    # Include file content with error handling
                     message_parts.append(f"### {key} (from {path})")
-                    message_parts.append(f"```")
-                    message_parts.append(path.read_text())
+                    message_parts.append("```")
+                    try:
+                        file_content = path.read_text()
+                        message_parts.append(file_content)
+                    except (OSError, UnicodeDecodeError) as exc:
+                        logger.warning(
+                            "Failed to read context file %s for key %s: %s",
+                            path,
+                            key,
+                            exc,
+                        )
+                        message_parts.append(
+                            "[Content unavailable: error reading file. "
+                            "See logs for details.]"
+                        )
                     message_parts.append("```")
                     message_parts.append("")
                 else:
@@ -182,7 +194,7 @@ class AgentInvoker:
         model: str, 
         system_prompt: str, 
         user_message: str,
-        temperature: float = 0.3
+        temperature: float
     ) -> str:
         """
         Invoke OpenAI API.
@@ -220,7 +232,8 @@ class AgentInvoker:
         model: str, 
         system_prompt: str, 
         user_message: str,
-        temperature: float = 0.3
+        temperature: float,
+        max_tokens: int = 4096
     ) -> str:
         """
         Invoke Anthropic API.
@@ -230,6 +243,7 @@ class AgentInvoker:
             system_prompt: System prompt/instructions
             user_message: User message with context
             temperature: Sampling temperature (0.0-1.0)
+            max_tokens: Maximum tokens in response
             
         Returns:
             Model response as string
@@ -244,7 +258,7 @@ class AgentInvoker:
         
         response = self.anthropic_client.messages.create(
             model=model,
-            max_tokens=4096,
+            max_tokens=max_tokens,
             temperature=temperature,
             system=system_prompt,
             messages=[{"role": "user", "content": user_message}]
@@ -300,6 +314,9 @@ class AgentInvoker:
         if temperature is None:
             temperature = provider_config.get('temperature', 0.3)
         
+        # Get max_tokens for Anthropic
+        max_tokens = provider_config.get('max_tokens', 4096)
+        
         # Load agent prompt
         system_prompt = self._load_agent_prompt(agent_name)
         
@@ -307,13 +324,14 @@ class AgentInvoker:
         user_message = self._build_context_message(context, project_id)
         
         # Make API call based on provider
-        if provider in ['openai', 'copilot']:
+        # Map provider names to actual API clients
+        if provider in ['openai', 'copilot', 'gpt_5_2', 'gpt_4o']:
             response = self._invoke_openai(
                 model, system_prompt, user_message, temperature
             )
-        elif provider == 'anthropic':
+        elif provider in ['anthropic', 'claude_opus_4_5', 'claude_sonnet_4_5']:
             response = self._invoke_anthropic(
-                model, system_prompt, user_message, temperature
+                model, system_prompt, user_message, temperature, max_tokens
             )
         else:
             raise ValueError(f"Unknown provider: {provider}")
@@ -350,7 +368,7 @@ class AgentInvoker:
         
         # Match artifacts to expected outputs
         for output in expected_outputs:
-            if output.endswith('.yml') and yaml_matches:
+            if (output.endswith('.yml') or output.endswith('.yaml')) and yaml_matches:
                 artifacts[output] = yaml_matches.pop(0)
             elif output.endswith('.md') and md_matches:
                 artifacts[output] = md_matches.pop(0)
@@ -386,12 +404,14 @@ class AgentInvoker:
         saved_paths = []
         
         for filename, content in artifacts.items():
-            # Validate filename (no path traversal)
-            if '..' in filename or '/' in filename:
+            # Validate filename (no path traversal via directory components)
+            filename_str = str(filename)
+            safe_name = os.path.basename(filename_str)
+            if not safe_name or safe_name in ('.', '..') or safe_name != filename_str:
                 logger.warning(f"Skipping invalid filename: {filename}")
                 continue
             
-            file_path = base_dir / filename
+            file_path = base_dir / safe_name
             
             # Ensure path is within base directory
             if not file_path.resolve().is_relative_to(base_dir.resolve()):

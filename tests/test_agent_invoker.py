@@ -15,7 +15,7 @@ import pytest
 import tempfile
 import shutil
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from somas.core.agent_invoker import AgentInvoker
 
@@ -299,7 +299,8 @@ End of specification.
         result = invoker._invoke_openai(
             "gpt-4o",
             "System prompt",
-            "User message"
+            "User message",
+            0.3
         )
         
         assert result == "Test response"
@@ -311,7 +312,7 @@ End of specification.
         invoker.openai_client = None
         
         with pytest.raises(RuntimeError, match="OpenAI client not initialized"):
-            invoker._invoke_openai("gpt-4o", "system", "user")
+            invoker._invoke_openai("gpt-4o", "system", "user", 0.3)
     
     @patch.dict(os.environ, {'ANTHROPIC_API_KEY': 'test-key'})
     def test_invoke_anthropic(self, temp_somas_dir):
@@ -329,7 +330,9 @@ End of specification.
         result = invoker._invoke_anthropic(
             "claude-3-5-sonnet-20241022",
             "System prompt",
-            "User message"
+            "User message",
+            0.3,
+            4096
         )
         
         assert result == "Test response"
@@ -341,7 +344,7 @@ End of specification.
         invoker.anthropic_client = None
         
         with pytest.raises(RuntimeError, match="Anthropic client not initialized"):
-            invoker._invoke_anthropic("claude", "system", "user")
+            invoker._invoke_anthropic("claude", "system", "user", 0.3, 4096)
     
     @patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'})
     def test_invoke_agent_full_flow(self, temp_somas_dir):
