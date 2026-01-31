@@ -8,3 +8,8 @@ pyyaml
 
 # API documentation generation
 pdoc>=14.0.0
+
+# Optional dependencies for direct LLM API integration
+# These enable autonomous agent execution without GitHub Copilot dependency
+openai>=1.0.0
+anthropic>=0.18.0
