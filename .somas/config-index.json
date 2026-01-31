@@ -139,5 +139,4 @@
     "validation_required": true,
     "security_reviewed": true
   }
-}</content>
-<parameter name="filePath">/Users/architect/Developer/projects/somas/.somas/config-index.json
+}
