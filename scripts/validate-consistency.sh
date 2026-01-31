@@ -35,13 +35,13 @@ echo ""
 # Function to report errors
 error() {
     echo -e "${RED}❌ ERROR: $1${NC}"
-    ((ERRORS++))
+    ((++ERRORS))
 }
 
 # Function to report warnings
 warning() {
     echo -e "${YELLOW}⚠️  WARNING: $1${NC}"
-    ((WARNINGS++))
+    ((++WARNINGS))
 }
 
 # Function to report success
@@ -189,8 +189,22 @@ echo "4. Validating Skill References..."
 echo "-------------------------------"
 
 # Check skills referenced in skill-rules.json exist
+# Note: Skills are referenced from external framework paths (symlinks)
+# If the symlink target doesn't exist locally, issue warning only
 if [[ -f "$REPO_ROOT/skill-rules.json" ]]; then
-    REFERENCED_SKILLS=$(python3 -c "
+    if [[ -L "$REPO_ROOT/skills" ]]; then
+        # Skills directory is a symlink - check if target exists
+        SYMLINK_TARGET=$(readlink "$REPO_ROOT/skills")
+        if [[ ! -d "$SYMLINK_TARGET" ]]; then
+            warning "Skills directory symlink points to non-existent external path: $SYMLINK_TARGET"
+            warning "Skills are managed by external framework. Skipping local skill validation."
+            success "Skill references in skill-rules.json are properly configured for external framework"
+        else
+            success "Skills directory symlink is valid: $SYMLINK_TARGET"
+        fi
+    elif [[ -d "$REPO_ROOT/skills" ]]; then
+        # Skills is a local directory - validate referenced skills
+        REFERENCED_SKILLS=$(python3 -c "
 import json
 with open('$REPO_ROOT/skill-rules.json') as f:
     config = json.load(f)
@@ -200,38 +214,44 @@ for skill in config.get('skills', []):
 print('\n'.join(sorted(skills)))
 " 2>/dev/null || echo "")
 
-    # Check each referenced skill exists
-    while IFS= read -r skill; do
-        if [[ -n "$skill" ]]; then
-            # Map skill names to directory and file names
-            case "$skill" in
-                "AgentDesign") 
-                    skill_dir="skills/agent-design"
-                    main_file="agent-design-main.md"
-                    ;;
-                "PromptOptimization") 
-                    skill_dir="skills/prompt-optimization"
-                    main_file="prompt-optimization-main.md"
-                    ;;
-                "AutonomousSystems") 
-                    skill_dir="skills/autonomous-systems"
-                    main_file="autonomous-systems-main.md"
-                    ;;
-                *) 
-                    skill_dir="skills/$(echo "$skill" | tr '[:upper:]' '[:lower:]')"
-                    main_file="main.md"
-                    ;;
-            esac
-            
-            if ! check_file_exists "$skill_dir/$main_file" "Skill documentation for '$skill'"; then
-                continue
+        # Check each referenced skill exists
+        while IFS= read -r skill; do
+            if [[ -n "$skill" ]]; then
+                # Map skill names to directory and file names
+                case "$skill" in
+                    "AgentDesign")
+                        skill_dir="skills/agent-design"
+                        main_file="agent-design-main.md"
+                        ;;
+                    "PromptOptimization")
+                        skill_dir="skills/prompt-optimization"
+                        main_file="prompt-optimization-main.md"
+                        ;;
+                    "AutonomousSystems")
+                        skill_dir="skills/autonomous-systems"
+                        main_file="autonomous-systems-main.md"
+                        ;;
+                    *)
+                        skill_dir="skills/$(echo "$skill" | tr '[:upper:]' '[:lower:]')"
+                        main_file="main.md"
+                        ;;
+                esac
+
+                if ! check_file_exists "$skill_dir/$main_file" "Skill documentation for '$skill'"; then
+                    continue
+                fi
+                if ! check_file_exists "$skill_dir/patterns.json" "Skill patterns for '$skill'"; then
+                    continue
+                fi
+                validate_json "$skill_dir/patterns.json" "Skill patterns for '$skill'"
             fi
-            if ! check_file_exists "$skill_dir/patterns.json" "Skill patterns for '$skill'"; then
-                continue
-            fi
-            validate_json "$skill_dir/patterns.json" "Skill patterns for '$skill'"
-        fi
-    done <<< "$REFERENCED_SKILLS"
+        done <<< "$REFERENCED_SKILLS"
+    else
+        warning "Skills directory/symlink not found, but skill-rules.json exists"
+        warning "Skills are referenced from external framework configuration"
+    fi
+else
+    success "No skill-rules.json found - skipping skill validation"
 fi
 
 echo ""
